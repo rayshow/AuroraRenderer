@@ -1,0 +1,2 @@
+add_subdirectory(dynamiclibtest)
+add_subdirectory(staticlibtest)

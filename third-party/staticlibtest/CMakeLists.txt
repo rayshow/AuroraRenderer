@@ -1,0 +1,5 @@
+project(staticlibtest)
+file(GLOB_RECURSE HEADERS "*.h")
+add_library(${PROJECT_NAME} STATIC src/staticlibtest.cpp ${HEADERS})
+add_library(3rd::staticlib ALIAS ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src)

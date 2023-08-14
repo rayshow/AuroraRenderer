@@ -1,0 +1,8 @@
+project(dynamiclibtest)
+file(GLOB_RECURSE HEADERS "*.h")
+file(GLOB_RECURSE DEFINES "*.def")
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+add_library(${PROJECT_NAME} SHARED src/dynamiclibtest.cpp ${HEADERS} ${DEFINES})
+add_library(3rd::dynamiclib ALIAS ${PROJECT_NAME})
+add_definitions(-DRHI_EXPORT)
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src)
