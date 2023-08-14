@@ -1,0 +1,12 @@
+*.dll
+*.lib
+*.obj
+*.pdb
+*.exe
+*.ilk
+*.log
+*.stamp
+*.depend
+*.tlog*
+*.VC.db*
+*/CmakeFiles/**
