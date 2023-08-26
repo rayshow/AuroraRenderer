@@ -10,3 +10,4 @@
 *.tlog*
 *.VC.db*
 */CmakeFiles/**
+vs2017
