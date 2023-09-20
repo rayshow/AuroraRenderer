@@ -1036,13 +1036,77 @@ enum class EExitCode {
 	Fatal
 };
 
+class AppPluginManager
+{
+	EExitCode initialize()
+	{
+		return EExitCode::Success;
+	}
+	void tick()
+	{
+		
+	}
+	void finalize()
+	{
+		
+	}
+};
+
+class Plugin
+{
+public:
+	virtual EExitCode initialize() =0;
+	virtual void tick()=0;
+	virtual void finalize()=0;
+	static void addToGlobal(Plugin* instance)
+	{
+		plugins.push_back(instance);
+	}
+	static std::vector<Plugin*> plugins;
+};
+std::vector<Plugin*> Plugin::plugins{};
+
+struct PluginAdder
+{
+	PluginAdder(Plugin& instance)
+	{
+		Plugin::addToGlobal(&instance);
+	}
+};
+
+#define ADD_PLUGIN_TO_GLOBAL_INNER(Class, Name) \
+	static Class Name{}; \
+	static PluginAdder Add ## Name(Name);
+
+#define ADD_PLUGIN_TO_GLOBAL(Class) \
+	ADD_PLUGIN_TO_GLOBAL_INNER(Class, Plugin ##__LINE__)
+
 // tick
 class Engine
 {
 public:
-	EExitCode initialize() { return EExitCode::Success; }
-	void tick() {}
-	void finalize() {}
+	EExitCode initialize()
+	{
+		for(auto& plugin : Plugin::plugins){
+			EExitCode code = plugin->initialize();
+			if(code != EExitCode::Success){
+				return code;
+			}
+		}
+		return EExitCode::Success;
+	}
+	void tick()
+	{
+		for(auto& plugin : Plugin::plugins){
+			plugin->tick();
+		}
+	}
+	void finalize()
+	{
+		for(auto& plugin : Plugin::plugins){
+			plugin->tick();
+		}
+	}
 };
 
 
@@ -1094,6 +1158,16 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
     GInstance = hInstance;
     i32 argc = 0;
     LPWSTR* argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
+	 
+	if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
+		AllocConsole();
+		AttachConsole(ATTACH_PARENT_PROCESS);
+		FILE* fDummy;
+		freopen_s(&fDummy, "CONIN$", "r", stdin);
+		freopen_s(&fDummy, "CONOUT$", "w", stderr);
+		freopen_s(&fDummy, "CONOUT$", "w", stdout);
+		printf("allocate console");
+	}
     for (i32 i = 0; i < argc; ++i)
     {
         char* buf = new char[2048];
@@ -1102,3 +1176,26 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
     }
     return Application::GuardMain();
 }
+
+
+class DrawRawTriangle : public Plugin
+{
+public:
+	DrawRawTriangle()
+	{}
+
+	virtual EExitCode initialize()
+	{
+		return EExitCode::Success;
+	}
+	virtual void tick()
+	{
+		
+	}
+	virtual void finalize()
+	{
+
+	}
+};
+
+ADD_PLUGIN_TO_GLOBAL(DrawRawTriangle)
