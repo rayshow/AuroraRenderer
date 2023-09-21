@@ -1,11 +1,11 @@
 #pragma once
 
-#include<android_native_app_glue.h>
+#if RS_PLATFORM_ANDROID
 
+#include<android_native_app_glue.h>
 #include"platform/common/application.h"
 #include"window.h"
 #include"vulkan_context.h"
-
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -100,9 +100,9 @@ inline bool processAndroidEvent(android_app *app){
 class AndroidApplication: public Application 
 {
 public:
-    AndroidApplication(android_app* inApp)
-		: app{inApp}
-		{}
+	void setAndroidAPP(android_app* inApp){
+		app = inAPP;
+	}
 
     virtual ~AndroidApplication() =default;
 
@@ -230,7 +230,6 @@ private:
 	std::string tempDir;
 	std::string internalDataDir;
 };
-
-
-
 PROJECT_NAMESPACE_END
+
+#endif 

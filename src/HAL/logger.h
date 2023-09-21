@@ -4,7 +4,7 @@
 #if RS_PLATFORM_ANDROID
 #include"android/android_logger.h"
 #elif RS_PLATFORM_WINDOW
-#include"window/window_logger.h"
+#include"window/win_logger.h"
 #else 
 #error "unkown platform logger"
 #endif 

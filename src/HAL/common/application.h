@@ -5,7 +5,10 @@
 #include<thread>
 #include<vector>
 #include<algorithm>
-#include <variant>
+#include<variant>
+#include<array>
+#include<unordered_map>
+#include<unordered_set>
 
 #include"core/type.h"
 #include"core/util/singleton.h"
@@ -79,21 +82,39 @@ struct AppPlugin {
 };
 
 
-enum EAppConfig
-{
-    Start =0,
-    WinWidth,
-    WinHeight,
-    ProjectName,
-    Max
-};
 
-class ApplicationConfig : public Singleton<Application>
+class AppConfigs
 {
+    enum
+    {
+        WinWidth = 0,
+        WinHeight,
+        ProjectName,
+        Max
+    };
+    using AppConfigVarient = std::variant<i64, f64, i32, f32, std::string>;
 
-    std::vector<std::string> cmdlines;
+    std::unordered_set<std::string>                   switches;
+    std::array< AppConfigVarient, AppConfigs::Max>    definedConfigs;
+    std::unordered_map<std::string, AppConfigVarient> configs;
     
+    template<typename T>
+    T& get(i32 index) {
+        return std::get<T>(definedConfigs[index]);
+    }
+
+    template<typename T>
+    T* get(std::string const& name) {
+        auto& found = configs.find(name);
+        if (found == configs.end()) {
+            return
+        }
+        return confi
+    }
+
 };
+inline AppConfigs GAppConfigs;
+
 
 class Application: public Singleton<Application>
 {

@@ -1,6 +1,8 @@
 #pragma once
 
-#include"../../type.h"
+#if RS_PLATFORM_ANDROID
+
+#include"core/type.h"
 
 #include <unwind.h>
 #include <dlfcn.h>
@@ -226,4 +228,4 @@ PROJECT_NAMESPACE_BEGIN
     
 PROJECT_NAMESPACE_END
 
-
+#endif

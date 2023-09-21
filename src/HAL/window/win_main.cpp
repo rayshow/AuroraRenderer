@@ -1,5 +1,4 @@
-#include<windows.h>
-#include<windowsx.h>
+
 #include"win_application.h"
 
 
@@ -26,7 +25,7 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
 	{
 		char* buf = new char[2048];
 		wcstombs(buf, argv[i], 2048);
-		GCmdLines.push_back(buf);
+		//GCmdLines.push_back(buf);
 	}
 	return Application::GuardMain();
 }

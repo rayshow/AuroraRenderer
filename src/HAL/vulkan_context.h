@@ -2,7 +2,7 @@
 #include"core/compile.h"
 
 #if RS_PLATFORM_WINDOW
-#include"window/window_vulkan_context.h"
+#include"window/win_vulkan_context.h"
 #elif RS_PLATFORM_ANDROID
 #include"android/android_vulkan_context.h"
 #else 

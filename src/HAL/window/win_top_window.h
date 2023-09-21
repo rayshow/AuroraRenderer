@@ -1,7 +1,12 @@
 #pragma once
 
+#define VK_USE_PLATFORM_WIN32_KHR
+#define UNICODE 1
+#include<windows.h>
+#include<windowsx.h>
+
 #include"../common/top_window.h"
-#incldue"../common/input_process.h"
+#include"../common/input_process.h"
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -10,7 +15,7 @@ class WinTopWindow : public TopWindow, public WinMessageHandler
 {
 public:
     WinTopWindow(std::string const& title, i32 width, i32 height)
-        : Window(title, width, height)
+        : TopWindow(title, width, height)
     {
         WNDCLASSEX wc;
         std::memset(&wc, 0, sizeof(WNDCLASSEX));
@@ -70,7 +75,7 @@ public:
 
     static i32 ProcessMessage(HWND hwnd, u32 msg, WPARAM wParam, LPARAM lParam)
     {
-        InputManager& SInputManager = InputManager::Get();
+        InputManager& SInputManager = InputManager::getInstance();
         switch (msg)
         {
         case WM_CREATE:

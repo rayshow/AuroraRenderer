@@ -1,4 +1,5 @@
 #pragma once
+#if RS_PLATFORM_ANDROID
 
 #include<stdio.h>
 #include<unordered_map>
@@ -123,3 +124,5 @@ class AndroidGlobalArgments
 using GlobalArgments = AndroidGlobalArgments;
 
 PROJECT_NAMESPACE_END
+
+#endif

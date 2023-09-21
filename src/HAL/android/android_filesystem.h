@@ -1,10 +1,9 @@
 #pragma once
 
+#if RS_PLATFORM_ANDROID
 #include<string>
 #include<type_traits>
 #include<limits>
-
-
 
 // file operate
 #include <fcntl.h>
@@ -794,8 +793,6 @@ class AndroidFileSystem{
 
 using FileSystem = AndroidFileSystem;
 
-
-
-
-
 PROJECT_NAMESPACE_END
+
+#endif

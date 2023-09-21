@@ -1,4 +1,5 @@
 #pragma once
+#if RS_PLATFORM_ANDROID
 
 #include"platform/common/window.h"
 #include"platform/common/application.h"
@@ -52,3 +53,5 @@ private:
 };
 
 PROJECT_NAMESPACE_END
+
+#endif

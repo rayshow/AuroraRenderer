@@ -1,4 +1,5 @@
 #pragma once
+#if RS_PLATFORM_ANDROID
 
 #include<sys/time.h>
 #include"type.h"
@@ -30,7 +31,8 @@ struct AndroidTime
 	}
 };
 
-
 using TimeMeasure = AndroidTime;
 
 PROJECT_NAMESPACE_END
+
+#endif

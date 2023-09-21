@@ -1,4 +1,5 @@
 #pragma once
+#if RS_PLATFORM_ANDROID
 
 #include <dlfcn.h>
 #include"platform/common/vulkan_context.h"
@@ -27,3 +28,5 @@ struct AndroidVulkanContext
 };
 
 PROJECT_NAMESPACE_END
+
+#endif

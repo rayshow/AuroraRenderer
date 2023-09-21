@@ -3,16 +3,14 @@
 #include<unordered_map>
 #include<memory>
 
-#define VK_USE_PLATFORM_WIN32_KHR
-#define UNICODE 1
-#include<windows.h>
-#include<windowsx.h>
 #include"vulkan/vulkan.h"
 #include"HAL/vulkan_context.h"
+#include"HAL/application.h"
 #include"core/type.h"
 using namespace _NS;
-
 std::vector<std::string> GCmdLines;
+/*
+
 HINSTANCE GInstance;
 bool  GRequestExit{ false };
 
@@ -635,6 +633,7 @@ private:
 
 };
 
+
 template<typename T>
 void ZeroVulkanStruct(T& t, VkStructureType type){
 	memset(&t, 0, sizeof(T));
@@ -1030,21 +1029,6 @@ enum class EExitCode {
 	Fatal
 };
 
-class AppPluginManager
-{
-	EExitCode initialize()
-	{
-		return EExitCode::Success;
-	}
-	void tick()
-	{
-		
-	}
-	void finalize()
-	{
-		
-	}
-};
 
 class Plugin
 {
@@ -1146,7 +1130,7 @@ private:
 	std::shared_ptr<WinWindow> _window{nullptr};
 
 };
- 
+ */
 i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
 {
     GInstance = hInstance;
@@ -1168,9 +1152,9 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
         wcstombs(buf, argv[i], 2048);
         GCmdLines.push_back(buf);
     }
-    return Application::GuardMain();
+    return WinApplication::GuardMain();
 }
-
+/*
 class DrawRawTriangle : public Plugin
 {
 public:
@@ -1191,4 +1175,4 @@ public:
 	}
 };
 
-ADD_PLUGIN_TO_GLOBAL(DrawRawTriangle)
+ADD_PLUGIN_TO_GLOBAL(DrawRawTriangle)*/

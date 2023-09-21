@@ -30,7 +30,7 @@ public:
         _window->finalize();
     }
 private:
-    std::shared_ptr<WinWindow> _window{ nullptr };
+    std::shared_ptr<WinTopWindow> _window{ nullptr };
 };
 
 PROJECT_NAMESPACE_END

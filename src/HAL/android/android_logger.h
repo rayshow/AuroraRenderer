@@ -1,4 +1,5 @@
 #pragma once
+#if RS_PLATFORM_ANDROID
 
 #include <android/log.h>
 #include <cstdio>
@@ -66,3 +67,5 @@ public:
 
 using ELogLevel = ELogLevel;
 using Logger = AndroidLogger;
+
+#endif
