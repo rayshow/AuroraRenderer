@@ -11,3 +11,6 @@
 *.VC.db*
 */CmakeFiles/**
 vs2017
+vs2019
+.vs 
+out

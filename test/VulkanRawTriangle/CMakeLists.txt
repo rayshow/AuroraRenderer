@@ -1,3 +1,5 @@
-#project(VulkanRawTriangle)
-add_executable(DrawRawTriangle DrawRawTriangle.cpp)
-target_include_directories(DrawRawTriangle PUBLIC ${PROJECT_SOURCE_DIR}/third-party/Vulkan/Include)
+set(ModuleName "DrawRawTriangle")
+add_executable(${ModuleName} ${BUILD_RUNNING_TYPE} DrawRawTriangle.cpp)
+target_include_directories(${ModuleName} PUBLIC ${PROJECT_SOURCE_DIR}/third-party/Vulkan/Include)
+target_include_directories(${ModuleName} PUBLIC ${PROJECT_SOURCE_DIR}/src)
+set_cpp_options(${ModuleName} 17 TRUE)

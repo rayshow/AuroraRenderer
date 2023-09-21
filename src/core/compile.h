@@ -31,17 +31,14 @@ cpp14: 201402
 cpp17: 201703L
 C++20: 202002L
 */
-#define RS_CPP17       2
-#define RS_CPP14       1
-#define RS_CPP11       0
-#define RS_CPP_STD_VER
+#define RS_CPP17       1
+
 #if !defined(__cplusplus) 
 #error "not used for c++"
 #elif __cplusplus >=201703L 
 #define RS_CPP_STD_VER RS_CPP17
-#elif __cplusplus >=201402L || defined(_MSC_VER)
-#define RS_CPP_STD_VER RS_CPP14
 #else 
+#define RS_CPP_STD_VER RS_CPP11
 #error "c++14 and newer should be support"
 #endif
 
@@ -175,7 +172,7 @@ C++20: 202002L
 //function like macro
 #ifndef rs_likely
 //gcc  or clang
-#if (RS_COMPILER_DEFINE == RS_COMPILER_GCC) || (RS_COMPILER_DEFINE == RS_COMPILER_CLANG)  
+#if RS_COMPILER_GCC || RS_COMPILER_CLANG
 #define rs_likely(x)    __builtin_expect(!!(x), 1)
 #define rs_unlikely(x)  __builtin_expect(!!(x), 0)
 #else
@@ -240,6 +237,12 @@ C++20: 202002L
 #	endif
 #endif
 
+// app or plugin
+#if !defined(RS_PLUGIN)
+#define RS_APP 1
+#else 
+#define RS_APP 0
+#endif
 
 #if RS_COMPILER_MSVC
 //4514: un-used inline function had been removed
@@ -293,9 +296,11 @@ C++20: 202002L
 #define RS_STRINGIZE(...) RS_STRINGIZE_FAST(__VA_ARGS__)
 #define RS_STRINGIZE_FAST(...) #__VA_ARGS__
 
-#define RS_NS rs 
-#define RS_NS_BEGIN namespace RS_NS{ 
+#define _NS ar3d
+#define RS_NS_BEGIN namespace _NS{ 
 #define RS_NS_END }
+#define PROJECT_NAMESPACE_BEGIN RS_NS_BEGIN
+#define PROJECT_NAMESPACE_END RS_NS_END
 
 #define RS_TFN(T)  template<class...> class T
 #define RS_TFN1(T) template<class, class...> class T
@@ -306,3 +311,12 @@ bool isLittleEndian()
 	int t = 1;
 	return *((char*)&t) == 1;
 }
+
+#define SET_THIS_CLASS(ClassName)  using this_type = ClassName;
+#define	AR_ATTRIBUTE(Type, Member, AccessName)  \
+			Type _## Member;\
+			RS_FORCEINLINE this_type& set ## AccessName(Type const& Other){ \
+				_## Member = Other; \
+				return *this; } \
+			RS_FORCEINLINE Type const& Member() const { return _## Member; }
+			

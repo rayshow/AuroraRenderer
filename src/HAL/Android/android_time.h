@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sys/time.h>
+#include<sys/time.h>
 #include"type.h"
 
 PROJECT_NAMESPACE_BEGIN

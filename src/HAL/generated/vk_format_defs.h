@@ -75,7 +75,6 @@
 // clang-format off
 #include"vk_common.h"
 
-PROJECT_NAMESPACE_BEGIN
 enum class EVkFormatIndex
 {
 	VK_FORMAT_R4G4_UNORM_PACK8_index
@@ -863,4 +862,3 @@ inline VkFormatInfo& GetVkFormatInfo(VkFormat format){
 inline VkDeviceSize GetImageSize(VkFormat format, uint32 width, uint32 height, uint32 depth=1){
     return 0;
 }
-PROJECT_NAMESPACE_END

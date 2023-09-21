@@ -13,7 +13,7 @@
 #include<new>       /* nullptr_t and nothrow_t */
 #include"compile.h" 
 
-RS_NS_BEGIN
+PROJECT_NAMESPACE_BEGIN
 
 // base type
 using u8  =  unsigned char;
@@ -24,7 +24,8 @@ using i8  =  signed char;
 using i16 =  signed short int;
 using i32 =  signed int;
 using i64 =  signed long long;
-using ldouble = long double;
+using f64 =  long double;
+using f32 =  float;
 using wchar   = wchar_t;
 using achar   = char;
 using char16  = char16_t;
@@ -57,7 +58,17 @@ static_assert(sizeof(i64) == 8, "i64 is not 8 byte.");
 
 template<typename T> constexpr T kInvalidInteger = (T)(-1);
 
-RS_NS_END
+template<typename T>
+struct TVector2
+{
+    T _x{};
+    T _y{};
+    TVector2(T x, T y) :_x(x), _y(y) {}
+};
+
+using f32x2 = TVector2<f32>;
+
+PROJECT_NAMESPACE_END
 
 
 

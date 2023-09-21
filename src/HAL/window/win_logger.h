@@ -1,20 +1,10 @@
+#pragma once
 
-enum class ELogLevel{
-    Unkown =0,
-    Default,
-    Verbose,
-    Debug,
-    Info,
-    Warning,
-    Error,
-    Fatal,
-    Silent
-};
+#include"../common/common_logger.h"
 
-class WindowLogger
+class WindowLogger: public CommonLogger
 {
 private:
-
     static void vprintf(int loglevel, const char* fmt, ...){
         va_list vargs;
         va_start(vargs, fmt);

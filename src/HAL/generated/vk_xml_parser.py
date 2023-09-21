@@ -1736,7 +1736,7 @@ with open(scriptPath + 'vk_serialize_defs.h', mode='w', newline = None) as Comma
                                 # get data
                                 #commandBeforeExecuteExpr=f'void* {memberName}Addr = nullptr;'
                                 commandExecuteParamExpr=f'(void**)&mappedData'
-                                commandAfterExecuteExpr=f'rs_check(mappedData!=nullptr);\n\t\tif({memberName}Length>0){{ memcpy( mappedData, {memberName}, {memberName}Length);}}'
+                                commandAfterExecuteExpr=f'rs_assert(mappedData!=nullptr);\n\t\tif({memberName}Length>0){{ memcpy( mappedData, {memberName}, {memberName}Length);}}'
                         
                         elif paramType == 'void':
                             # void* with unkown pointer size, set a max size 2048 and size info is in content
@@ -1950,7 +1950,7 @@ with open(scriptPath + 'vk_serialize_defs.h', mode='w', newline = None) as Comma
                                     commandExecuteParamExpr=f'{memberName}Transforms.data()'
                                     if sCommandType=='create':
                                         commandBeforeExecuteExpr+=f'\n\t\tstd::vector<{param.type}> {memberName}Transforms{{{memberName}Length, VK_NULL_HANDLE}};'
-                                        commandAfterExecuteExpr=f'\n\t\tfor(uint32 i=0; i<{memberName}Length; ++i){{\n\t\t\t/*rs_check({memberName}Transforms[i]!=VK_NULL_HANDLE);*/'\
+                                        commandAfterExecuteExpr=f'\n\t\tfor(uint32 i=0; i<{memberName}Length; ++i){{\n\t\t\t/*rs_assert({memberName}Transforms[i]!=VK_NULL_HANDLE);*/'\
                                                 f'\n\t\t\tuint64_t temp=(uint64_t){memberName}Transforms[i];\n\t\t\t{handleProcess}({memberName}[i], temp, EHandleOperateType::create);'\
                                                     f'\n\t\t}} '
                                     else:
@@ -2099,7 +2099,7 @@ with open(scriptPath + 'vk_serialize_defs.h', mode='w', newline = None) as Comma
             if parser.isExtension:
                 executeBeginCheck=f'\n\t\tCheckAPIExists({dispatchTable}->{name});'
             else:
-                executeBeginCheck=f'\n\t\trs_check({dispatchTable}->{name}!=nullptr);'
+                executeBeginCheck=f'\n\t\trs_assert({dispatchTable}->{name}!=nullptr);'
                 
 
             executeCommandFunction=f'virtual void execute(HandleReplace&& handleReplace) override {{{executeBeginCheck}{commandBeforeExecuteExprList}{retExpr}'\
@@ -2348,7 +2348,7 @@ with open(scriptPath + 'vk_serialize_defs.h', mode='w', newline = None) as Comma
                             deserializeName=f"*typedPointer<{memberTypeName}*>(&{paramName}), {length}, {arrayReadMark}"
                             DeepCopyConstructorContentExpr=f'{param.name} = ptr::safe_new_copy_array( {inParamName}, {inLengthName});'
                             if paramType.category == ETypeCategory.Struct:
-                                DeepCopyConstructorContentExpr+=f'\n\t\tif({inParamName}!=nullptr && {inLengthName}>0){{\n\t\t\trs_check({param.name}!=nullptr);\n\t\t\tfor(uint32 i=0; i<{inLengthName}; ++i){{typedPointer<{memberTypeName}>({paramName})[i].deepCopy({inParamName}[i]);}}\n\t\t}}' 
+                                DeepCopyConstructorContentExpr+=f'\n\t\tif({inParamName}!=nullptr && {inLengthName}>0){{\n\t\t\trs_assert({param.name}!=nullptr);\n\t\t\tfor(uint32 i=0; i<{inLengthName}; ++i){{typedPointer<{memberTypeName}>({paramName})[i].deepCopy({inParamName}[i]);}}\n\t\t}}' 
                                 replayExpr=f'if({paramName}!=nullptr &&{length}>0){{\n\t\t\tfor(uint32 i=0; i<{length}; ++i){{typedPointer<{memberTypeName}>({paramName})[i].processHandle(handleReplace);}}\n\t\t}}'
                             destructorExpr=f'ptr::safe_delete_array({param.name}, {lengthName}); /* array<T*> */'
 
@@ -2368,7 +2368,7 @@ with open(scriptPath + 'vk_serialize_defs.h', mode='w', newline = None) as Comma
                         warpType = f'typedPointer<{memberTypeName}>({paramName})'
                         wrapRefType = f'*typedPointer<{memberTypeName}*>(&{paramName})'
                         DeepCopyConstructorContentExpr =f'{param.name} = ptr::safe_new_copy({inParamName});'\
-                            f'\n\t\tif({inParamName}!=nullptr){{ rs_check({param.name}!=nullptr); {warpType}->deepCopy(*{inParamName});}}' 
+                            f'\n\t\tif({inParamName}!=nullptr){{ rs_assert({param.name}!=nullptr); {warpType}->deepCopy(*{inParamName});}}' 
                         destructorExpr=f'ptr::safe_delete({wrapRefType});'
                         serializeName=f'{warpType}, kReadWriteOptional' 
                         deserializeName=f'{wrapRefType}, kReadWriteOptional'
@@ -2723,7 +2723,7 @@ with open(scriptPath + 'vk_wrap_defs.h', mode='w', newline = None) as CommandInf
                     ConstructorContentExpr=f'this->{lengthName} = {memberName}.size();'
                     processedLengthParams[lengthName]=1
                 else:
-                    ConstructorContentExpr=f'rs_check( this->{lengthName} == {memberName}.size());'
+                    ConstructorContentExpr=f'rs_assert( this->{lengthName} == {memberName}.size());'
 
                 ConstructorContentExpr+=f'\n\t\tthis->{param.name} = {memberName}.data();'
                 bCheckLengthRead= param.altlen!=''
@@ -2737,7 +2737,7 @@ with open(scriptPath + 'vk_wrap_defs.h', mode='w', newline = None) as CommandInf
                             ConstructorContentExpr=f'this->{lengthName} = {memberName}.size();'
                             processedLengthParams[lengthName]=1
                         else:
-                            ConstructorContentExpr=f'rs_check( this->{lengthName} == {memberName}.size());'
+                            ConstructorContentExpr=f'rs_assert( this->{lengthName} == {memberName}.size());'
                         ConstructorContentExpr+=f'\n\t\tthis->{param.name} = (void*){memberName}.data();'
                     else :
                         # T* + length
@@ -2746,7 +2746,7 @@ with open(scriptPath + 'vk_wrap_defs.h', mode='w', newline = None) as CommandInf
                             ConstructorContentExpr=f'this->{lengthName} = {memberName}.size();'
                             processedLengthParams[lengthName]=1
                         else:
-                            ConstructorContentExpr=f'rs_check( this->{lengthName} == {memberName}.size());'
+                            ConstructorContentExpr=f'rs_assert( this->{lengthName} == {memberName}.size());'
                         ConstructorContentExpr+=f'\n\t\tthis->{param.name} = {memberName}.data();' 
                         
 
@@ -2835,7 +2835,7 @@ with open(scriptPath + 'vk_wrap_defs.h', mode='w', newline = None) as CommandInf
         ret = ''
         if command.ret!='' and command.ret!='void':
             ret='return '
-        CommandBody = f'rs_check(DispatchTable.{name}!=nullptr);\n\t\t{ret}DispatchTable.{name}({CommandExecuteParamList});'
+        CommandBody = f'rs_assert(DispatchTable.{name}!=nullptr);\n\t\t{ret}DispatchTable.{name}({CommandExecuteParamList});'
 
         CommandSignation=f'{command.ret} {functionName}( {CommandInParamList})'
         CommandDefine = f'{CommandSignation}{{\n\t\t{CommandBody}\n\t}}'
@@ -3147,7 +3147,7 @@ inline void GetVulkanDeviceExtensionStrings(std::vector<char const*>& extensions
 
 inline {ExtensionStructName}& GetVulkanExtension({ExtensionIndexEnum} Enum){{
     int ienum = (int)Enum;
-    rs_check(ienum<(int){ExtensionIndexEnum}::Count);
+    rs_assert(ienum<(int){ExtensionIndexEnum}::Count);
     return GDefaultExtensions[ienum];
 }}
 
@@ -3239,7 +3239,7 @@ inline uint32 GetVkFormatIndex(VkFormat format)
 
 inline VkFormatInfo& GetVkFormatInfo(VkFormat format){{
     uint32 index = GetVkFormatIndex(format);
-    rs_check(index < (uint32)EVkFormatIndex::Count);
+    rs_assert(index < (uint32)EVkFormatIndex::Count);
     return GVkFormats[index];
 }}
 

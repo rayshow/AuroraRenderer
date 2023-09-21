@@ -1,0 +1,13 @@
+function(set_platform_special_options TargetName Window)
+	if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
+		target_compile_options(${TargetName} PUBLIC "/Zc:__cplusplus")
+	endif()
+    if (MSVC AND Window)
+        target_link_options(${TargetName} PRIVATE "/SUBSYSTEM:WINDOWS")
+    endif()
+endfunction()
+
+function(set_cpp_options TargetName Version Window)
+    set_platform_special_options(${TargetName} ${Window})
+    set_property(TARGET ${TargetName} PROPERTY CXX_STANDARD ${Version})
+endfunction()

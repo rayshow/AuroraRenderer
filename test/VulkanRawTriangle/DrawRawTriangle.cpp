@@ -8,17 +8,13 @@
 #include<windows.h>
 #include<windowsx.h>
 #include"vulkan/vulkan.h"
+#include"HAL/vulkan_context.h"
+#include"core/type.h"
+using namespace _NS;
 
 std::vector<std::string> GCmdLines;
 HINSTANCE GInstance;
 bool  GRequestExit{ false };
-using i32 = signed int;
-using u32 = unsigned int;
-using u8  = unsigned char;
-using i8  = signed char;
-using u16 = unsigned short;
-using i16 = signed short;
-#define FORCEINLINE                __forceinline
 
 struct Vector2
 {
@@ -583,8 +579,6 @@ public:
     {
 
     }
-private:
-
 };
 
 enum class WindowMode
@@ -1176,7 +1170,6 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
     }
     return Application::GuardMain();
 }
-
 
 class DrawRawTriangle : public Plugin
 {

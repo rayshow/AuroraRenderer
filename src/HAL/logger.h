@@ -1,10 +1,10 @@
 #pragma once
-#include"../compile.h"
+#include"core/compile.h"
 
-#if RS_PLATFORM_DEFINE == RS_PLATFORM_ANDROID
-#include"android/logger.h"
-#elif RS_PLATFORM_DEFINE == RS_PLATFORM_WINDOW
-#include"window/logger.h"
+#if RS_PLATFORM_ANDROID
+#include"android/android_logger.h"
+#elif RS_PLATFORM_WINDOW
+#include"window/window_logger.h"
 #else 
 #error "unkown platform logger"
 #endif 
@@ -49,37 +49,37 @@ inline void reprintfFileAndStdout(Args&&... args){
 inline void dumpStackFrame()
 {
    char callStack[4096];
-   rs::GetCallStack(callStack);
+   _NS::GetCallStack(callStack);
    RS_LOG("Stack(%d):%s",strlen(callStack), callStack);
 }
 
-#if RS_COMPILER_DEFINE == RS_COMPILER_MSVC
-        #include"cassert"
-        #define rs_check(condi) assert(condi)
-        #define rs_ensure(condi) assert(condi)
+#if RS_COMPILER_MSVC
+#include"cassert"
+#define rs_check(condi) assert(condi)
+#define rs_ensure(condi) assert(condi)
 #else 
-        template<bool bFatal>
-        inline bool checkConditionWithLoc(bool condi, char const* expr, char const* file, int line){
-                if(!condi){ 
-                        RS_LOG("Assertion failed:%s file: %s line: %d", expr, file, line); 
-                        RS_LOG_FLUSH();
-                        if constexpr(bFatal){
-                                char callStack[4096];
-                                rs::GetCallStack(callStack);
-                                RS_LOG("Stack(%d):%s",strlen(callStack), callStack);
-                                RS_LOG_FLUSH();
-                                rs_debugbreak(); 
-                        }
-                }
-                return condi;
-        }
+template<bool bFatal>
+inline bool checkConditionWithLoc(bool condi, char const* expr, char const* file, int line) {
+	if (!condi) {
+		RS_LOG("Assertion failed:%s file: %s line: %d", expr, file, line);
+		RS_LOG_FLUSH();
+		if constexpr (bFatal) {
+			char callStack[4096];
+			rs::GetCallStack(callStack);
+			RS_LOG("Stack(%d):%s", strlen(callStack), callStack);
+			RS_LOG_FLUSH();
+			rs_debugbreak();
+		}
+	}
+	return condi;
+}
 
-        #define rs_check2(expr)  if(!(expr)){ RS_LOG("Assertion failed:%s file: %s line: %d", #expr, __FILE__, __LINE__);  rs_debugbreak(); }
+#define rs_check2(expr)  if(!(expr)){ RS_LOG("Assertion failed:%s file: %s line: %d", #expr, __FILE__, __LINE__);  rs_debugbreak(); }
 
-        #define rs_check(expr)   checkConditionWithLoc<true>(expr, #expr, __FILE__, __LINE__ )
-        #define rs_ensure(expr)  checkConditionWithLoc<false>(expr, #expr, __FILE__, __LINE__ )
-        #define rs_checkf(expr,  ...)   if(!(expr)){  RS_LOG( __VA_ARGS__); checkConditionWithLoc<true>(expr, #expr, __FILE__, __LINE__ );}
-        #define rs_ensuref(expr,  ...)  if(!(expr)){  RS_LOG( __VA_ARGS__); checkConditionWithLoc<false>(expr, #expr, __FILE__, __LINE__ );}
+#define rs_check(expr)   checkConditionWithLoc<true>(expr, #expr, __FILE__, __LINE__ )
+#define rs_ensure(expr)  checkConditionWithLoc<false>(expr, #expr, __FILE__, __LINE__ )
+#define rs_checkf(expr,  ...)   if(!(expr)){  RS_LOG( __VA_ARGS__); checkConditionWithLoc<true>(expr, #expr, __FILE__, __LINE__ );}
+#define rs_ensuref(expr,  ...)  if(!(expr)){  RS_LOG( __VA_ARGS__); checkConditionWithLoc<false>(expr, #expr, __FILE__, __LINE__ );}
 #endif
 #else 
 #define rs_check(condi) 

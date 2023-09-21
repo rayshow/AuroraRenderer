@@ -106,6 +106,7 @@ public:
 
     virtual ~AndroidApplication() =default;
 
+
     // application
     virtual EExitCode initialize() override{
 
@@ -148,9 +149,6 @@ public:
             }
 
         }while(!isSurfaceReady() || !app->window);
-
-		
-	
 
 		// create window
 		WindowProperties properties;

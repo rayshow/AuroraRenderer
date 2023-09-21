@@ -75,9 +75,6 @@
 // clang-format off
 #include"vk_common.h"
 
-PROJECT_NAMESPACE_BEGIN
-
-
 
 struct WSpecializationMapEntry:public VkSpecializationMapEntry{
 	WSpecializationMapEntry(): VkSpecializationMapEntry{}{}
@@ -2681,5 +2678,3 @@ struct WQueue{
 		return DispatchTable.vkQueuePresentKHR(handle, pPresentInfo);
 	}
 };
-
-PROJECT_NAMESPACE_END
