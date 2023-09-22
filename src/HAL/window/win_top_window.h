@@ -392,8 +392,7 @@ private:
     float               _DPIScaleFactor{ 0.0f };
     bool                _minimized{ false };
     bool                _maximized{ false };
-    static WinMessageHandler* _app;
+    inline static WinMessageHandler* _app = nullptr;
 };
-WinMessageHandler* WinTopWindow::_app = nullptr;
 
 PROJECT_NAMESPACE_END

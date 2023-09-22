@@ -36,18 +36,18 @@ public:
     using check_t = std::enable_if_t< right_type_v<T>>;
 
     template<typename T>
-    T& widthDefault(T* pt, T const& inDefault)
+    T const& widthDefault(T* pt, T const& inDefault)
     {
         return pt ? *pt : inDefault;
     }
 
     template<typename T, typename = check_t<T> >
-    T& get(i32 index, T const& inDefault) {
+    T const& get(i32 index, T const& inDefault) {
         return widthDefault<T>( std::get_if<T>(&definedConfigs[index]), inDefault);
     }
 
     template<typename T, typename = check_t<T> >
-    T& get(std::string const& name, T const& inDefault) {
+    T const& get(std::string const& name, T const& inDefault) {
         auto& found = configs.find(name);
         if (found == configs.end()) {
             return nullptr;

@@ -3,8 +3,6 @@
 #include<unordered_map>
 #include<memory>
 
-#include"vulkan/vulkan.h"
-#include"HAL/vulkan_context.h"
 #include"HAL/application.h"
 #include"core/type.h"
 using namespace _NS;

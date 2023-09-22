@@ -306,7 +306,7 @@ C++20: 202002L
 #define RS_TFN1(T) template<class, class...> class T
 
 // big/little endian
-bool isLittleEndian()
+RS_FORCEINLINE bool isLittleEndian()
 {
 	int t = 1;
 	return *((char*)&t) == 1;
