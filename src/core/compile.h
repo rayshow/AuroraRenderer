@@ -320,5 +320,5 @@ bool isLittleEndian()
 				return *this; } \
 			RS_FORCEINLINE Type const& Member() const{\
 				return _## Member; } \
-			RS_FORCEINLINE Type& Member() { \
+			RS_FORCEINLINE Type& get_ ## Member() { \
 					return _## Member; }

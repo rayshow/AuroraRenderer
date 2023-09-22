@@ -80,13 +80,13 @@ struct AppPlugin {
     virtual void finalize() = 0;
 };
 
-
-class Application: public Singleton<Application>
+template<typename Derive>
+class CommonApplication: public Singleton<Derive>
 {
 public:
+    using Super = CommonApplication<Derive>;
     static constexpr double kFPSTickTimes[(int)EFPS::Count]={1.0/30.0, 1.0 / 60.0, 1.0 / 120.0, 0.0};
-  
-    virtual ~Application() = default;
+    virtual ~CommonApplication() = default;
 
     // entrance
     static i32 GuardMain() {
@@ -101,7 +101,7 @@ public:
 
 
     // app start
-    virtual EExitCode initialize(){
+    EExitCode initialize(){
         // timer
         timer.start();
         std::vector<AppPlugin*> initializedPlugins;
@@ -140,10 +140,10 @@ public:
         return EExitCode::Success;
     }
 
-    virtual void tick(f64 tickTime) {};
-    virtual void processEvents() {};
-    virtual void finalize(EExitCode code) {};
-    virtual void requestExit(){ bRequestExit = true; }
+    void tick(f64 tickTime) {};
+    void processEvents() {};
+    void finalize(EExitCode code) {};
+    void requestExit(){ bRequestExit = true; }
     bool exitRequested() const{ return bRequestExit;}
 
     void setFPS(EFPS inFPS){
@@ -177,9 +177,9 @@ private:
     bool bSurfaceReady{false};
     bool bHasFocus{false};
     EFPS fps{EFPS::Unlimit};
-    double tickTime;
-    Timer timer;
-    std::vector<AppPlugin*> _plugins;
+    double tickTime{};
+    Timer timer{};
+    std::vector<AppPlugin*> _plugins{};
 
     inline static std::string None{"[None]"};
 };

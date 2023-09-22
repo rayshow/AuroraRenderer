@@ -6,9 +6,11 @@
 
 using namespace ar3d;
 
+HINSTANCE GWinInstance;
+
 i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
 {
-	GInstance = hInstance;
+	GWinInstance = hInstance;
 	i32 argc = 0;
 	LPWSTR* argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
 
@@ -27,6 +29,12 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
 		wcstombs(buf, argv[i], 2048);
 		//GCmdLines.push_back(buf);
 	}
+
+	GAppConfigs.set(AppConfigs::WinWidth, 1000);
+	GAppConfigs.set(AppConfigs::WinHeight, 800);
+	GAppConfigs.set(AppConfigs::WinResizable, true);
+	GAppConfigs.set(AppConfigs::VSync, false);
+
 	return Application::GuardMain();
 }
 

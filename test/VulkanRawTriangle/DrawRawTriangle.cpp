@@ -1130,7 +1130,7 @@ private:
 	std::shared_ptr<WinWindow> _window{nullptr};
 
 };
- */
+ 
 i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
 {
     GInstance = hInstance;
@@ -1154,6 +1154,7 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
     }
     return WinApplication::GuardMain();
 }
+*/
 /*
 class DrawRawTriangle : public Plugin
 {

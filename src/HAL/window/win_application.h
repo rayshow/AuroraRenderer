@@ -6,31 +6,31 @@
 
 PROJECT_NAMESPACE_BEGIN
 
-extern HINSTANCE GInstance;
-
 // init / loop / exit
-class WinApplication: public Application
+class WinApplication: public CommonApplication< WinApplication>
 {
 public:
-    WinApplication() {}
-
     EExitCode initialize() {
-        _window = std::make_shared<WinTopWindow>("window", 800, 600);
+        EExitCode code = Super::initialize();
+        _window = std::make_shared<WinTopWindow>();
         _window->initialize();
         _window->show();
-        _engine.initialize();
         return EExitCode::Success;
     }
 
-
-    virtual void tick(f64 time) {
+    void tick(f64 time) {
+        Super::tick(time);
         _window->tick();
     }
+
     void finalize(EExitCode exitCode) {
+        Super::finalize(exitCode);
         _window->finalize();
     }
 private:
     std::shared_ptr<WinTopWindow> _window{ nullptr };
 };
+
+using Application = WinApplication;
 
 PROJECT_NAMESPACE_END

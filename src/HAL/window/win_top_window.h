@@ -1,17 +1,23 @@
 #pragma once
 
-#define VK_USE_PLATFORM_WIN32_KHR
 #define UNICODE 1
 #include<windows.h>
 #include<windowsx.h>
+#include "vulkan/vulkan_win32.h"
 
 #include"../common/top_window.h"
 #include"../common/input_process.h"
+#include"../generated/vk_common.h"
+#include"win_global.h"
+
+
 
 PROJECT_NAMESPACE_BEGIN
 
 // message
-class WinTopWindow : public TopWindow, public WinMessageHandler
+class WinTopWindow 
+    : public CommonTopWindow< WinTopWindow >
+    , public WinMessageHandler
 {
 public:
     WinTopWindow()
@@ -21,7 +27,7 @@ public:
         wc.cbSize = sizeof(WNDCLASSEX);
         wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
         wc.lpfnWndProc = AppWndProc;
-        wc.hInstance = GInstance;
+        wc.hInstance = GWinInstance;
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.lpszClassName = L"WinMainWindow";
         RegisterClassEx(&wc);
@@ -29,8 +35,8 @@ public:
 
     void initialize()
     {
-        const i32Rect& rect = getRect();
-        RECT windowRect = { 0, 0, rect.width, rect.height };
+        auto& rect = properties.get_rect();
+        RECT windowRect = { 0, 0, rect.get_width(), rect.get_height() };
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
         _window = CreateWindow(
@@ -43,18 +49,19 @@ public:
             windowRect.bottom - windowRect.top,
             nullptr,
             nullptr,
-            GInstance,
+            GWinInstance,
             nullptr
         );
 
-        _Application = this;
+        _app = this;
     }
 
     void finalize() {
         _window = nullptr;
     }
 
-    virtual void createVkSurface(VkInstance instance, VkSurfaceKHR* outSurface) override
+    // surface
+    VkSurfaceKHR createSurface(VkInstance instance, VkPhysicalDevice device) const
     {
         VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
         ZeroVulkanStruct(surfaceCreateInfo, VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR);
@@ -63,7 +70,7 @@ public:
         //vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, outSurface);
     }
 
-    virtual void* getWindowHandle() override
+    void* getWindowHandle()
     {
         return _window;
     }
@@ -87,14 +94,14 @@ public:
         {
             const i32 keycode = HIWORD(lParam) & 0x1FF;
             KeyboardType key = SInputManager.GetKeyFromKeyCode(keycode);
-            _Application->OnKeyDown(key);
+            _app->OnKeyDown(key);
             return 0;
         }
         case WM_KEYUP:
         {
             const i32 keycode = HIWORD(lParam) & 0x1FF;
             KeyboardType key = SInputManager.GetKeyFromKeyCode(keycode);
-            _Application->OnKeyUp(key);
+            _app->OnKeyUp(key);
             return 0;
         }
         case WM_LBUTTONDOWN:
@@ -112,7 +119,7 @@ public:
             const i32 x = GET_X_LPARAM(lParam);
             const i32 y = GET_Y_LPARAM(lParam);
 
-            Vector2 pos((float)x, (float)y);
+            I32Vector2 pos{ x,y };
 
             if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP)
             {
@@ -148,11 +155,11 @@ public:
 
             if (action == 1)
             {
-                _Application->OnMouseDown(button, pos);
+                _app->OnMouseDown(button, pos);
             }
             else
             {
-                _Application->OnMouseUp(button, pos);
+                _app->OnMouseUp(button, pos);
             }
 
             if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP)
@@ -166,39 +173,39 @@ public:
         {
             const i32 x = GET_X_LPARAM(lParam);
             const i32 y = GET_Y_LPARAM(lParam);
-            Vector2 pos((float)x, (float)y);
-            _Application->OnMouseMove(pos);
+            I32Vector2 pos(x, y);
+            _app->OnMouseMove(pos);
             return 0;
         }
         case WM_MOUSEWHEEL:
         {
             const i32 x = GET_X_LPARAM(lParam);
             const i32 y = GET_Y_LPARAM(lParam);
-            Vector2 pos((float)x, (float)y);
-            _Application->OnMouseWheel((float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, pos);
+            I32Vector2 pos(x, y);
+            _app->OnMouseWheel((float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, pos);
             return 0;
         }
         case WM_MOUSEHWHEEL:
         {
             const i32 x = GET_X_LPARAM(lParam);
             const i32 y = GET_Y_LPARAM(lParam);
-            Vector2 pos((float)x, (float)y);
-            _Application->OnMouseWheel((float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, pos);
+            I32Vector2 pos(x, y);
+            _app->OnMouseWheel((float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, pos);
             return 0;
         }
         case WM_SIZE:
         {
-            _Application->OnSizeChanged(LOWORD(lParam), HIWORD(lParam));
+            _app->OnSizeChanged(LOWORD(lParam), HIWORD(lParam));
             return 0;
         }
         case WM_PAINT:
         {
-            _Application->OnOSPai32();
+            _app->OnOSPai32();
             return 0;
         }
         case WM_CLOSE:
         {
-            _Application->OnRequestingExit();
+            _app->OnRequestingExit();
             return 0;
         }
         case WM_DESTROY:
@@ -262,60 +269,60 @@ public:
         return false;
     }
 
-    virtual bool OnMouseDown(MouseType type, const Vector2& pos) override
+    virtual bool OnMouseDown(MouseType type, const I32Vector2& pos) override
     {
 
         return false;
     }
 
-    virtual bool OnMouseUp(MouseType type, const Vector2& pos) override
+    virtual bool OnMouseUp(MouseType type, const I32Vector2& pos) override
     {
 
         return false;
     }
 
-    virtual bool OnMouseDoubleClick(MouseType type, const Vector2& pos) override
+    virtual bool OnMouseDoubleClick(MouseType type, const I32Vector2& pos) override
     {
 
         return false;
     }
 
-    virtual bool OnMouseWheel(const float delta, const Vector2& pos) override
+    virtual bool OnMouseWheel(const float delta, const I32Vector2& pos) override
     {
 
         return false;
     }
 
-    virtual bool OnMouseMove(const Vector2& pos) override
+    virtual bool OnMouseMove(const I32Vector2& pos) override
     {
         return false;
     }
 
-    virtual bool OnTouchStarted(const std::vector<Vector2>& locations) override
-    {
-
-        return false;
-    }
-
-    virtual bool OnTouchMoved(const std::vector<Vector2>& locations) override
+    virtual bool OnTouchStarted(const std::vector<I32Vector2>& locations) override
     {
 
         return false;
     }
 
-    virtual bool OnTouchEnded(const std::vector<Vector2>& locations)
+    virtual bool OnTouchMoved(const std::vector<I32Vector2>& locations) override
     {
 
         return false;
     }
 
-    virtual bool OnTouchForceChanged(const std::vector<Vector2>& locations)
+    virtual bool OnTouchEnded(const std::vector<I32Vector2>& locations)
     {
 
         return false;
     }
 
-    virtual bool OnTouchFirstMove(const std::vector<Vector2>& locations)
+    virtual bool OnTouchForceChanged(const std::vector<I32Vector2>& locations)
+    {
+
+        return false;
+    }
+
+    virtual bool OnTouchFirstMove(const std::vector<I32Vector2>& locations)
     {
 
         return false;

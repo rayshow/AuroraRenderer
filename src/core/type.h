@@ -61,11 +61,15 @@ template<typename T> constexpr T kInvalidInteger = (T)(-1);
 template<typename T>
 struct TVector2
 {
-    T _x{};
-    T _y{};
-    TVector2(T x, T y) :_x(x), _y(y) {}
+    AR_THIS_CLASS(TVector2);
+    AR_ATTRIBUTE(T, x);
+    AR_ATTRIBUTE(T, y);
+
+    TVector2() = default;
+    TVector2(T const& inX, T const& inY):_x{inX}, _y{inY} {}
 };
 using Vector2 = TVector2<f32>;
+using I32Vector2 = TVector2<i32>;
 
 
 template<typename T>

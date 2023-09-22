@@ -24,7 +24,7 @@ enum class EVSyncMode{
 
 struct WindowProperties
 {
-    AR_THIS_CLASS(WindowProperties)
+    AR_THIS_CLASS(WindowProperties);
     AR_ATTRIBUTE(I32Rect, rect);
     AR_ATTRIBUTE(EWindowMode, mode);
     AR_ATTRIBUTE(EVSyncMode, vsync);
@@ -32,13 +32,13 @@ struct WindowProperties
     AR_ATTRIBUTE(std::string, title);
 };
 
-
-class TopWindow
+template<typename Derive>
+class CommonTopWindow
 {
 public:
     WindowProperties properties{};
 
-    TopWindow()
+    CommonTopWindow()
     {
         i32 width = GAppConfigs.get<i32>(AppConfigs::WinWidth, 1);
         i32 height = GAppConfigs.get<i32>(AppConfigs::WinHeight, 1);
@@ -51,19 +51,21 @@ public:
             .set_mode(EWindowMode::Windowed);
     }
 
-    virtual ~TopWindow()=default;
+    virtual ~CommonTopWindow()=default;
 
     //render
-    virtual VkSurfaceKHR createSurface(VkInstance instance, VkPhysicalDevice device) const{
+    VkSurfaceKHR createSurface(VkInstance instance, VkPhysicalDevice device) const {
         return VK_NULL_HANDLE;
     }
+
+    void* getWindowHandle() { return nullptr; }
 
     virtual void createSwapChain(){}
 
     //window
-    virtual void close() =0;
-    virtual bool shouldClose() const = 0;
-    virtual float getDPIFactor() const = 0;
+    virtual void close() {};
+    virtual bool shouldClose() const { return false; };
+    virtual float getDPIFactor() const { return 1.0f; };
     virtual float getContentScalarFactor() const{
         return 1.0f;
     }

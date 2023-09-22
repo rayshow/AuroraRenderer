@@ -9,7 +9,6 @@
 
 PROJECT_NAMESPACE_BEGIN
 
-
 inline char const* GetAppCmdString(int32_t cmd){
 	#define RET_CMD_STRING(Enum) case Enum: return #Enum;
 	switch(cmd){

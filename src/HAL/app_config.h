@@ -20,14 +20,16 @@ class AppConfigs
 public:
     enum
     {
-        WinWidth = 0,
+        WinWidth,
         WinHeight,
+        WinResizable,
+        VSync,
         ProjectName,
         Max = 32,
     };
-    using AppConfigVarient = std::variant<i64, f64, i32, f32, std::string>;
+    using AppConfigVarient = std::variant<i64, f64, i32, f32, bool, void*, std::string>;
     template<typename T>
-    using right_type = is_one_of<T, i64, f64, i32, f32, std::string>;
+    using right_type = is_one_of<T, i64, f64, i32, f32, bool, void*, std::string>;
     template<typename T>
     static constexpr bool right_type_v = right_type<T>::value;
     template<typename T>
@@ -41,7 +43,7 @@ public:
 
     template<typename T, typename = check_t<T> >
     T& get(i32 index, T const& inDefault) {
-        return widthDefault( std::get_if<T>(definedConfigs[index]), inDefault);
+        return widthDefault<T>( std::get_if<T>(&definedConfigs[index]), inDefault);
     }
 
     template<typename T, typename = check_t<T> >
@@ -50,7 +52,7 @@ public:
         if (found == configs.end()) {
             return nullptr;
         }
-        return widthDefault(std::get_if<T>(*found), inDefault) ;
+        return widthDefault<T>(std::get_if<T>(*found), inDefault) ;
     }
 
     template<typename T, typename = check_t<T>  >

@@ -155,6 +155,7 @@ enum class MouseType
 class InputManager : public Singleton<InputManager>
 {
 public:
+    InputManager() {}
     void Init()
     {
         s_KeyboardTypesMap[0x00B] = KeyboardType::KEY_0;
@@ -334,7 +335,7 @@ public:
         return it->second == false;
     }
 
-    RS_FORCEINLINE const Vector2& GetMousePosition()
+    RS_FORCEINLINE const I32Vector2& GetMousePosition()
     {
         return s_MouseLocation;
     }
@@ -350,37 +351,37 @@ public:
 
 protected:
 
-    friend class Application;
+    //friend class Application;
 
     void static OnKeyDown(KeyboardType key) {}
 
     void static OnKeyUp(KeyboardType key) {}
 
-    void static OnMouseDown(MouseType type, const Vector2& pos) {}
+    void static OnMouseDown(MouseType type, const I32Vector2& pos) {}
 
-    void static OnMouseUp(MouseType type, const Vector2& pos) {}
-    void static OnMouseMove(const Vector2& pos) {}
+    void static OnMouseUp(MouseType type, const I32Vector2& pos) {}
+    void static OnMouseMove(const I32Vector2& pos) {}
 
-    void static OnMouseWheel(const float delta, const Vector2& pos) {}
+    void static OnMouseWheel(const float delta, const I32Vector2& pos) {}
 
 private:
 
-    bool     s_IsMouseMoveing;
-    float    s_MouseDelta;
-    Vector2  s_MouseLocation;
+    bool     s_IsMouseMoveing{};
+    float    s_MouseDelta{};
+    I32Vector2  s_MouseLocation{};
 
-    std::unordered_map<i32, bool>              s_KeyActions;
-    std::unordered_map<i32, bool>              s_MouseActions;
-    std::unordered_map<i32, KeyboardType>      s_KeyboardTypesMap;
+    std::unordered_map<i32, bool>              s_KeyActions{};
+    std::unordered_map<i32, bool>              s_MouseActions{};
+    std::unordered_map<i32, KeyboardType>      s_KeyboardTypesMap{};
 };
 
 struct WindowSizeLimits
 {
     AR_THIS_CLASS(WindowSizeLimits);
-    AR_ATTRIBUTE(f32, minWidth, MinWidth);
-    AR_ATTRIBUTE(f32, minHeight, MinHeight);
-    AR_ATTRIBUTE(f32, maxWidth, MaxWidth);
-    AR_ATTRIBUTE(f32, maxHeight, MaxHeight);
+    AR_ATTRIBUTE(f32, minWidth);
+    AR_ATTRIBUTE(f32, minHeight);
+    AR_ATTRIBUTE(f32, maxWidth);
+    AR_ATTRIBUTE(f32, maxHeight);
 };
 
 
@@ -400,60 +401,60 @@ public:
         return false;
     }
 
-    virtual bool OnMouseDown(MouseType type, const Vector2& pos)
+    virtual bool OnMouseDown(MouseType type, const I32Vector2& pos)
     {
 
         return false;
     }
 
-    virtual bool OnMouseUp(MouseType type, const Vector2& pos)
+    virtual bool OnMouseUp(MouseType type, const I32Vector2& pos)
     {
 
         return false;
     }
 
-    virtual bool OnMouseDoubleClick(MouseType type, const Vector2& pos)
+    virtual bool OnMouseDoubleClick(MouseType type, const I32Vector2& pos)
     {
 
         return false;
     }
 
-    virtual bool OnMouseWheel(const float delta, const Vector2& pos)
+    virtual bool OnMouseWheel(const float delta, const I32Vector2& pos)
     {
 
         return false;
     }
 
-    virtual bool OnMouseMove(const Vector2& pos)
+    virtual bool OnMouseMove(const I32Vector2& pos)
     {
         return false;
     }
 
-    virtual bool OnTouchStarted(const std::vector<Vector2>& locations)
-    {
-
-        return false;
-    }
-
-    virtual bool OnTouchMoved(const std::vector<Vector2>& locations)
+    virtual bool OnTouchStarted(const std::vector<I32Vector2>& locations)
     {
 
         return false;
     }
 
-    virtual bool OnTouchEnded(const std::vector<Vector2>& locations)
+    virtual bool OnTouchMoved(const std::vector<I32Vector2>& locations)
     {
 
         return false;
     }
 
-    virtual bool OnTouchForceChanged(const std::vector<Vector2>& locations)
+    virtual bool OnTouchEnded(const std::vector<I32Vector2>& locations)
     {
 
         return false;
     }
 
-    virtual bool OnTouchFirstMove(const std::vector<Vector2>& locations)
+    virtual bool OnTouchForceChanged(const std::vector<I32Vector2>& locations)
+    {
+
+        return false;
+    }
+
+    virtual bool OnTouchFirstMove(const std::vector<I32Vector2>& locations)
     {
 
         return false;
