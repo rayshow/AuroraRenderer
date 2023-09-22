@@ -14,7 +14,6 @@
 #include"core/util/singleton.h"
 #include"../logger.h"
 #include"top_window.h"
-#include"app_tickable.h"
 #include"engine.h"
 
 PROJECT_NAMESPACE_BEGIN
@@ -80,59 +79,6 @@ struct AppPlugin {
     virtual void tick(double) = 0;
     virtual void finalize() = 0;
 };
-
-template<typename T, typename... Args>
-struct is_one_of : std::disjunction< std::is_same<T, Args>...> {};
-
-
-class AppConfigs
-{
-    enum
-    {
-        WinWidth = 0,
-        WinHeight,
-        ProjectName,
-        Max = 32,
-    };
-    using AppConfigVarient = std::variant<i64, f64, i32, f32, std::string>;
-    template<typename T>
-    using right_type = is_one_of<T, i64, f64, i32, f32, std::string>;
-    template<typename T>
-    static constexpr bool right_type_v = right_type<T>::value;
-
-    std::unordered_set<std::string>                   switches{};
-    std::array< AppConfigVarient, AppConfigs::Max>    definedConfigs{};
-    std::unordered_map<std::string, AppConfigVarient> configs{};
-
-    template<typename T>
-    T* get(i32 index) {
-        return std::get_if<T>(definedConfigs[index]);
-    }
-
-    template<typename T>
-    T* get(std::string const& name) {
-        auto& found = configs.find(name);
-        if (found == configs.end()) {
-            return nullptr;
-        }
-        return std::get_if<T>(*found);
-    }
-
-    template<typename T, typename = std::enable_if_t< right_type_v<T> > >
-    void set(i32 index, T const& t) {
-        rs_check(index >= 0 && index < Max);
-        definedConfigs[index] = t;
-    }
-
-    template<typename T, typename = std::enable_if_t< right_type_v<T> > >
-    void set(std::string const& name, T const& t) {
-        auto& result = configs.emplace(name, t);
-        if (!result.second) {
-            *result.first = t;
-        }
-    }
-};
-inline AppConfigs GAppConfigs;
 
 
 class Application: public Singleton<Application>

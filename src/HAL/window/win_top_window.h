@@ -14,8 +14,7 @@ PROJECT_NAMESPACE_BEGIN
 class WinTopWindow : public TopWindow, public WinMessageHandler
 {
 public:
-    WinTopWindow(std::string const& title, i32 width, i32 height)
-        : TopWindow(title, width, height)
+    WinTopWindow()
     {
         WNDCLASSEX wc;
         std::memset(&wc, 0, sizeof(WNDCLASSEX));
@@ -381,14 +380,13 @@ public:
 
 private:
     HWND                _window{ 0 };
-    WindowMode          _windowMode{ WindowMode::Windowed };
     bool                _visible{ false };
     float               _aspectRatio{ 0.0f };
     float               _DPIScaleFactor{ 0.0f };
     bool                _minimized{ false };
     bool                _maximized{ false };
-    static WinMessageHandler* _Application;
+    static WinMessageHandler* _app;
 };
-WinMessageHandler* WinWindow::_Application = nullptr;
+WinMessageHandler* WinTopWindow::_app = nullptr;
 
 PROJECT_NAMESPACE_END

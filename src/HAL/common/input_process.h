@@ -376,7 +376,7 @@ private:
 
 struct WindowSizeLimits
 {
-    SET_THIS_CLASS(WindowSizeLimits)
+    AR_THIS_CLASS(WindowSizeLimits);
     AR_ATTRIBUTE(f32, minWidth, MinWidth);
     AR_ATTRIBUTE(f32, minHeight, MinHeight);
     AR_ATTRIBUTE(f32, maxWidth, MaxWidth);

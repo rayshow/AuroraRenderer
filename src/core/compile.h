@@ -312,11 +312,13 @@ bool isLittleEndian()
 	return *((char*)&t) == 1;
 }
 
-#define SET_THIS_CLASS(ClassName)  using this_type = ClassName;
-#define	AR_ATTRIBUTE(Type, Member, AccessName)  \
+#define AR_THIS_CLASS(ClassName)  using this_type = ClassName;
+#define	AR_ATTRIBUTE(Type, Member)  \
 			Type _## Member;\
-			RS_FORCEINLINE this_type& set ## AccessName(Type const& Other){ \
+			RS_FORCEINLINE this_type& set_ ## Member(Type const& Other){ \
 				_## Member = Other; \
 				return *this; } \
-			RS_FORCEINLINE Type const& Member() const { return _## Member; }
-			
+			RS_FORCEINLINE Type const& Member() const{\
+				return _## Member; } \
+			RS_FORCEINLINE Type& Member() { \
+					return _## Member; }

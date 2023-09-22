@@ -2,6 +2,7 @@
 
 #include<string>
 #include"core/type.h"
+#include"../app_config.h"
 #include"vulkan/vulkan.h"
 
 PROJECT_NAMESPACE_BEGIN
@@ -19,34 +20,36 @@ enum class EVSyncMode{
     OFF,
     Default
 };
-
-struct I32Rect
-{
-    i32 x;
-    i32 y;
-    i32 width;
-    i32 height;
-};
  
 
 struct WindowProperties
 {
-    I32Rect     _rect{ 0,0,1280,720 };
-    EWindowMode _mode{ EWindowMode::Windowed };
-    EVSyncMode  _vsync{ EVSyncMode::Default };
-    bool        _resizable{ true };
-    std::string _title{"None"};
+    AR_THIS_CLASS(WindowProperties)
+    AR_ATTRIBUTE(I32Rect, rect);
+    AR_ATTRIBUTE(EWindowMode, mode);
+    AR_ATTRIBUTE(EVSyncMode, vsync);
+    AR_ATTRIBUTE(bool, resizable);
+    AR_ATTRIBUTE(std::string, title);
 };
 
 
 class TopWindow
 {
 public:
-    WindowProperties properties;
+    WindowProperties properties{};
 
-    TopWindow(WindowProperties const& inProperties)
-        :properties{inProperties}
-    {}
+    TopWindow()
+    {
+        i32 width = GAppConfigs.get<i32>(AppConfigs::WinWidth, 1);
+        i32 height = GAppConfigs.get<i32>(AppConfigs::WinHeight, 1);
+        static std::string defaultName{ "Aurora3d" };
+        std::string const& name = GAppConfigs.get<std::string>(AppConfigs::ProjectName, defaultName);
+        properties.set_rect(I32Rect{ 0,0,width, height })
+            .set_title(name)
+            .set_vsync(EVSyncMode::ON)
+            .set_resizable(true)
+            .set_mode(EWindowMode::Windowed);
+    }
 
     virtual ~TopWindow()=default;
 
@@ -65,10 +68,12 @@ public:
         return 1.0f;
     }
     
-    WindowSize& resize(WindowSize const& size){
-        if(properties.resizable)
-            properties.size = size;
-        return properties.size;
+    I32Rect const& resize(I32Rect const& rect){
+        if (properties.resizable())
+        {
+            properties.set_rect(rect);
+        }
+        return properties.rect();
     }
 
 };

@@ -65,8 +65,21 @@ struct TVector2
     T _y{};
     TVector2(T x, T y) :_x(x), _y(y) {}
 };
+using Vector2 = TVector2<f32>;
 
-using f32x2 = TVector2<f32>;
+
+template<typename T>
+struct TRect
+{
+    AR_THIS_CLASS(TRect)
+    AR_ATTRIBUTE(T, x);
+    AR_ATTRIBUTE(T, y);
+    AR_ATTRIBUTE(T, width);
+    AR_ATTRIBUTE(T, height);
+};
+using I32Rect = TRect<i32>;
+using f32Rect = TRect<f32>;
+
 
 PROJECT_NAMESPACE_END
 
