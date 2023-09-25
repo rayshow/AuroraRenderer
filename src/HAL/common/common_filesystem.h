@@ -98,10 +98,10 @@ public:
         NegtiveSeek,
         Unkown,
         Custom,
-        Max
+        Count
     };
 
-    static constexpr crawstr kErrorMsg[EError::Max] = {
+    static constexpr char const* kErrorMsg[EError::Count] = {
         "is ok",
         "nececary flag not set, at least Read/Write/ReadWrite should be set",
         "file not exists",
@@ -115,12 +115,12 @@ public:
         || Access == FileFixAccess::ReadWrite, "unkown file acess");
 
 protected:
-    i64         _size;
-    i64         _current;
-    EFileOption _option;
-    const char* _lastErrorMsg;
-    EError      _lastErrorCode;
-    u32         _platformErrorCode;
+    i64         _size{};
+    i64         _current{};
+    EFileOption _option{};
+    const char* _lastErrorMsg{};
+    EError      _lastErrorCode{};
+    u32         _platformErrorCode{};
 
     void _reset() {
         _size = 0;
@@ -130,8 +130,7 @@ protected:
     }
 
     bool _setLastError(EError error, u32 platformCode = 0 ) {
-        i32 iCode = (i32)errorCode;
-        if (error < EError::Max) {
+        if (error < EError::Count) {
             _lastErrorCode = error;
             _lastErrorMsg = kErrorMsg[error];
             _platformErrorCode = platformCode;
@@ -143,6 +142,28 @@ public:
 
     CommonFile(CommonFile const&) = delete;
     void operator=(CommonFile const&) = delete;
+
+    CommonFile() = default;
+    CommonFile(CommonFile&& Other)
+        : _size{ Other._size }
+        , _current{Other._current}
+        , _option{Other._option}
+        , _lastErrorMsg{Other._lastErrorMsg}
+        , _lastErrorCode{Other._lastErrorCode}
+        , _platformErrorCode{ Other._platformErrorCode }
+    {
+        Other._reset();
+    }
+
+    void operator=(CommonFile&& Other) {
+        _size = Other._size;
+        _current = Other._current;
+        _option = Other._option;
+        _lastErrorMsg = Other._lastErrorMsg;
+        _lastErrorCode = Other._lastErrorCode;
+        _platformErrorCode = Other._platformErrorCode;
+        Other._reset();
+    }
 
     i64 size() const {
         return _size;
@@ -222,8 +243,8 @@ public:
     }
 
     //On success, the number of bytes read is returned.  On error, -1 is returned, and errno is set to indicate the error
-    FILE_SYSTEM_INLINE FileSize deriveRawRead(void* buf, FileSize bytesCount) {
-        return Derive::deriveRawRead(buf, count);
+     FileSize deriveRawRead(void* buf, FileSize bytesCount) {
+        return Derive::deriveRawRead(buf, bytesCount);
     }
 
     bool newWriteFile(std::string path) {
@@ -240,7 +261,7 @@ public:
         typename R = std::remove_reference_t<T>,
         typename = std::enable_if_t< is_serializible_v<T, FileType> && !std::is_array_v<R> && !is_std_string_v<T> >
     >
-    FILE_SYSTEM_INLINE bool write(T&& t) {
+     bool write(T&& t) {
         static_assert(!has_polymorphism_serialize_v<T, FileType>
             || std::is_pointer_v<std::remove_reference_t<T>>, "write object should he base type / implmenets deserialize/ polymorphismDeserialize ");
 
@@ -280,7 +301,7 @@ public:
         bool bAllocate,
         typename = std::enable_if_t< is_serializible_v<T, FileType> || std::is_void_v<T> >
     >
-    FILE_SYSTEM_INLINE bool write(T const* array, FileSize length, FileStrategy<bWriteLength, bAllocate> strategy) {
+     bool write(T const* array, FileSize length, FileStrategy<bWriteLength, bAllocate> strategy) {
         FILE_SYSTEM_DEBUG_LOG("==> writeArray(T:%s array:%p, length:%lld, writeLength:%d)", getTypeName(T), array, length, (int)bWriteLength);
         length = array ? length : 0;
         if constexpr (bWriteLength) {
@@ -308,7 +329,7 @@ public:
             // raw-string array
             FILE_SYSTEM_DEBUG_LOG("==> writeArray<rawString>");
             for (FileSize i = 0; i < length; ++i) {
-                if (!write(array[i], RawCharString::length(array[i]), strategy)) {
+                if (!write(array[i], RawStrOps<T>::length(array[i]), strategy)) {
                     return false;
                 }
             }
@@ -326,10 +347,10 @@ public:
 
     // optional object | raw-string
     template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    FILE_SYSTEM_INLINE bool write(T const* object, ReadWriteOptional) {
+     bool write(T const* object, ReadWriteOptional) {
         FILE_SYSTEM_DEBUG_LOG("==> writeOptional(object:%p, exists:%d)", object, (int)(object != nullptr));
         if constexpr (is_char_v<T>) {
-            return write(object, RawCharString::length(object), kReadWriteLength_Allocate);
+            return write(object, RawStrOps<T>::length(object), kReadWriteLength_Allocate);
         }
         else {
             bool exists = object != nullptr;
@@ -342,20 +363,20 @@ public:
 
     // T[N] which T is basic type with real size
     template<typename T, i32 N, typename = std::enable_if_t< is_serializible_v<T, FileType>> >
-    FILE_SYSTEM_INLINE bool write(T const (&array)[N]) {
+     bool write(T const (&array)[N]) {
         FILE_SYSTEM_DEBUG_LOG("==> writeStaticArray(T:%s N:%d)", getTypeName(T), N);
         return write(array, N, kReadWriteLength_NoAllocate);
     }
 
     // std::string
-    FILE_SYSTEM_INLINE bool write(std::string const& str) {
+     bool write(std::string const& str) {
         FILE_SYSTEM_DEBUG_LOG("==> write std::string: %s %d", str.c_str(), str.length());
         return write(str.c_str(), str.length(), kReadWriteLength_NoAllocate);
     }
 
     // std::vector
     template<typename T, typename Allocator, typename = std::enable_if_t< is_serializible_v<T, FileType> || is_std_string_v<T> >>
-    FILE_SYSTEM_INLINE bool write(std::vector<T, Allocator> const& array) {
+     bool write(std::vector<T, Allocator> const& array) {
         FILE_SYSTEM_DEBUG_LOG("==> write std::vector<%s>: %d", getTypeName(T), (i32)array.size());
         return write(array.data(), array.size(), kReadWriteLength_NoAllocate);
     }
@@ -374,7 +395,7 @@ public:
         typename R = std::remove_reference_t<T>,
         typename = std::enable_if_t< is_deserializible_v<T, FileType> && !std::is_array_v<T> && !is_std_string_v<T> >
     >
-    FILE_SYSTEM_INLINE bool read(T&& t) {
+     bool read(T&& t) {
         // T 
         static_assert(!has_polymorphism_deserialize_v<T, FileType>
             || std::is_pointer_v<R>, "read object should he base type / implmenets deserialize/ polymorphismDeserialize ");
@@ -392,7 +413,7 @@ public:
         }
         else if constexpr (is_serializible_base_type_v<T>) {
             FILE_SYSTEM_DEBUG_LOG("==> read pod");
-            constexpr ptr::diff_t size = sizeof(T);
+            constexpr usize size = sizeof(T);
             succ = this->deriveRawRead(const_cast<std::remove_const_t<R>*>(std::addressof(t)), size) == size;
         }
         if constexpr (has_to_string_v<R>) {
@@ -414,7 +435,9 @@ public:
         typename R = std::remove_const_t< T >,
         typename = std::enable_if_t< (is_serializible_v<T, FileType> || std::is_void_v<T>) && std::is_integral_v<Int> >
     >
-    FILE_SYSTEM_INLINE bool read(T*& array, Int& length, FileStrategy<bReadLength, bAllocate> strategy, bool assignLength = true, FileSize maxLength = std::numeric_limits<Int>::max()) {
+    bool read(T*& array, Int& length, FileStrategy<bReadLength, bAllocate> strategy,
+        bool assignLength = true, FileSize maxLength = kIntMax<Int> )
+    {
         FILE_SYSTEM_DEBUG_LOG("==> readArray(array:%p, length:%lld, bRead:%d, maxLength:%lld)", array, (FileSize)length, (int)bReadLength, maxLength);
 
         FileSize readLength = length;
@@ -428,22 +451,22 @@ public:
                 return true;
             }
         }
-        rs_check(readLength > 0);
+        rs_assert(readLength > 0);
         R* buffer = nullptr;
         if constexpr (bAllocate) {
             // allocate array 
             if constexpr (is_char_v<T>) {
                 // 0-terminated
-                buffer = ptr::safe_new_default_array<R>(readLength + 1);
+                buffer = MemoryOps::newDefaultArray<R>(readLength + 1);
             }
             else {
-                buffer = ptr::safe_new_default_array<R>(readLength);
+                buffer = MemoryOps::newDefaultArray<R>(readLength);
             }
         }
         else {
             buffer = array;
             // outside should allocate the memory
-            rs_check(buffer != nullptr);
+            rs_assert(buffer != nullptr);
         }
         bool succ = true;
 
@@ -473,7 +496,7 @@ public:
         else if constexpr (is_raw_string_v<T>) {
             // raw-string array
             FILE_SYSTEM_DEBUG_LOG("==> readArray<rawString>");
-            ui32 tempLength = 0;
+            u32 tempLength = 0;
             for (FileSize i = 0; i < readLength; ++i) {
                 // recursive call this
                 if (!read(buffer[i], tempLength, strategy)) {
@@ -497,12 +520,12 @@ public:
         typename T,
         typename = std::enable_if_t< is_serializible_v<T, FileType>>
     >
-    FILE_SYSTEM_INLINE bool read(T*& object, ReadWriteOptional) {
+     bool read(T*& object, ReadWriteOptional) {
         FILE_SYSTEM_DEBUG_LOG("==> readOptional");
         if constexpr (is_char_v<T>) {
             // raw-string
-            ui32 len = 0;
-            return read(object, len, kReadWriteLength_Allocate);
+            FileSize length = 0;
+            return read(object, length, kReadWriteLength_Allocate);
         }
         else if constexpr (!is_char_v<T>) {
             // object pointer
@@ -517,35 +540,35 @@ public:
                 return true;
             }
             // need memory
-            object = ptr::safe_new_default_array<T>();
-            rs_check(object != nullptr);
+            object = MemoryOps::newDefaultArray<T>();
+            rs_assert(object != nullptr);
             return read(*object);
         }
     }
 
 
     template<typename T, i32 N, typename = std::enable_if_t< is_serializible_base_type_v<T>> >
-    FILE_SYSTEM_INLINE bool read(T(&array)[N]) {
+     bool read(T(&array)[N]) {
         FILE_SYSTEM_DEBUG_LOG("==> readStaticArray(N:%d)", N);
         FileSize length{ 0 };
         T* addr = &array[0];
         return read(addr, length, kReadWriteLength_NoAllocate);
     }
 
-    FILE_SYSTEM_INLINE bool read(std::string& str) {
+     bool read(std::string& str) {
         FILE_SYSTEM_DEBUG_LOG("==> read std::string:(%d %s)", str.length(), str.c_str());
 
         FileSize length{ 0 };
         bool succ = read(length);
         if (!succ) return false;
         if (length == 0) return true;
-        str.resize((ptr::size_t)length);
-        rs_check(str.size() == (ptr::size_t)length);
+        str.resize(length);
+        rs_assert(str.size() == length);
         return  length == deriveRawRead(reinterpret_cast<void*>(str.data()), length);
     }
 
     template<typename T, typename Allocator, typename = std::enable_if_t< is_deserializible_v<T, FileType> || is_std_string_v<T> >>
-    FILE_SYSTEM_INLINE bool read(std::vector<T, Allocator>& array) {
+     bool read(std::vector<T, Allocator>& array) {
         FILE_SYSTEM_DEBUG_LOG("==> read std::vector<%s>:(%d)", getTypeName(T), array.size());
 
         constexpr i32 kTypeSize = sizeof(T);
@@ -554,7 +577,7 @@ public:
         if (!success) return false;
         if (length == 0) return true;
         array.resize(length);
-        rs_check(array.size() == (ptr::size_t)length);
+        rs_assert(array.size() == length);
         if constexpr (has_normal_deserialize_v<T, FileType> || has_polymorphism_deserialize_v<T, FileType> || is_std_string_v<T>) {
             FILE_SYSTEM_DEBUG_LOG("==> read std::vector<deserialize | string>");
             for (auto&& item : array) {

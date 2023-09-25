@@ -15,7 +15,7 @@ inline VkInstDispatchTable*& GInstanceCommandsRef(){
 
 // VkInstance handle and batch VkCommand associate with it
 inline VkInstDispatchTable* GInstanceCommands(){
-    rs_check(GInstanceCommandsRef() !=nullptr);
+    rs_assert(GInstanceCommandsRef() !=nullptr);
     return GInstanceCommandsRef();
 }
 
@@ -27,7 +27,7 @@ inline VkDevDispatchTable*& GDeviceCommandsRef(int index=0){
 }
 
 inline VkDevDispatchTable* GDeviceCommands(int index=0){
-    rs_check(GDeviceCommandsRef(index)!=nullptr);
+    rs_assert(GDeviceCommandsRef(index)!=nullptr);
     return GDeviceCommandsRef(index);
 }
 

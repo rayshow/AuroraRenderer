@@ -22,28 +22,28 @@ struct WindowFileStat {
     }
 
     bool isValid() const {
-        return _bInitialized && attrib.dwFileAttributes != INVALID_FILE_ATTRIBUTES;
+        return _bInitialized && _attrib.dwFileAttributes != INVALID_FILE_ATTRIBUTES;
     }
 
     bool isDir() const {
-        return attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+        return _attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
     }
 
     bool isFile() const {
-        return isValid() && !(attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+        return isValid() && !(_attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
 
     bool setup(String const& path) {
-        return _bInitialized = GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &_attrib)
+        return _bInitialized = GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &_attrib);
     }
 
     bool isReadOnly() {
-        return attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY;
+        return _attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY;
     }
 
     bool setup(HANDLE handle) {
         _bInitialized = false;
-        LPBY_HANDLE_FILE_INFORMATION Info;
+        BY_HANDLE_FILE_INFORMATION Info;
         if (GetFileInformationByHandle(handle, &Info))
         {
             _attrib.dwFileAttributes = Info.dwFileAttributes;
@@ -58,38 +58,43 @@ struct WindowFileStat {
     }
 
     i64 size() const {
-        return (i64)attrib.nFileSizeHigh << 32 | (i64)attrib.nFileSizeLow;
+        return (i64)_attrib.nFileSizeHigh << 32 | (i64)_attrib.nFileSizeLow;
+    }
+
+    String getCreateTime() const {
+        return String{};
     }
 };
 
 
 // reference https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
 template<FileFixAccess Access = FileFixAccess::ReadWrite>
-class WindowFile : public CommonFile<Access, WindowFile>  {
+class WindowFile : public CommonFile<Access, WindowFile<Access>>  {
 public:
     using Super = CommonFile<Access, WindowFile>;
     using This = WindowFile;
-
+    using EError = Super::EError;
+    using FileSize = Super::FileSize;
 private:
     HANDLE  _handle;
     WindowFileStat _fileStat;
 
     static constexpr HANDLE kInvalidHandle = INVALID_HANDLE_VALUE;
-    static constexpr i32 kOnceReadWriteBytes = std::numeric_limits<i32>::max();
+    static constexpr i32 kOnceReadWriteBytes = kIntMax<i32>;
 
     bool _setWindowErrorCode()
     {
         DWORD errorCode = GetLastError();
         switch (errorCode) {
         case ERROR_NEGATIVE_SEEK:
-            _setLastError(ErrorCode::NegtiveSeek);
+            Super::_setLastError(EError::NegtiveSeek);
         default:
-            _setLastError(ErrorCode::Custom, errorCode);
+            Super::_setLastError(EError::Custom, errorCode);
         }
         return false;
     }
 
-    bool _setLastError(ErrorCode code) {
+    bool _setLastError(EError code) {
         return Super::_setLastError(code);
     }
 
@@ -200,7 +205,7 @@ public:
             }
         }
 
-        _handle = CreateFileA(filepath.c_str(), shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+        _handle = CreateFileA(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
 
         if (!isValid())
         {
@@ -211,14 +216,15 @@ public:
         }
 
         bool bAppend = EnumHasAnyFlags(option, EFileOption::Append);
-        _size = attrib.size();
+        this->_size = _fileStat.size();
         if (bAppend) {
             i64 offset = seek(EFileSeek::End, 0);
             if (offset < 0) return false;
-            _current = offset;
+            
+            this->_current = offset;
         }
         else {
-            _current = 0;
+            this->_current = 0;
         }
         
         return true;
@@ -226,12 +232,12 @@ public:
     
     i64 seek(EFileSeek point, i64 offset) {
         rs_assert(isValid());
-        DWORD high = offset >> 32;
-        DWORD low = offset & 0xffffffff;
+        LONG high = offset >> 32;
+        LONG low = offset & 0xffffffff;
         DWORD lowSeekOffset = SetFilePointer(_handle, low, &high, _getWindowSeekOption(point));
-        i64 seekOffset = high << 32 | lowRealOffset;
+        i64 seekOffset = (i64)high << 32 | (i64)lowSeekOffset;
         if (INVALID_SET_FILE_POINTER == lowSeekOffset || seekOffset <0) {
-            _setLastError(ErrorCode::InvalidSeek);
+            _setLastError(EError::InvalidSeek);
             return -1;
         }
         return seekOffset;
@@ -296,40 +302,7 @@ public:
         rs_assert(readBytes == bytesCount);
         return readBytes;
     }
-
 };
-
-// read only, write is forbidden
-struct ReadonlyFile : private WindowFile<FileFixAccess::Read>
-{
-    using FileType = ReadonlyFile;
-public:
-    template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(FileType* file, T&& t) {
-        return file->read(std::forward<T>(t));
-    }
-
-    template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(FileType& file, T&& t) {
-        return operator<<(&file, std::forward<T>(t));
-    }
-};
-
-struct WriteonlyFile : private WindowFile<FileFixAccess::Write>
-{
-    using FileType = WriteonlyFile;
-public:
-    template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(FileType* file, T&& t) {
-        return file->write(std::forward<T>(t));
-    }
-
-    template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(FileType& file, T&& t) {
-        return operator<<(&file, std::forward<T>(t));
-    }
-};
-using File = WindowFile<>;
 
 
 class WindowFileSystem {
@@ -389,10 +362,10 @@ public:
 
     static String getLastError() {
         DWORD errorCode = GetLastError();
-        WCHAR   wszMsgBuff[512];  // Buffer for text.
+        char   wszMsgBuff[512];  // Buffer for text.
         DWORD   dwChars;  // Number of chars returned.
         // Try to get the message from the system errors.
-        dwChars = FormatMessage(
+        dwChars = FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM |
             FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL,
@@ -435,7 +408,7 @@ public:
             String lastLogFileName = path + "2_" + filename;
             if (isFileExists(lastLogFileName)) {
                 String filetime = getFileCreateTime(lastLogFileName);
-                rs_check(filetime.length() > 0);
+                rs_assert(filetime.length() > 0);
                 if (!renameFile(lastLogFileName, path + filetime + filename))
                     return false;
             }
@@ -449,7 +422,7 @@ public:
     static TOptional<StringView> getTempPath() {
         static char lpTempPathBuffer[MAX_PATH];
         //  Gets the temp path env string (no guarantee it's a valid path).
-        DWORD dwRetVal = GetTempPathA(MAX_PATH, lpTempPathBuffer)
+        DWORD dwRetVal = GetTempPathA(MAX_PATH, lpTempPathBuffer);
         if (dwRetVal > MAX_PATH || (dwRetVal == 0))
         {
             return TOptional<StringView>{};
@@ -459,6 +432,8 @@ public:
 
 };
 
+
+using File = WindowFile<>;
 using FileSystem = WindowFileSystem;
 
 PROJECT_NAMESPACE_END

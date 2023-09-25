@@ -34,7 +34,8 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		if (i == 0) {
 			param.strip().findLastRemove("\\");
 			GAppConfigs.set(AppConfigs::InnerDataDir, String{ param });
-			GAppConfigs.set(AppConfigs::OutDataDir, String{ param });
+			GAppConfigs.set(AppConfigs::ExternalDataDir, String{ param });
+			GAppConfigs.set(AppConfigs::TempDir, String{param});
 		}
 		else {
 			param.stripLeft().startsThenRemove('-');

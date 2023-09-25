@@ -9,6 +9,8 @@
 #error "unkown platform logger"
 #endif 
 
+PROJECT_NAMESPACE_BEGIN
+
 template<typename... Args>
 inline void logFileAndStdout( Args&&... args){
         Logger::log(std::forward<Args>(args)...);
@@ -86,3 +88,4 @@ inline bool checkConditionWithLoc(bool condi, char const* expr, char const* file
 #define rs_ensure(condi)
 #endif
 
+PROJECT_NAMESPACE_END

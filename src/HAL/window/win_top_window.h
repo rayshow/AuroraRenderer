@@ -29,7 +29,7 @@ public:
         wc.lpfnWndProc = AppWndProc;
         wc.hInstance = GWinInstance;
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.lpszClassName = L"WinMainWindow";
+        wc.lpszClassName = "WinMainWindow";
         RegisterClassEx(&wc);
     }
 
@@ -39,9 +39,9 @@ public:
         RECT windowRect = { 0, 0, rect.get_width(), rect.get_height() };
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-        _window = CreateWindow(
-            L"WinMainWindow",
-            L"WinMainWindow",
+        _window = CreateWindowA(
+            "WinMainWindow",
+            "WinMainWindow",
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
             CW_USEDEFAULT,
             CW_USEDEFAULT,

@@ -12,6 +12,7 @@
 
 #include<new>       /* nullptr_t and nothrow_t */
 #include<cctype>
+#include<limits>
 #include<string>
 #include<string_view>
 #include<vector>
@@ -40,8 +41,7 @@ using wchar   = wchar_t;
 using achar   = char;
 using char16  = char16_t;
 using char32  = char32_t;
-using rawstr  = char*;
-using crawstr = char const*;
+
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
 template<>         struct size_traits<8> { using size_t = u64 ; using diff_t = i64; };
@@ -87,7 +87,18 @@ static_assert(sizeof(i32) == 4, "i32 is not 4 byte.");
 static_assert(sizeof(u64) == 8, "u64 is not 8 byte.");
 static_assert(sizeof(i64) == 8, "i64 is not 8 byte.");
 
-template<typename T> constexpr T kInvalidInteger = (T)(-1);
+template<typename Int> constexpr Int kIntInvalid = (Int)(-1);
+
+#if defined(max)
+#define OLD_MAX max
+#undef max
+#endif
+template<typename Int>
+constexpr Int kIntMax = std::numeric_limits<Int>::max();
+#if defined(OLD_MAX)
+#define max OLD_MAX
+#undef OLD_MAX
+#endif
 
 template<typename T>
 struct TVector2
@@ -215,6 +226,150 @@ struct TStringView : public std::basic_string_view<Char>
 
 using StringView = TStringView<char>;
 using StringViewPair = TPair<StringView, StringView>;
+
+template<typename Char>
+struct RawStrOps;
+
+template<>
+struct RawStrOps<char>
+{
+    static usize length(char const* str) {
+        return strlen(str);
+    }
+
+    static char* copy(char const* str) {
+        return strdup(str);
+    }
+
+    static i32 compare(char const* str1, char const* str2, usize n = 0 ) {
+        if (n == 0) {
+            return strcmp(str1, str2);
+        }
+        else {
+            return strncmp(str1, str2, n);
+        }
+    }
+};
+
+
+struct MemoryOps
+{
+    template<typename R>
+    RS_FORCEINLINE R* copyArray(R const* array, usize length = 1) {
+        R* newArray = nullptr;
+        usize size = 0;
+        if (array && length > 0) {
+            if constexpr (std::is_void_v<R>) {
+                size = length;
+            }
+            else {
+                size = sizeof(R) * length;
+            }
+            newArray = reinterpret_cast<R*>(malloc(size));
+            rs_assert(newArray != nullptr);
+            if constexpr (is_raw_string_v<R>) {
+                // raw-string array
+                for (u32 i = 0; i < length; ++i) {
+                    newArray[i] = array[i] ? strdup(array[i]) : nullptr;
+                }
+            }
+            else if constexpr (std::is_pod_v<R> || std::is_void_v<R>) {
+                // raw bytes or pod array
+                memcpy(newArray, array, size);
+            }
+            // need constructor
+            else {
+                for (usize i = 0; i < length; ++i) {
+                    // copy constructor
+                    new(newArray + i) R{ array[i] };
+                }
+            }
+        }
+        return newArray;
+    }
+
+    template<typename R, typename RawR = std::remove_const_t<R> >
+    RS_FORCEINLINE R* newDefaultArray(usize length = 1) {
+        RawR* newArray = nullptr;
+        if (length > 0) {
+            usize size = 0;
+            if constexpr (std::is_void_v<R>) {
+                size = length;
+            }
+            else {
+                size = sizeof(R) * length;
+            }
+            newArray = reinterpret_cast<RawR*>(malloc(size));
+            if (!newArray) { rs_assert(false); return nullptr; }
+            if constexpr (std::is_pod_v<R> || std::is_void_v<R>) {
+                memset(newArray, 0, size);
+            }
+            else {
+                // not pod and not void
+                for (usize i = 0; i < length; ++i) {
+                    // default constructor
+                    new(newArray + i) R{};
+                }
+            }
+        }
+        return newArray;
+    }
+
+    template<typename R>
+    RS_FORCEINLINE R* copy(R const* object) {
+        if constexpr (is_char_v<R>) {
+            // raw-string
+            return object ? strdup(object) : nullptr;
+        }
+        else {
+            return safe_new_copy_array(object, 1);
+        }
+    }
+
+    template<typename T, typename NoConstT = std::remove_const_t<T>>
+    void safeDelete(T*& t) {
+        NoConstT* addr = const_cast<NoConstT*>(t);
+
+        if constexpr (std::is_void_v<T> || std::is_pod_v<T> || is_char_v<T>) {
+            free(addr);
+            t = nullptr;
+        }
+        else {
+            sizeof(*t);
+            if (t) { t->~NoConstT(); free(t);  t = nullptr; }
+        }
+    }
+    template<typename T >
+    void safeDeleteArray(T*& t, u32 length) {
+        if (!t || length == 0) return;
+        if constexpr (is_raw_string_v<T>) {
+            rs_assert(length > 0);
+            using NoConstPointerT = std::remove_const_t< std::remove_pointer_t<T>>;
+            for (u32 i = 0; i < length; ++i) {
+                NoConstPointerT* addr = const_cast<NoConstPointerT*>(t[i]);
+                free(addr);
+                addr = nullptr;
+            }
+            free(const_cast<NoConstPointerT**>(const_cast<NoConstPointerT* const*>(t)));
+            t = nullptr;
+        }
+        else if constexpr (std::is_void_v<T> || std::is_pod_v<T>) {
+            using NoConstT = std::remove_const_t< T>;
+            NoConstT* addr = const_cast<NoConstT*>(t);
+            free(addr);
+            t = nullptr;
+        }
+        else {
+            sizeof(*t);
+            //using NoConstT = std::remove_const_t< T>;
+            for (u32 i = 0; i < length; ++i) {
+                t[i].~T();
+            }
+            free(t);
+            t = nullptr;
+        }
+    }
+};
 
 
 PROJECT_NAMESPACE_END

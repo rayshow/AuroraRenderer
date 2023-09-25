@@ -12,32 +12,32 @@
 PROJECT_NAMESPACE_BEGIN
 
 // read only, write is forbidden
-struct ReadonlyFile : private File<FileFixAccess::Read>
+struct ReadonlyFile : private WindowFile<FileFixAccess::Read>
 {
     using FileType = ReadonlyFile;
-public:
+
     template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(ReadonlyAndroidFile* file, T&& t) {
+    friend RS_FORCEINLINE bool operator<<(FileType* file, T&& t) {
         return file->read(std::forward<T>(t));
     }
 
     template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(ReadonlyAndroidFile& file, T&& t) {
+    friend RS_FORCEINLINE bool operator<<(FileType& file, T&& t) {
         return operator<<(&file, std::forward<T>(t));
     }
 };
 
-struct WriteonlyAndroidFile : private AndroidFile<FileFixAccess::Write>
+struct WriteonlyFile : private WindowFile<FileFixAccess::Write>
 {
-    using FileType = ReadonlyAndroidFile;
+    using FileType = WriteonlyFile;
 public:
     template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(WriteonlyAndroidFile* file, T&& t) {
+    friend RS_FORCEINLINE bool operator<<(FileType* file, T&& t) {
         return file->write(std::forward<T>(t));
     }
 
     template<typename T, typename = std::enable_if_t< is_serializible_v<T, FileType> >>
-    friend RS_FORCEINLINE bool operator<<(WriteonlyAndroidFile& file, T&& t) {
+    friend RS_FORCEINLINE bool operator<<(FileType& file, T&& t) {
         return operator<<(&file, std::forward<T>(t));
     }
 };
