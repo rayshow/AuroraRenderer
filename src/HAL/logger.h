@@ -49,7 +49,7 @@ inline void reprintfFileAndStdout(Args&&... args){
 inline void dumpStackFrame()
 {
    char callStack[4096];
-   _NS::GetCallStack(callStack);
+   _AR::GetCallStack(callStack);
    RS_LOG("Stack(%d):%s",strlen(callStack), callStack);
 }
 

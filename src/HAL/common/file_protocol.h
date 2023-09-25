@@ -1,7 +1,8 @@
 #pragma once
 
 #include<type_traits>
-#include"../../type.h"
+#include"core/type.h"
+#include"core/util/enum_as_flag.h"
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -111,11 +112,7 @@ struct is_deserializible: public std::bool_constant<
 template<typename T,typename File>
 constexpr bool is_deserializible_v = is_deserializible<T,File>::value;
 
-
-
-
-
-enum class EFileOption:uint8{
+enum class EFileOption:uint16{
     None = 0x00,
     AbsolutePath = 0x01,
     ReletivePath = 0x02,
@@ -132,12 +129,14 @@ enum class EFileOption:uint8{
     CreateIfNoExists = 0x20,
     // non-block mode
     NonBlock = 0x40,
-    Trunc =0x80
+    Trunc =0x80.
+    // 
+    Device = 0x100,
 };
 ENUM_CLASS_FLAGS(EFileOption)
 
 enum class EFileSeek{
-    SetPosition,
+    Begin,
     Current,
     End,
     NextContainData,
@@ -170,25 +169,27 @@ enum class FileFixAccess:uint8{
 
 PROJECT_NAMESPACE_END
 
-struct GFileSystemDebug{
+
+#define DEBUG_FILE_SYSTEM 0
+
+#if DEBUG_FILE_SYSTEM
+
+struct GFileSystemDebug {
     inline static bool Enable = false;
-    inline static int Tab =0;
-    static constexpr rs::pcchar TabStr[] = {"", "\t", "\t\t", "\t\t\t", "\t\t\t\t", "\t\t\t\t\t", "\t\t\t\t\t\t", "\t\t\t\t\t\t\t", "\t\t\t\t\t\t\t\t"};
-    static constexpr int kMaxTabIndex = sizeof(TabStr) / sizeof(rs::pcchar)-1;
-    static rs::pcchar GetTabs(){ return TabStr[Tab>kMaxTabIndex?kMaxTabIndex:Tab]; }
+    inline static int Tab = 0;
+    static constexpr rs::pcchar TabStr[] = { "", "\t", "\t\t", "\t\t\t", "\t\t\t\t", "\t\t\t\t\t", "\t\t\t\t\t\t", "\t\t\t\t\t\t\t", "\t\t\t\t\t\t\t\t" };
+    static constexpr int kMaxTabIndex = sizeof(TabStr) / sizeof(rs::pcchar) - 1;
+    static rs::pcchar GetTabs() { return TabStr[Tab > kMaxTabIndex ? kMaxTabIndex : Tab]; }
 };
 
-struct FileSystemDebugScope{
-    FileSystemDebugScope(){
+struct FileSystemDebugScope {
+    FileSystemDebugScope() {
         GFileSystemDebug::Enable = true;
     }
-    ~FileSystemDebugScope(){
+    ~FileSystemDebugScope() {
         GFileSystemDebug::Enable = false;
     }
 };
-
-#define DEBUG_FILE_SYSTEM 1
-#if DEBUG_FILE_SYSTEM
 #include"../logger.h"
 #include"../../debug_type.hpp"
 #include"../common/to_string_protocol.h"
@@ -208,7 +209,7 @@ struct ScopeAddTab{
 #define FILE_SYSTEM_DEBUG_LOG(...)
 #define FILE_SYSTEM_INLINE RS_FORCEINLINE
 #define DATA_TO_STRING(...)
-#define CHECK_SERIALIZE_SUCC(Expr) succ = Expr; if(!succ){ RS_LOG_FILE("expr:%s failed because:%s at file:%s:line:%d",#Expr, file->getError(), __FILE__, __LINE__); }
+#define CHECK_SERIALIZE_SUCC(Expr) // succ = Expr; if(!succ){ RS_LOG_FILE("expr:%s failed because:%s at file:%s:line:%d",#Expr, file->getError(), __FILE__, __LINE__); }
 #endif 
 
 

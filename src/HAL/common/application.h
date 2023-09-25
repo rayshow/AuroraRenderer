@@ -88,20 +88,19 @@ public:
     static constexpr double kFPSTickTimes[(int)EFPS::Count]={1.0/30.0, 1.0 / 60.0, 1.0 / 120.0, 0.0};
     virtual ~CommonApplication() = default;
 
-    // entrance
-    static i32 GuardMain() {
-        Application& app = Application::getInstance();
-        auto code = app.initialize();
-        if (code == EExitCode::Success) {
-            code = app.mainLoop();
-            app.finalize(code);
-        }
-        return (i32)code;
-    }
-
-
     // app start
     EExitCode initialize(){
+        // dir and log system
+        internalDataDir = GAppConfigs.get(AppConfigs::InnerDataDir, internalDataDir);
+        externalStorageDir = GAppConfigs.get(AppConfigs::ExternalDataDir, externalStorageDir);
+        tempDir = GAppConfigs.get(AppConfigs::TempDir, externalStorageDir);
+        RS_LOG("app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
+
+        // setup logger system
+        std::string loggerFileName = externalStorageDir + "log.txt";
+        FileSystem::renameExistsFile(loggerFileName);
+        Logger::initialize(loggerFileName.c_str());
+
         // timer
         timer.start();
         std::vector<AppPlugin*> initializedPlugins;
@@ -162,9 +161,9 @@ public:
     }
 
     // platform
-    virtual std::string const& getExternalStorageDirectory() { return None; }
-    virtual std::string const& getTempDirectory() { return None; }
-    virtual std::string const& getPlatformName(){ return None; }
+    virtual String const& getExternalStorageDirectory() { return externalStorageDir; }
+    virtual String const& getTempDirectory() { return tempDir; }
+    virtual String const& getPlatformName(){ return None; }
     virtual void* getNativeWindow(){return nullptr;}
     virtual void* getNativeApp(){return nullptr;}
 
@@ -179,9 +178,12 @@ private:
     EFPS fps{EFPS::Unlimit};
     double tickTime{};
     Timer timer{};
-    std::vector<AppPlugin*> _plugins{};
+    TArray<AppPlugin*> _plugins{};
+    String externalStorageDir{};
+    String tempDir{};
+    String internalDataDir{};
 
-    inline static std::string None{"[None]"};
+    inline static String None{"[None]"};
 };
 
 PROJECT_NAMESPACE_END

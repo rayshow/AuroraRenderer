@@ -11,9 +11,11 @@ class WinApplication: public CommonApplication< WinApplication>
 {
 public:
     EExitCode initialize() {
-        EExitCode code = Super::initialize();
         _window = std::make_shared<WinTopWindow>();
         _window->initialize();
+
+        EExitCode code = Super::initialize();
+        
         _window->show();
         return EExitCode::Success;
     }

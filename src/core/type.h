@@ -11,7 +11,16 @@
 #pragma once
 
 #include<new>       /* nullptr_t and nothrow_t */
+#include<cctype>
+#include<string>
+#include<string_view>
+#include<vector>
+#include<array>
+#include<unordered_map>
+#include<unordered_set>
+#include<tuple>
 #include"compile.h" 
+
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -35,17 +44,38 @@ using crawstr = char const*;
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
 template<>         struct size_traits<8> { using size_t = u64 ; using diff_t = i64; };
-using size_t = typename size_traits<sizeof(void*)>::size_t;
-using diff_t = typename size_traits<sizeof(void*)>::diff_t;
-using uintptr = size_t;
-using intptr = diff_t;
-
-//define nullptr_t 
+using usize = typename size_traits<sizeof(void*)>::size_t;
+using isize = typename size_traits<sizeof(void*)>::diff_t;
+using uintptr = usize;
+using intptr = isize;
 using nullptr_t = decltype(nullptr);
-
-//define nothrow_t
-using nothrow_t = std::nothrow_t ;
+using nothrow_t = std::nothrow_t;
 constexpr nothrow_t nothrow;
+
+template<typename T, typename Allocator= typename std::vector<T>::allocator_type>
+using TArray = std::vector<T>;
+
+template<typename T, i32 N>
+using TStaticArray = std::array<T, N>;
+
+
+using String = std::string;
+inline static String kEmptyString{""};
+
+template<typename Key, typename Value>
+using TPair = std::pair<Key, Value>;
+
+template<typename Key, typename Value>
+using TMap = std::unordered_map<Key,Value>;
+
+template<typename Key>
+using TSet = std::unordered_set<Key>;
+
+template<typename... Args>
+using TTuple = std::tuple<Args...>;
+
+template<typename T>
+using TOptional = std::optional<T>;
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte.");
 static_assert(sizeof(i8) == 1, "i8 is not 1 byte.");
@@ -71,7 +101,6 @@ struct TVector2
 using Vector2 = TVector2<f32>;
 using I32Vector2 = TVector2<i32>;
 
-
 template<typename T>
 struct TRect
 {
@@ -83,6 +112,108 @@ struct TRect
 };
 using I32Rect = TRect<i32>;
 using f32Rect = TRect<f32>;
+
+
+template<typename Char>
+struct TStringView : public std::basic_string_view<Char>
+{
+    using Super = std::basic_string_view<Char>;
+    using This = TStringView;
+
+    constexpr TStringView() noexcept :Super{} {}
+    constexpr TStringView(TStringView const& Other) noexcept :Super{ Other } {}
+    constexpr TStringView(Char const* str) :Super{ str } {}
+    constexpr TStringView(Char const* str, size_t count) : Super{ str, count } {}
+    template<typename T>
+    constexpr explicit TStringView(T&& Other) :Super{ Other } {}
+    template< class It, class End >
+    constexpr TStringView(It first, End end) : Super{ first, end } {}
+
+    This& emptyStringView() {
+        static This sEmptyStringView{};
+        return sEmptyStringView;
+    }
+
+    This& startsThenRemove(char ch) {
+        if (Super::starts_with(ch)) {
+            Super::remove_prefix(1);
+        }
+        return emptyStringView();
+    }
+
+    This startsThenRemove(char ch) const {
+        if (Super::starts_with(ch)) {
+            return This{ Super::data(), Super::size() - 1 };
+        }
+        return This{};
+    }
+
+    This& stripLeft() {
+        for (i32 i = 0; i < Super::size(); ++i) {
+            if (!isspace(Super::at(i))) {
+                Super::remove_prefix(i);
+                break;
+            }
+        }
+        return *this;
+    }
+
+    This stripLeft() const {
+        This copy(*this);
+        return copy.stripLeft();
+    }
+
+    This& stripRight() {
+        for (auto c : *this) {
+            if (isspace(c)) {
+                Super::remove_suffix(1);
+            }
+        }
+        return *this;
+    }
+    This stripRight() const {
+        This copy(*this);
+        return copy.stripRight();
+    }
+
+    This& strip() {
+        return stripLeft().stripRight();
+    }
+
+    This strip() const {
+        This copy(*this);
+        return copy.strip();
+    }
+
+    TPair<This, This> splitToTwo(char ch) const
+    {
+        i32 i = 0;
+        Char const* data = Super::data();
+        for (; i < Super::size(); ++i) {
+            if (data[i] == ch) {
+                break;
+            }
+        }
+        if (i == Super::size()) {
+            return TPair{ *this, TStringView{} };
+        }
+        return TPair{ TStringView{ data,i}, TStringView{ data + i + 1, Super::size() - i - 1 } };
+    }
+
+    template<typename T>
+    This& findLastRemove(T const& c) {
+        i32 i = Super::rfind(c);
+        if (i == this->npos) {
+            return emptyStringView();
+        }
+        Super::remove_suffix(Super::size() - i);
+        return *this;
+    }
+
+};
+
+using StringView = TStringView<char>;
+using StringViewPair = TPair<StringView, StringView>;
 
 
 PROJECT_NAMESPACE_END

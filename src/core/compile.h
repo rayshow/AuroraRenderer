@@ -296,8 +296,8 @@ C++20: 202002L
 #define RS_STRINGIZE(...) RS_STRINGIZE_FAST(__VA_ARGS__)
 #define RS_STRINGIZE_FAST(...) #__VA_ARGS__
 
-#define _NS ar3d
-#define RS_NS_BEGIN namespace _NS{ 
+#define _AR ar3d
+#define RS_NS_BEGIN namespace _AR{ 
 #define RS_NS_END }
 #define PROJECT_NAMESPACE_BEGIN RS_NS_BEGIN
 #define PROJECT_NAMESPACE_END RS_NS_END

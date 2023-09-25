@@ -5,7 +5,7 @@
 
 #include"HAL/application.h"
 #include"core/type.h"
-using namespace _NS;
+using namespace _AR;
 std::vector<std::string> GCmdLines;
 /*
 
