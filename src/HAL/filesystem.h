@@ -1,5 +1,5 @@
 #pragma once
-#include"../compile.h"
+#include"core/compile.h"
 
 #if RS_PLATFORM_WINDOW
 #include"window/win_filesystem.h"
@@ -9,6 +9,7 @@
 #error "unkown platform logger"
 #endif 
 
+PROJECT_NAMESPACE_BEGIN
 
 // read only, write is forbidden
 struct ReadonlyFile : private File<FileFixAccess::Read>
@@ -41,6 +42,5 @@ public:
     }
 };
 
-using File = AndroidFile<>;
-using ReadonlyFile = ReadonlyAndroidFile;
-using WriteonlyFile = WriteonlyAndroidFile;
+
+PROJECT_NAMESPACE_END

@@ -41,7 +41,44 @@ struct ReadWriteOptional {};
 constexpr ReadWriteOptional kReadWriteOptional{};
 
 
+enum class EFileOption : u16
+{
+    None = 0x00,
+    AbsolutePath = 0x01,
+    ReletivePath = 0x02,
+    // read only
+    Read = 0x04,
+    // write only
+    Write = 0x08,
+    // read and write same time
+    ReadWrite = Read | Write,
+    // before each write, offset is position at then end of file, NFS filesystem don't support
+    // multi-process write or lead to file corrupt
+    Append = 0x10,
+    // create file if not exists
+    CreateIfNoExists = 0x20,
+    // non-block mode
+    NonBlock = 0x40,
+    Trunc = 0x80,
+    // 
+    Device = 0x100,
+};
+ENUM_CLASS_FLAGS(EFileOption)
 
+enum class EFileSeek {
+    Begin,
+    Current,
+    End,
+    NextContainData,
+    NextHole,
+};
+
+enum class FileFixAccess :u8 {
+    Read = 0,
+    Write,
+    ReadWrite,
+    Num,
+};
 
 
 template<FileFixAccess Access, typename Derive>
@@ -168,13 +205,13 @@ public:
     }
 
     // should overwrite
-    FileSize deriveRawWrite(const void* buf, FileSize count) {
+    FileSize rawWrite(const void* buf, FileSize count) {
         rs_assert(false);
         return 0;
     }
 
     // should overwrite
-    FileSize deriveRawRead(void* buf, FileSize bytesCount) {
+    FileSize rawRead(void* buf, FileSize bytesCount) {
         rs_assert(false);
         return 0;
     }
@@ -280,7 +317,7 @@ public:
         // is base object array
         else if constexpr (is_serializible_base_type_v<T>) {
             FILE_SYSTEM_DEBUG_LOG("==> writeArray<pod>");
-            constexpr int32 kTypeSize = sizeof(T);
+            constexpr i32 kTypeSize = sizeof(T);
             FileSize byteSize = kTypeSize * length;
             return byteSize == deriveRawWrite(reinterpret_cast<void const*>(array), byteSize);
         }
@@ -304,7 +341,7 @@ public:
     }
 
     // T[N] which T is basic type with real size
-    template<typename T, int32 N, typename = std::enable_if_t< is_serializible_v<T, FileType>> >
+    template<typename T, i32 N, typename = std::enable_if_t< is_serializible_v<T, FileType>> >
     FILE_SYSTEM_INLINE bool write(T const (&array)[N]) {
         FILE_SYSTEM_DEBUG_LOG("==> writeStaticArray(T:%s N:%d)", getTypeName(T), N);
         return write(array, N, kReadWriteLength_NoAllocate);
@@ -319,7 +356,7 @@ public:
     // std::vector
     template<typename T, typename Allocator, typename = std::enable_if_t< is_serializible_v<T, FileType> || is_std_string_v<T> >>
     FILE_SYSTEM_INLINE bool write(std::vector<T, Allocator> const& array) {
-        FILE_SYSTEM_DEBUG_LOG("==> write std::vector<%s>: %d", getTypeName(T), (int32)array.size());
+        FILE_SYSTEM_DEBUG_LOG("==> write std::vector<%s>: %d", getTypeName(T), (i32)array.size());
         return write(array.data(), array.size(), kReadWriteLength_NoAllocate);
     }
 
@@ -436,7 +473,7 @@ public:
         else if constexpr (is_raw_string_v<T>) {
             // raw-string array
             FILE_SYSTEM_DEBUG_LOG("==> readArray<rawString>");
-            uint32 tempLength = 0;
+            ui32 tempLength = 0;
             for (FileSize i = 0; i < readLength; ++i) {
                 // recursive call this
                 if (!read(buffer[i], tempLength, strategy)) {
@@ -447,7 +484,7 @@ public:
         else if constexpr (is_serializible_base_type_v<T>) {
             // pod not upper type
             FILE_SYSTEM_DEBUG_LOG("==> readArray<pod>");
-            constexpr int32 kTypeSize = sizeof(T);
+            constexpr i32 kTypeSize = sizeof(T);
             FileSize byteSize = kTypeSize * readLength;
             succ = (byteSize == deriveRawRead(buffer, byteSize));
         }
@@ -464,7 +501,7 @@ public:
         FILE_SYSTEM_DEBUG_LOG("==> readOptional");
         if constexpr (is_char_v<T>) {
             // raw-string
-            uint32 len = 0;
+            ui32 len = 0;
             return read(object, len, kReadWriteLength_Allocate);
         }
         else if constexpr (!is_char_v<T>) {
@@ -487,7 +524,7 @@ public:
     }
 
 
-    template<typename T, int32 N, typename = std::enable_if_t< is_serializible_base_type_v<T>> >
+    template<typename T, i32 N, typename = std::enable_if_t< is_serializible_base_type_v<T>> >
     FILE_SYSTEM_INLINE bool read(T(&array)[N]) {
         FILE_SYSTEM_DEBUG_LOG("==> readStaticArray(N:%d)", N);
         FileSize length{ 0 };
@@ -511,7 +548,7 @@ public:
     FILE_SYSTEM_INLINE bool read(std::vector<T, Allocator>& array) {
         FILE_SYSTEM_DEBUG_LOG("==> read std::vector<%s>:(%d)", getTypeName(T), array.size());
 
-        constexpr int32 kTypeSize = sizeof(T);
+        constexpr i32 kTypeSize = sizeof(T);
         FileSize length{ 0 };
         bool success = read(length);
         if (!success) return false;

@@ -5,6 +5,7 @@
 #include<string>
 #include<type_traits>
 #include<limits>
+#include<Windows.h>
 #include<fileapi.h>
 #include"../common/common_filesystem.h"
 
