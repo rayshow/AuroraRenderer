@@ -255,14 +255,14 @@ C++20: 202002L
 // enable memory leak check
 #if RS_COMPILER_MSVC && RS_DEBUG
 //#define new  new(_CLIENT_BLOCK, __FILE__, __LINE__)
-#define rs_open_leak_check()                           \
+#define ar_open_leak_check()                           \
 	int tmpFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG); \
 	tmpFlag |= _CRTDBG_LEAK_CHECK_DF;                  \
 	_CrtSetDbgFlag(tmpFlag);                          
-#define res_dump_leak() _CrtDumpMemoryLeaks()
+#define ar_dump_leak() _CrtDumpMemoryLeaks()
 #else
-#define rs_open_leak_check()
-#define res_dump_leak()
+#define ar_open_leak_check()
+#define ar_dump_leak()
 #endif
 
 

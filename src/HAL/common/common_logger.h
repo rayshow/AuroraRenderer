@@ -39,7 +39,7 @@ public:
  
     static bool initialize(const char* filepath){
         if (!GLogFile){
-            GLogFile = fopen(filepath,"w+");
+            GLogFile = fopen(filepath,"wt+");
         }
         return GLogFile!=nullptr;
     }

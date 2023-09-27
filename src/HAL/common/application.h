@@ -96,12 +96,14 @@ public:
         internalDataDir = GAppConfigs.get(AppConfigs::InnerDataDir, internalDataDir);
         externalStorageDir = GAppConfigs.get(AppConfigs::ExternalDataDir, externalStorageDir);
         tempDir = GAppConfigs.get(AppConfigs::TempDir, externalStorageDir);
-        RS_LOG("app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
-
         // setup logger system
         std::string loggerFileName = externalStorageDir + "log.txt";
         FileSystem::renameExistsFile(loggerFileName);
         Logger::initialize(loggerFileName.c_str());
+
+        RS_LOG("app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
+
+       
 
         // timer
         timer.start();

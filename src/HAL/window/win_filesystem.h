@@ -304,6 +304,7 @@ public:
     }
 };
 
+using File = WindowFile<>;
 
 class WindowFileSystem {
 public:
@@ -432,8 +433,6 @@ public:
 
 };
 
-
-using File = WindowFile<>;
 using FileSystem = WindowFileSystem;
 
 PROJECT_NAMESPACE_END

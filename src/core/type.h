@@ -130,6 +130,7 @@ template<typename Char>
 struct TStringView : public std::basic_string_view<Char>
 {
     using Super = std::basic_string_view<Char>;
+    using SizeType = typename Super::size_type;
     using This = TStringView;
 
     constexpr TStringView() noexcept :Super{} {}
@@ -161,7 +162,7 @@ struct TStringView : public std::basic_string_view<Char>
     }
 
     This& stripLeft() {
-        for (i32 i = 0; i < Super::size(); ++i) {
+        for (SizeType i = 0; i < Super::size(); ++i) {
             if (!isspace(Super::at(i))) {
                 Super::remove_prefix(i);
                 break;
@@ -199,7 +200,7 @@ struct TStringView : public std::basic_string_view<Char>
 
     TPair<This, This> splitToTwo(char ch) const
     {
-        i32 i = 0;
+        SizeType i = 0;
         Char const* data = Super::data();
         for (; i < Super::size(); ++i) {
             if (data[i] == ch) {
@@ -214,7 +215,7 @@ struct TStringView : public std::basic_string_view<Char>
 
     template<typename T>
     This& findLastRemove(T const& c) {
-        i32 i = Super::rfind(c);
+        SizeType i = Super::rfind(c);
         if (i == this->npos) {
             return emptyStringView();
         }

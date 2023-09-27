@@ -14,6 +14,10 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 	i32 argc = 0;
 	LPWSTR* argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
 
+	ar_open_leak_check();
+	ar_dump_leak();
+
+
 	bool bAllocateConsole = !::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent();
 	if (bAllocateConsole) {
 		AllocConsole();
