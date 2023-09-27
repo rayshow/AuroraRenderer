@@ -163,16 +163,16 @@ struct ScopeAddTab{
 
 #define DATA_TO_STRING(...) "" //rs::toString(__VA_ARGS__).c_str()
 
-#define FILE_SYSTEM_DEBUG_LOG(...) if(GFileSystemDebug::Enable) RS_RELOG( GFileSystemDebug::GetTabs(), __VA_ARGS__); ScopeAddTab PP_CONNECT2(Scope, __LINE__){};
-#define FILE_SYSTEM_INLINE RS_FORCENOINLINE
+#define FILE_SYSTEM_DEBUG_LOG(...) if(GFileSystemDebug::Enable) AR_RELOG( GFileSystemDebug::GetTabs(), __VA_ARGS__); ScopeAddTab PP_CONNECT2(Scope, __LINE__){};
+#define FILE_SYSTEM_INLINE AR_FORCENOINLINE
 #define CHECK_SERIALIZE_SUCC(Expr)  \
-                if(GFileSystemDebug::Enable){ RS_RELOG_LOC( GFileSystemDebug::GetTabs(), " # expr:%s", #Expr);  } \
-                succ = Expr; if(!succ){ RS_LOG("expr:%s failed because:%s at file:%s:line:%d",#Expr, file->getError(), __FILE__, __LINE__); }
+                if(GFileSystemDebug::Enable){ AR_RELOG_LOC( GFileSystemDebug::GetTabs(), " # expr:%s", #Expr);  } \
+                succ = Expr; if(!succ){ AR_LOG("expr:%s failed because:%s at file:%s:line:%d",#Expr, file->getError(), __FILE__, __LINE__); }
 #else
 #define FILE_SYSTEM_DEBUG_LOG(...)
-#define FILE_SYSTEM_INLINE RS_FORCEINLINE
+#define FILE_SYSTEM_INLINE AR_FORCEINLINE
 #define DATA_TO_STRING(...)
-#define CHECK_SERIALIZE_SUCC(Expr) // succ = Expr; if(!succ){ RS_LOG_FILE("expr:%s failed because:%s at file:%s:line:%d",#Expr, file->getError(), __FILE__, __LINE__); }
+#define CHECK_SERIALIZE_SUCC(Expr) // succ = Expr; if(!succ){ AR_LOG_FILE("expr:%s failed because:%s at file:%s:line:%d",#Expr, file->getError(), __FILE__, __LINE__); }
 #endif 
 
 

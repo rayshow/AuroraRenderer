@@ -1,6 +1,6 @@
 #pragma once
 
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include<android_native_app_glue.h>
 #include"platform/common/application.h"
@@ -131,19 +131,19 @@ public:
         Logger::initialize(loggerFileName.c_str());
 
 		RS_LOG("hello,log:");
-        RS_LOG_FLUSH();
+        AR_LOG_FLUSH();
 
 
         EExitCode code = Application::initialize();
         if(code!=EExitCode::Success){
             return code;
         }
-        RS_LOG("wait on window surface to be ready");
+        AR_LOG("wait on window surface to be ready");
         do
         {   
             if(!processAndroidEvent(app))
             {
-                RS_LOG("app destroyed by os!");
+                AR_LOG("app destroyed by os!");
                 return EExitCode::Close;
             }
 

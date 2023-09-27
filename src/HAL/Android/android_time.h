@@ -1,5 +1,5 @@
 #pragma once
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include<sys/time.h>
 #include"type.h"

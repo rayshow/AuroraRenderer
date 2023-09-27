@@ -1,6 +1,6 @@
 #pragma once
 
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 #include<string>
 #include<type_traits>
 #include<limits>
@@ -662,12 +662,12 @@ struct ReadonlyAndroidFile: private AndroidFile<FileFixAccess::Read>
     using FileType = ReadonlyAndroidFile;
 public:
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(ReadonlyAndroidFile* file, T&& t){
+    friend AR_FORCEINLINE bool operator<<(ReadonlyAndroidFile* file, T&& t){
         return file->read(std::forward<T>(t));
     }   
 
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(ReadonlyAndroidFile& file, T&& t ){
+    friend AR_FORCEINLINE bool operator<<(ReadonlyAndroidFile& file, T&& t ){
         return operator<<(&file, std::forward<T>(t));
     }
 };
@@ -677,12 +677,12 @@ struct WriteonlyAndroidFile: private AndroidFile<FileFixAccess::Write>
     using FileType = ReadonlyAndroidFile;
 public:
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(WriteonlyAndroidFile* file, T&& t){
+    friend AR_FORCEINLINE bool operator<<(WriteonlyAndroidFile* file, T&& t){
         return file->write(std::forward<T>(t));
     }   
 
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(WriteonlyAndroidFile& file, T&& t ){
+    friend AR_FORCEINLINE bool operator<<(WriteonlyAndroidFile& file, T&& t ){
         return operator<<(&file, std::forward<T>(t));
     }
 };

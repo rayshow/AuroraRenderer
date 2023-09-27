@@ -1,6 +1,6 @@
 
 #include"../application.h"
-
+#include"../assert.h"
 
 #if 1
 
@@ -27,10 +27,6 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		freopen_s(&fDummy, "CONOUT$", "w", stderr);
 		freopen_s(&fDummy, "CONOUT$", "w", stdout);
 		AR_LOG(Info, "allocate console");
-		AR_LOG_LOC(Info, "allocate console");
-		const char* fmt = "%d %d";
-		AR_RELOG(Error, fmt, 123, 321);
-		AR_RELOG_LOC(Warning, fmt, 123, 321);
 	}
 	
 	

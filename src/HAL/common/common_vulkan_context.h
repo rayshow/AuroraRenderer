@@ -228,7 +228,7 @@ inline VkBool32 VKAPI_PTR DebugReportFunction(
 	}
 
 
-    RS_LOG_FILE("*** [%s:%s:%d] Obj 0x%p Loc %d %s\n", MsgPrefix, LayerPrefix, MsgCode, (void*)SrcObject, (uint32)Location, Msg);
+    AR_LOG_FILE("*** [%s:%s:%d] Obj 0x%p Loc %d %s\n", MsgPrefix, LayerPrefix, MsgCode, (void*)SrcObject, (uint32)Location, Msg);
 
     //static std::unordered_set<std::string> seenCodes;
 	return VK_FALSE;
@@ -358,68 +358,68 @@ struct VulkanDevice: public WDevice{
         getPhysicalDeviceMemoryProperties(&memoryProperties);
         DumpPhysicalMemoryProp(memoryProperties);
 
-        RS_LOG("** GPU info **");
-        RS_LOG("* api version:%d", deviceProperties.apiVersion );
-        RS_LOG("* driver version:%d", deviceProperties.driverVersion );
-        RS_LOG("* vendorID:%d", deviceProperties.vendorID );
-        RS_LOG("* deviceID:%d", deviceProperties.deviceID );
-        RS_LOG("* deviceType:%d", deviceProperties.deviceType );
-        RS_LOG("* deviceName:%s", deviceProperties.deviceName );
-        RS_LOG("* pipelineCacheUUID:%s", deviceProperties.pipelineCacheUUID );
-        RS_LOG("* limits:");
+        AR_LOG("** GPU info **");
+        AR_LOG("* api version:%d", deviceProperties.apiVersion );
+        AR_LOG("* driver version:%d", deviceProperties.driverVersion );
+        AR_LOG("* vendorID:%d", deviceProperties.vendorID );
+        AR_LOG("* deviceID:%d", deviceProperties.deviceID );
+        AR_LOG("* deviceType:%d", deviceProperties.deviceType );
+        AR_LOG("* deviceName:%s", deviceProperties.deviceName );
+        AR_LOG("* pipelineCacheUUID:%s", deviceProperties.pipelineCacheUUID );
+        AR_LOG("* limits:");
         VkPhysicalDeviceLimits& limits = deviceProperties.limits;
-        RS_LOG(" - framebufferColorSampleCounts:%d, framebufferDepthSampleCounts:%d, framebufferStencilSampleCounts:%d, framebufferNoAttachmentsSampleCounts:%d", 
+        AR_LOG(" - framebufferColorSampleCounts:%d, framebufferDepthSampleCounts:%d, framebufferStencilSampleCounts:%d, framebufferNoAttachmentsSampleCounts:%d", 
             limits.framebufferColorSampleCounts, limits.framebufferDepthSampleCounts, limits.framebufferStencilSampleCounts,
             limits.framebufferNoAttachmentsSampleCounts);
-	    RS_LOG(" - maxComputeWorkGroupCount:[%d,%d,%d], maxComputeWorkGroupInvocations:%d, maxComputeWorkGroupSize:[%d,%d,%d] ",
+	    AR_LOG(" - maxComputeWorkGroupCount:[%d,%d,%d], maxComputeWorkGroupInvocations:%d, maxComputeWorkGroupSize:[%d,%d,%d] ",
 		    limits.maxComputeWorkGroupCount[0], limits.maxComputeWorkGroupCount[1], limits.maxComputeWorkGroupCount[2],
 		    limits.maxComputeWorkGroupInvocations, limits.maxComputeWorkGroupSize[0], limits.maxComputeWorkGroupSize[1], 
             limits.maxComputeWorkGroupSize[2]);
-        RS_LOG(" - maxBoundDescriptorSets:               %d ", limits.maxBoundDescriptorSets);
-        RS_LOG(" - maxColorAttachments:                  %d ", limits.maxColorAttachments);
-        RS_LOG(" - maxComputeSharedMemorySize:           %d ", limits.maxComputeSharedMemorySize);
-        RS_LOG(" - maxDescriptorSetInputAttachments:     %d ", limits.maxDescriptorSetInputAttachments);
-        RS_LOG(" - maxDescriptorSetSampledImages:        %d ", limits.maxDescriptorSetSampledImages);
-        RS_LOG(" - maxDescriptorSetSamplers:             %d ", limits.maxDescriptorSetSamplers);
-        RS_LOG(" - maxDescriptorSetStorageBuffers:       %d ", limits.maxDescriptorSetStorageBuffers);
-        RS_LOG(" - maxDescriptorSetStorageBuffersDynamic:%d ", limits.maxDescriptorSetStorageBuffersDynamic);
-        RS_LOG(" - maxDrawIndexedIndexValue:             %u ", limits.maxDrawIndexedIndexValue);
-        RS_LOG(" - maxDrawIndirectCount:                 %u ", limits.maxDrawIndirectCount);
-        RS_LOG(" - maxFragmentCombinedOutputResources:   %d ", limits.maxFragmentCombinedOutputResources);
-        RS_LOG(" - maxFragmentInputComponents:           %d ", limits.maxFragmentInputComponents);
-        RS_LOG(" - maxFragmentOutputAttachments:         %d ", limits.maxFragmentOutputAttachments);
-        RS_LOG(" - maxFramebufferHeight:                 %d ", limits.maxFramebufferHeight);
-        RS_LOG(" - maxFramebufferWidth:                  %d ", limits.maxFramebufferWidth);
-        RS_LOG(" - maxFramebufferLayers:                 %d ", limits.maxFramebufferLayers);
-        RS_LOG(" - maxImageArrayLayers:                  %d ", limits.maxImageArrayLayers);
-        RS_LOG(" - maxImageDimension1D:                  %d ", limits.maxImageDimension1D);
-        RS_LOG(" - maxImageDimension2D:                  %d ", limits.maxImageDimension2D);
-        RS_LOG(" - maxImageDimension3D:                  %d ", limits.maxImageDimension3D);
-        RS_LOG(" - maxImageDimensionCube:                %d ", limits.maxImageDimensionCube);
-        RS_LOG(" - maxInterpolationOffset:               %f ", limits.maxInterpolationOffset);
-        RS_LOG(" - maxMemoryAllocationCount:             %d ", limits.maxMemoryAllocationCount);
-        RS_LOG(" - maxSampleMaskWords:                   %d ", limits.maxSampleMaskWords);
-        RS_LOG(" - maxPerStageDescriptorInputAttachments:%d ", limits.maxPerStageDescriptorInputAttachments);
-        RS_LOG(" - maxPerStageDescriptorSampledImages:   %d ", limits.maxPerStageDescriptorSampledImages);
-        RS_LOG(" - maxPerStageDescriptorSamplers:        %d ", limits.maxPerStageDescriptorSamplers);
-        RS_LOG(" - maxPerStageDescriptorUniformBuffers:  %d ", limits.maxPerStageDescriptorUniformBuffers);
-        RS_LOG(" - maxPerStageDescriptorStorageBuffers:  %d ", limits.maxPerStageDescriptorStorageBuffers);
-        RS_LOG(" - maxPerStageDescriptorStorageImages:   %d ", limits.maxPerStageDescriptorStorageImages);
-        RS_LOG(" - maxPerStageResources:                 %d ", limits.maxPerStageResources);
-        RS_LOG(" - maxPushConstantsSize:                 %d ", limits.maxPushConstantsSize);
-        RS_LOG(" - maxSamplerAllocationCount:            %d ", limits.maxSamplerAllocationCount);
-        RS_LOG(" - maxSamplerAnisotropy:                 %f ", limits.maxSamplerAnisotropy);
-        RS_LOG(" - maxSamplerLodBias:                    %f ", limits.maxSamplerLodBias);
-        RS_LOG(" - maxStorageBufferRange:                %d ", limits.maxStorageBufferRange);
-        RS_LOG(" - maxTexelBufferElements:               %d ", limits.maxTexelBufferElements);
-        RS_LOG(" - minTexelGatherOffset:                 %d ", limits.minTexelGatherOffset);
-        RS_LOG(" - maxTexelGatherOffset:                 %d ", limits.maxTexelGatherOffset);
-        RS_LOG(" - maxTexelOffset:                       %d ", limits.maxTexelOffset);
-        RS_LOG(" - minInterpolationOffset:               %f ", limits.minInterpolationOffset);
-        RS_LOG(" - maxVertexInputAttributes:             %d ", limits.maxVertexInputAttributes);
-        RS_LOG(" - minUniformBufferOffsetAlignment:      %d ", limits.minUniformBufferOffsetAlignment);
-        RS_LOG(" - mipmapPrecisionBits:                  %d ", limits.mipmapPrecisionBits);
-        RS_LOG(" - storageImageSampleCounts:             %d ", (int)limits.storageImageSampleCounts);
+        AR_LOG(" - maxBoundDescriptorSets:               %d ", limits.maxBoundDescriptorSets);
+        AR_LOG(" - maxColorAttachments:                  %d ", limits.maxColorAttachments);
+        AR_LOG(" - maxComputeSharedMemorySize:           %d ", limits.maxComputeSharedMemorySize);
+        AR_LOG(" - maxDescriptorSetInputAttachments:     %d ", limits.maxDescriptorSetInputAttachments);
+        AR_LOG(" - maxDescriptorSetSampledImages:        %d ", limits.maxDescriptorSetSampledImages);
+        AR_LOG(" - maxDescriptorSetSamplers:             %d ", limits.maxDescriptorSetSamplers);
+        AR_LOG(" - maxDescriptorSetStorageBuffers:       %d ", limits.maxDescriptorSetStorageBuffers);
+        AR_LOG(" - maxDescriptorSetStorageBuffersDynamic:%d ", limits.maxDescriptorSetStorageBuffersDynamic);
+        AR_LOG(" - maxDrawIndexedIndexValue:             %u ", limits.maxDrawIndexedIndexValue);
+        AR_LOG(" - maxDrawIndirectCount:                 %u ", limits.maxDrawIndirectCount);
+        AR_LOG(" - maxFragmentCombinedOutputResources:   %d ", limits.maxFragmentCombinedOutputResources);
+        AR_LOG(" - maxFragmentInputComponents:           %d ", limits.maxFragmentInputComponents);
+        AR_LOG(" - maxFragmentOutputAttachments:         %d ", limits.maxFragmentOutputAttachments);
+        AR_LOG(" - maxFramebufferHeight:                 %d ", limits.maxFramebufferHeight);
+        AR_LOG(" - maxFramebufferWidth:                  %d ", limits.maxFramebufferWidth);
+        AR_LOG(" - maxFramebufferLayers:                 %d ", limits.maxFramebufferLayers);
+        AR_LOG(" - maxImageArrayLayers:                  %d ", limits.maxImageArrayLayers);
+        AR_LOG(" - maxImageDimension1D:                  %d ", limits.maxImageDimension1D);
+        AR_LOG(" - maxImageDimension2D:                  %d ", limits.maxImageDimension2D);
+        AR_LOG(" - maxImageDimension3D:                  %d ", limits.maxImageDimension3D);
+        AR_LOG(" - maxImageDimensionCube:                %d ", limits.maxImageDimensionCube);
+        AR_LOG(" - maxInterpolationOffset:               %f ", limits.maxInterpolationOffset);
+        AR_LOG(" - maxMemoryAllocationCount:             %d ", limits.maxMemoryAllocationCount);
+        AR_LOG(" - maxSampleMaskWords:                   %d ", limits.maxSampleMaskWords);
+        AR_LOG(" - maxPerStageDescriptorInputAttachments:%d ", limits.maxPerStageDescriptorInputAttachments);
+        AR_LOG(" - maxPerStageDescriptorSampledImages:   %d ", limits.maxPerStageDescriptorSampledImages);
+        AR_LOG(" - maxPerStageDescriptorSamplers:        %d ", limits.maxPerStageDescriptorSamplers);
+        AR_LOG(" - maxPerStageDescriptorUniformBuffers:  %d ", limits.maxPerStageDescriptorUniformBuffers);
+        AR_LOG(" - maxPerStageDescriptorStorageBuffers:  %d ", limits.maxPerStageDescriptorStorageBuffers);
+        AR_LOG(" - maxPerStageDescriptorStorageImages:   %d ", limits.maxPerStageDescriptorStorageImages);
+        AR_LOG(" - maxPerStageResources:                 %d ", limits.maxPerStageResources);
+        AR_LOG(" - maxPushConstantsSize:                 %d ", limits.maxPushConstantsSize);
+        AR_LOG(" - maxSamplerAllocationCount:            %d ", limits.maxSamplerAllocationCount);
+        AR_LOG(" - maxSamplerAnisotropy:                 %f ", limits.maxSamplerAnisotropy);
+        AR_LOG(" - maxSamplerLodBias:                    %f ", limits.maxSamplerLodBias);
+        AR_LOG(" - maxStorageBufferRange:                %d ", limits.maxStorageBufferRange);
+        AR_LOG(" - maxTexelBufferElements:               %d ", limits.maxTexelBufferElements);
+        AR_LOG(" - minTexelGatherOffset:                 %d ", limits.minTexelGatherOffset);
+        AR_LOG(" - maxTexelGatherOffset:                 %d ", limits.maxTexelGatherOffset);
+        AR_LOG(" - maxTexelOffset:                       %d ", limits.maxTexelOffset);
+        AR_LOG(" - minInterpolationOffset:               %f ", limits.minInterpolationOffset);
+        AR_LOG(" - maxVertexInputAttributes:             %d ", limits.maxVertexInputAttributes);
+        AR_LOG(" - minUniformBufferOffsetAlignment:      %d ", limits.minUniformBufferOffsetAlignment);
+        AR_LOG(" - mipmapPrecisionBits:                  %d ", limits.mipmapPrecisionBits);
+        AR_LOG(" - storageImageSampleCounts:             %d ", (int)limits.storageImageSampleCounts);
 
         /*
          uint32_t        memoryTypeCount;
@@ -458,7 +458,7 @@ struct VulkanDevice: public WDevice{
             return VK_SUCCESS;
         };
         enumerateProperties(queueFamilyProperties, getQueueFamilyProp, physicalHandle);
-        RS_LOG("familyIndex:%d, handle:%p", queues[1].familyIndex, queues[1].handle);
+        AR_LOG("familyIndex:%d, handle:%p", queues[1].familyIndex, queues[1].handle);
         rs_check(queues[1].familyIndex == kInvalidInteger<uint32>);
         rs_check(queues[1].handle == VK_NULL_HANDLE);
     }
@@ -469,11 +469,11 @@ struct VulkanDevice: public WDevice{
         bool allowAsyncCompute = false;
         for(uint32 i=0; i<queueFamilyProperties.size(); ++i){
             auto&& prop = queueFamilyProperties[i];
-            RS_LOG("** queue %d", i );
-            RS_LOG("** queueFlags %d", prop.queueFlags );
-            RS_LOG("** queueCount %d", prop.queueCount );
-            RS_LOG("** timestampValidBits %d", prop.timestampValidBits );
-            RS_LOG("** minImageTransferGranularity %d", prop.minImageTransferGranularity.width,
+            AR_LOG("** queue %d", i );
+            AR_LOG("** queueFlags %d", prop.queueFlags );
+            AR_LOG("** queueCount %d", prop.queueCount );
+            AR_LOG("** timestampValidBits %d", prop.timestampValidBits );
+            AR_LOG("** minImageTransferGranularity %d", prop.minImageTransferGranularity.width,
              prop.minImageTransferGranularity.height, prop.minImageTransferGranularity.depth );
 
             bool foundIndex = false;
@@ -491,7 +491,7 @@ struct VulkanDevice: public WDevice{
             foundQueueFamilyIndex(VK_QUEUE_SPARSE_BINDING_BIT, EVkQueueType::Sparse);
 
             if(!foundIndex){
-                RS_LOG("skip queue family because it's not used");
+                AR_LOG("skip queue family because it's not used");
                 continue;
             }
 
@@ -516,7 +516,7 @@ struct VulkanDevice: public WDevice{
 
     bool createQueue(){
         if(getQueue(EVkQueueType::Graphics).familyIndex==kInvalidInteger<uint32>){
-            RS_LOG("invalid graphics queue index");
+            AR_LOG("invalid graphics queue index");
             return false;
         }
         getDeviceQueue(getQueue(EVkQueueType::Graphics).familyIndex, 0, &getQueue(EVkQueueType::Graphics).handle);
@@ -597,7 +597,7 @@ struct VulkanContext
         // layers
         std::vector<VkLayerProperties> layers;
         enumerateProperties( layers, getLayer, layerAndExtensions );
-        RS_LOG("** VkLayer count:%d %d*****",layerAndExtensions.size(),layers.size());
+        AR_LOG("** VkLayer count:%d %d*****",layerAndExtensions.size(),layers.size());
 
         // extensions
         for(uint32 i=0; i<layerAndExtensions.size(); ++i){
@@ -605,9 +605,9 @@ struct VulkanContext
             auto&& layer = layerExtensions.layer;
             auto&& extensions = layerExtensions.extensions;
             enumerateProperties( extensions, getExtension , i==0 ? nullptr : layer.layerName );
-            RS_LOG("** VkLayer[%d]:%s version:%d, extension count:%d", i, layer.layerName, layer.specVersion, extensions.size());
+            AR_LOG("** VkLayer[%d]:%s version:%d, extension count:%d", i, layer.layerName, layer.specVersion, extensions.size());
             for(uint32 j=0; j<extensions.size(); ++j){
-                RS_LOG("** VkLayer:%s extension[%d]:%s", layer.layerName, j, extensions[j].extensionName);
+                AR_LOG("** VkLayer:%s extension[%d]:%s", layer.layerName, j, extensions[j].extensionName);
                 //if(strcmp("VK_LAYER_KHRONOS_validation", layer.layerName))
                 {
                     uniqueExtensions.emplace_back(extensions[j].extensionName);
@@ -629,20 +629,20 @@ struct VulkanContext
 
 
         for(auto&& extension : uniqueExtensions){
-            RS_LOG("-- unique extension: %s", extension.c_str());
+            AR_LOG("-- unique extension: %s", extension.c_str());
         }
         addExtensionIfExists( outExtensions, uniqueExtensions, requireExtensions );
         auto&& finalLast = std::unique(outExtensions.begin(), outExtensions.end());
         outExtensions.erase(finalLast, outExtensions.end());
 
-        RS_LOG("layer count:%d", outLayers.size());
+        AR_LOG("layer count:%d", outLayers.size());
         for(auto&& layer : outLayers){
-            RS_LOG("** final layer: %s", layer);
+            AR_LOG("** final layer: %s", layer);
         }
 
-        RS_LOG("extension count:%d", outExtensions.size());
+        AR_LOG("extension count:%d", outExtensions.size());
         for(auto&& extension : outExtensions){
-            RS_LOG("** final extension: %s", extension);
+            AR_LOG("** final extension: %s", extension);
         }
     }
 
@@ -669,7 +669,7 @@ struct VulkanContext
         std::vector<const char*> availableExtensions{};
         GetVulkanInstanceExtensionStrings(availableExtensions);
 
-        RS_LOG("*** Instance Layer and Extension: **");
+        AR_LOG("*** Instance Layer and Extension: **");
         getLayerAndExtension( outInstanceExtension, outInstanceLayers, 
              instance.layerExtensions, instance.uniqueExtensions, availableExtensions, 
              getInstanceLayerProperties, getInstanceExtensionProperties);
@@ -689,13 +689,13 @@ struct VulkanContext
         VkResult ret = GGlobalCommands()->vkCreateInstance(&CreateInfo, nullptr, &instance.handle);
 
         if (ret != VK_SUCCESS){
-            RS_LOG("create instance raise %s error, exit!", GetVkResultString(ret));
+            AR_LOG("create instance raise %s error, exit!", GetVkResultString(ret));
             return false;
         }
 
         // get instance proc addr
         if(!instance.GetCommandAddrs()){
-            RS_LOG("get instance commands  error, exit!");
+            AR_LOG("get instance commands  error, exit!");
             return false;
         }
         // set to global
@@ -704,7 +704,7 @@ struct VulkanContext
     }
     
     bool createDevice(){
-        RS_LOG("** createDevice ");
+        AR_LOG("** createDevice ");
         std::vector<VkPhysicalDevice> physicalDevices;
         // enumerate physical device
         auto getPhysicalDevice = [](uint32& count, VkPhysicalDevice* data){
@@ -712,9 +712,9 @@ struct VulkanContext
             return GInstanceCommands()->vkEnumeratePhysicalDevices(GInstanceCommands()->handle, &count, data);
         };
         enumerateProperties(physicalDevices, getPhysicalDevice);
-        RS_LOG("** physical device count : %d", physicalDevices.size());
+        AR_LOG("** physical device count : %d", physicalDevices.size());
         if(physicalDevices.size() == 0){
-            RS_LOG(" no physical found, exit!");
+            AR_LOG(" no physical found, exit!");
             return false;
         }
         devices.resize(physicalDevices.size());
@@ -749,7 +749,7 @@ struct VulkanContext
                 return ret;
             };
 
-            RS_LOG("*** Device Layer and Extension: **");
+            AR_LOG("*** Device Layer and Extension: **");
             getLayerAndExtension( outDeviceExtensions, outDeviceLayers, device.layerExtensions,
                 device.uniqueExtensions, availableExtensions, 
                 getDeviceLayerProperties, getDeviceExtensionProperties);
@@ -776,13 +776,13 @@ struct VulkanContext
             VkResult ret = device.createDevice(&createInfo, &deviceHandle);
             device.handle = deviceHandle;
             if (ret != VK_SUCCESS){
-                RS_LOG("create device raise %s error, exit!", GetVkResultString(ret));
+                AR_LOG("create device raise %s error, exit!", GetVkResultString(ret));
                 return false;
             }
 
             // get instance proc addr
             if(!device.GetCommandAddrs()){
-                RS_LOG("get instance commands  error, exit!");
+                AR_LOG("get instance commands  error, exit!");
                 return false;
             }
             // set to global
@@ -790,7 +790,7 @@ struct VulkanContext
 
             // get queues
             if(!device.createQueue()){
-                RS_LOG("create queue  error, exit!");
+                AR_LOG("create queue  error, exit!");
                 return false;
             }
         }
@@ -800,36 +800,36 @@ struct VulkanContext
     bool initBasicEntryPoints(){ return false; }
 
     bool initialize(){
-        RS_LOG("vulkan context: initialize");
+        AR_LOG("vulkan context: initialize");
         Derive* derive = static_cast<Derive*>(this);
         if(! derive->initBasicEntryPoints()){
             return false;
         }
-        RS_LOG("vulkan context: initBasicEntryPoints succ");
+        AR_LOG("vulkan context: initBasicEntryPoints succ");
 
         if(!createInstance()){
             return false;
         }
-        RS_LOG("vulkan context: createInstance succ");
+        AR_LOG("vulkan context: createInstance succ");
 
         setupDebugLayerCallback();
         
         if(!createDevice()){
             return false;
         }
-        RS_LOG("vulkan context: createDevice succ");
+        AR_LOG("vulkan context: createDevice succ");
         return true;
     }
 
     bool finalize(){
-        RS_LOG("vulkan context: finalize");
+        AR_LOG("vulkan context: finalize");
         if(instance.handle!=VK_NULL_HANDLE){
             GInstanceCommands()->vkDestroyInstance(instance.handle, nullptr);
             instance.handle = VK_NULL_HANDLE;
         }
         
 
-        RS_LOG("vulkan context: destroy instance");
+        AR_LOG("vulkan context: destroy instance");
         return true;
     }
 
@@ -856,7 +856,7 @@ struct VulkanContext
         }
         else */
 
-        RS_LOG("VK_EXT_debug_report:%d", (int)IsVkExtensionEnabled(VK_EXT_debug_report));
+        AR_LOG("VK_EXT_debug_report:%d", (int)IsVkExtensionEnabled(VK_EXT_debug_report));
         if (IsVkExtensionEnabled(VK_EXT_debug_report))
         {
             rs_check(GInstanceCommands()->vkCreateDebugReportCallbackEXT!=nullptr);
@@ -870,10 +870,10 @@ struct VulkanContext
                 CreateInfo.flags |= VK_DEBUG_REPORT_ERROR_BIT_EXT;
                 VkResult ret = GInstanceCommands()->vkCreateDebugReportCallbackEXT(GInstanceCommands()->handle, &CreateInfo, nullptr, &MsgCallback);
                 if(ret!=VK_SUCCESS){
-                    RS_LOG_FILE(" vkCreateDebugReportCallbackEXT fail:%s \n", GetVkResultString(ret));
+                    AR_LOG_FILE(" vkCreateDebugReportCallbackEXT fail:%s \n", GetVkResultString(ret));
                 }
 
-                RS_LOG("#enable debug report extension");
+                AR_LOG("#enable debug report extension");
             }   
         }
     }

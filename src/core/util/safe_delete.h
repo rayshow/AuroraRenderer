@@ -25,7 +25,7 @@ namespace ptr
 				size = sizeof(R)*length;
 			}
 			newArray = reinterpret_cast<R*>(malloc(size));
-			rs_assert(newArray!=nullptr);
+			ARAssert(newArray!=nullptr);
 			if constexpr(is_raw_string_v<R>){
 				// raw-string array
 				for(uint32 i=0; i<length; ++i){
@@ -99,7 +99,7 @@ namespace ptr
 	void safe_delete_array(T*& t, u32 length ) { 
 		if(!t || length==0 ) return;
 		if constexpr(is_raw_string_v<T>){
-			rs_assert(length>0);
+			ARAssert(length>0);
 			using NoConstPointerT = std::remove_const_t< std::remove_pointer_t<T>>;
 			for(uint32 i=0; i<length; ++i){
 				NoConstPointerT* addr = const_cast<NoConstPointerT*>(t[i]);

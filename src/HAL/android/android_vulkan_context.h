@@ -1,5 +1,5 @@
 #pragma once
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include <dlfcn.h>
 #include"platform/common/vulkan_context.h"
@@ -18,11 +18,11 @@ struct AndroidVulkanContext
             , Singleton<AndroidVulkanContext>
 {
     bool initBasicEntryPoints(){
-        RS_LOG("vulkan context: load basic funtion");
+        AR_LOG("vulkan context: load basic funtion");
         void* libvulkan = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
         if (!libvulkan) return false;
         ENUM_VK_ENTRYPOINTS_BASE(GET_VK_BASIC_ENTRYPOINTS)
-        RS_LOG("vulkan context: load basic funtion succ");
+        AR_LOG("vulkan context: load basic funtion succ");
         return true;
     }
 };

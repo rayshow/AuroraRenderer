@@ -8,7 +8,6 @@ PROJECT_NAMESPACE_BEGIN
 template<typename Char>
 struct RawString;
 
-
 template<>
 struct RawString<char>
 {

@@ -279,7 +279,7 @@ public:
         s_KeyboardTypesMap[0x04A] = KeyboardType::KEY_KP_SUBTRACT;
     }
 
-    RS_FORCEINLINE KeyboardType GetKeyFromKeyCode(i32 keyCode)
+    AR_FORCEINLINE KeyboardType GetKeyFromKeyCode(i32 keyCode)
     {
         auto it = s_KeyboardTypesMap.find(keyCode);
         if (it == s_KeyboardTypesMap.end())
@@ -289,13 +289,13 @@ public:
         return it->second;
     }
 
-    RS_FORCEINLINE void Reset()
+    AR_FORCEINLINE void Reset()
     {
         s_MouseDelta = 0;
         s_IsMouseMoveing = false;
     }
 
-    RS_FORCEINLINE bool IsMouseDown(MouseType type)
+    AR_FORCEINLINE bool IsMouseDown(MouseType type)
     {
         auto it = s_MouseActions.find((i32)type);
         if (it == s_MouseActions.end())
@@ -305,7 +305,7 @@ public:
         return it->second == true;
     }
 
-    RS_FORCEINLINE bool IsMouseUp(MouseType type)
+    AR_FORCEINLINE bool IsMouseUp(MouseType type)
     {
         auto it = s_MouseActions.find((i32)type);
         if (it == s_MouseActions.end())
@@ -315,7 +315,7 @@ public:
         return it->second == false;
     }
 
-    RS_FORCEINLINE bool IsKeyDown(KeyboardType key)
+    AR_FORCEINLINE bool IsKeyDown(KeyboardType key)
     {
         auto it = s_KeyActions.find((i32)key);
         if (it == s_KeyActions.end())
@@ -325,7 +325,7 @@ public:
         return it->second == true;
     }
 
-    RS_FORCEINLINE bool IsKeyUp(KeyboardType key)
+    AR_FORCEINLINE bool IsKeyUp(KeyboardType key)
     {
         auto it = s_KeyActions.find((i32)key);
         if (it == s_KeyActions.end())
@@ -335,16 +335,16 @@ public:
         return it->second == false;
     }
 
-    RS_FORCEINLINE const I32Vector2& GetMousePosition()
+    AR_FORCEINLINE const I32Vector2& GetMousePosition()
     {
         return s_MouseLocation;
     }
 
-    RS_FORCEINLINE float GetMouseDelta()
+    AR_FORCEINLINE float GetMouseDelta()
     {
         return s_MouseDelta;
     }
-    RS_FORCEINLINE bool IsMouseMoving()
+    AR_FORCEINLINE bool IsMouseMoving()
     {
         return s_IsMouseMoveing;
     }

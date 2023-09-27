@@ -256,7 +256,7 @@ struct RawStrOps<char>
 struct MemoryOps
 {
     template<typename R>
-    RS_FORCEINLINE R* copyArray(R const* array, usize length = 1) {
+    AR_FORCEINLINE R* copyArray(R const* array, usize length = 1) {
         R* newArray = nullptr;
         usize size = 0;
         if (array && length > 0) {
@@ -267,7 +267,7 @@ struct MemoryOps
                 size = sizeof(R) * length;
             }
             newArray = reinterpret_cast<R*>(malloc(size));
-            rs_assert(newArray != nullptr);
+            ARAssert(newArray != nullptr);
             if constexpr (is_raw_string_v<R>) {
                 // raw-string array
                 for (u32 i = 0; i < length; ++i) {
@@ -290,7 +290,7 @@ struct MemoryOps
     }
 
     template<typename R, typename RawR = std::remove_const_t<R> >
-    RS_FORCEINLINE R* newDefaultArray(usize length = 1) {
+    AR_FORCEINLINE R* newDefaultArray(usize length = 1) {
         RawR* newArray = nullptr;
         if (length > 0) {
             usize size = 0;
@@ -301,7 +301,7 @@ struct MemoryOps
                 size = sizeof(R) * length;
             }
             newArray = reinterpret_cast<RawR*>(malloc(size));
-            if (!newArray) { rs_assert(false); return nullptr; }
+            if (!newArray) { ARAssert(false); return nullptr; }
             if constexpr (std::is_pod_v<R> || std::is_void_v<R>) {
                 memset(newArray, 0, size);
             }
@@ -317,7 +317,7 @@ struct MemoryOps
     }
 
     template<typename R>
-    RS_FORCEINLINE R* copy(R const* object) {
+    AR_FORCEINLINE R* copy(R const* object) {
         if constexpr (is_char_v<R>) {
             // raw-string
             return object ? strdup(object) : nullptr;
@@ -344,7 +344,7 @@ struct MemoryOps
     void safeDeleteArray(T*& t, u32 length) {
         if (!t || length == 0) return;
         if constexpr (is_raw_string_v<T>) {
-            rs_assert(length > 0);
+            ARAssert(length > 0);
             using NoConstPointerT = std::remove_const_t< std::remove_pointer_t<T>>;
             for (u32 i = 0; i < length; ++i) {
                 NoConstPointerT* addr = const_cast<NoConstPointerT*>(t[i]);

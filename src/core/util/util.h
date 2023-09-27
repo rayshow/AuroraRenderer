@@ -13,12 +13,12 @@
 #include "type.h"
 
 
-#define RS_PP_UNPACK_CONNECT(x, y)  RS_PP_UNPACK_CONNECT2(x, y)
-#define RS_PP_UNPACK_CONNECT2(x, y) RS_PP_UNPACK_CONNECT3(x y)
-#define RS_PP_UNPACK_CONNECT3(result) result
+#define AR_PP_UNPACK_CONNECT(x, y)  AR_PP_UNPACK_CONNECT2(x, y)
+#define AR_PP_UNPACK_CONNECT2(x, y) AR_PP_UNPACK_CONNECT3(x y)
+#define AR_PP_UNPACK_CONNECT3(result) result
 
-#define RS_PP_UNPACK( seq ) RS_PP_UNPACK_HELPER(RS_PP_UNPACK_HELPER, seq)
-#define RS_PP_UNPACK_HELPER(...) __VA_ARGS__
+#define AR_PP_UNPACK( seq ) AR_PP_UNPACK_HELPER(RS_PP_UNPACK_HELPER, seq)
+#define AR_PP_UNPACK_HELPER(...) __VA_ARGS__
 
 #define PP_DEFINE_CONNECT2(x, y) PP_DEFINE_CONNECT2_HELPER(x y)
 #define PP_DEFINE_CONNECT2_HELPER(result ) result
@@ -28,8 +28,8 @@
 #define PP_DEFINE_CONNECT3_HELPER2(result ) result
 
 
-#define RS_PP_REMOVE_BRACK(result) RS_PP_REMOVE_BRACK_HELPER result
-#define RS_PP_REMOVE_BRACK_HELPER(...) __VA_ARGS__
+#define AR_PP_REMOVE_BRACK(result) AR_PP_REMOVE_BRACK_HELPER result
+#define AR_PP_REMOVE_BRACK_HELPER(...) __VA_ARGS__
 
 
 
@@ -99,9 +99,9 @@ template<typename T> struct is_same<T, T> :public true_ {};
 
 
 
-#define RS_TT_HAS_MEMBER_DECL_IMPL(TraitName, MemberName, Extra)                        \
+#define AR_TT_HAS_MEMBER_DECL_IMPL(TraitName, MemberName, Extra)                        \
 namespace __impl{                                                                       \
-	template<typename T, typename Ret, RS_PP_REMOVE_BRACK(Extra)  typename ... Args>    \
+	template<typename T, typename Ret, AR_PP_REMOVE_BRACK(Extra)  typename ... Args>    \
 	struct TraitName##_impl {                                                           \
 			template< typename P,                                                       \
 			typename AR = decltype(makeval<P>().MemberName(declval<Args>()...)),        \
@@ -115,7 +115,7 @@ namespace __impl{                                                               
 }
 
 // define a type trait to test weather anyRet(template) T.MemberName(args...) is well-formed
-#define RS_TT_HAS_MEMBER_DECL_EXTRA( TraitName, MemberName, Extra)                      \
+#define AR_TT_HAS_MEMBER_DECL_EXTRA( TraitName, MemberName, Extra)                      \
 		RS_TT_HAS_MEMBER_DECL_IMPL( TraitName, MemberName, (Extra))                     \
 		template<typename T, typename Ret, typename... Args>                            \
 		static constexpr bool TraitName##_v                                             \
@@ -124,8 +124,8 @@ namespace __impl{                                                               
 		struct TraitName :bool_< TraitName##_v<T,Ret,Args...> >                         \
 		{};
         
-#define RS_TT_HAS_MEMBER_WITH_RET_DECL(TraitName, MemberName, Ret) RS_TT_HAS_MEMBER_WITH_RET_DECL_EXTRA(TraitName, MemberName, Ret, )
-#define RS_TT_HAS_MEMBER_DECL( TraitName, MemberName) RS_TT_HAS_MEMBER_DECL_EXTRA( TraitName, MemberName, )
+#define AR_TT_HAS_MEMBER_WITH_RET_DECL(TraitName, MemberName, Ret) AR_TT_HAS_MEMBER_WITH_RET_DECL_EXTRA(TraitName, MemberName, Ret, )
+#define AR_TT_HAS_MEMBER_DECL( TraitName, MemberName) AR_TT_HAS_MEMBER_DECL_EXTRA( TraitName, MemberName, )
 
 #define SAFE_STRUCT_STRING(Obj, Name) ((Obj) && (Obj->Name)) ? (Obj->Name) : "(None)"
 

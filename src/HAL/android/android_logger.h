@@ -1,5 +1,5 @@
 #pragma once
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include <android/log.h>
 #include <cstdio>
@@ -19,7 +19,7 @@ private:
     }
 public:
 
-    RS_FORCEINLINE static AndroidLogger& getInstance(){
+    AR_FORCEINLINE static AndroidLogger& getInstance(){
         static AndroidLogger GLogger;
         return GLogger;
     }

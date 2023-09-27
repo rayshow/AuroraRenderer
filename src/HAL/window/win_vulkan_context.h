@@ -16,11 +16,11 @@ struct WindowVulkanContext
             , Singleton<WindowVulkanContext>
 {
     bool initBasicEntryPoints(){
-        RS_LOG("vulkan context: load basic funtion begin");
+        AR_LOG("vulkan context: load basic funtion begin");
         HMODULE libvulkan = LoadLibraryA("vulkan-1.dll");
         if (!libvulkan) return false;
         ENUM_VK_ENTRYPOINTS_BASE(GET_VK_BASIC_ENTRYPOINTS)
-        RS_LOG("vulkan context: load basic funtion end");
+        AR_LOG("vulkan context: load basic funtion end");
         return true;
     }
 };
