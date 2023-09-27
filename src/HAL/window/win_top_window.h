@@ -60,6 +60,10 @@ public:
         _window = nullptr;
     }
 
+    void tick(f64 time) {
+        pumpMessages();
+    }
+
     // surface
     VkSurfaceKHR createSurface(VkInstance instance, VkPhysicalDevice device) const
     {
@@ -75,9 +79,6 @@ public:
         return _window;
     }
 
-    virtual void tick() {
-        pumpMessages();
-    }
 
     static i32 ProcessMessage(HWND hwnd, u32 msg, WPARAM wParam, LPARAM lParam)
     {

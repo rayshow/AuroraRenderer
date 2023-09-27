@@ -214,12 +214,12 @@ struct TStringView : public std::basic_string_view<Char>
     }
 
     template<typename T>
-    This& findLastRemove(T const& c) {
+    This& removeLastBefore(T const& c) {
         SizeType i = Super::rfind(c);
         if (i == this->npos) {
             return emptyStringView();
         }
-        Super::remove_suffix(Super::size() - i);
+        Super::remove_suffix(Super::size() - i-1);
         return *this;
     }
 

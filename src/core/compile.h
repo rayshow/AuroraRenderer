@@ -265,7 +265,6 @@ C++20: 202002L
 #define ar_dump_leak()
 #endif
 
-
 #if RS_DEBUG
 	#if RS_COMPILER_MSVC
 		#define rs_debugbreak()      __debugbreak()
@@ -306,7 +305,7 @@ C++20: 202002L
 #define RS_TFN1(T) template<class, class...> class T
 
 // big/little endian
-RS_FORCEINLINE bool isLittleEndian()
+RS_FORCEINLINE bool IsLittleEndian()
 {
 	int t = 1;
 	return *((char*)&t) == 1;

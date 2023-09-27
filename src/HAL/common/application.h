@@ -92,16 +92,19 @@ public:
 
     // app start
     EExitCode initialize(){
+        derive = static_cast<Derive*>(this);
+
         // dir and log system
         internalDataDir = GAppConfigs.get(AppConfigs::InnerDataDir, internalDataDir);
         externalStorageDir = GAppConfigs.get(AppConfigs::ExternalDataDir, externalStorageDir);
         tempDir = GAppConfigs.get(AppConfigs::TempDir, externalStorageDir);
+
         // setup logger system
         std::string loggerFileName = externalStorageDir + "log.txt";
         FileSystem::renameExistsFile(loggerFileName);
         Logger::initialize(loggerFileName.c_str());
 
-        RS_LOG("app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
+        AR_LOG( Info, "app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
 
        
 
@@ -126,26 +129,34 @@ public:
 
     EExitCode mainLoop(){
         // main loop
-        RS_LOG("main loop begin");
+        AR_LOG(Info, "main loop begin");
         setFPS(EFPS::FPS60);
         while(!bRequestExit && !GRequestExit){
             f64 realTickTime = timer.tick(tickTime);
             processEvents();
-            tick(realTickTime);
+            static_cast<Derive*>(this)->tick(realTickTime);
             for(auto&& plugin: _plugins){
                 plugin->tick(realTickTime);
             }
+            derive->tick(tickTime);
             if(bFatal){
                 return EExitCode::Fatal;
             }
         }
-        RS_LOG("main loop end");
+        AR_LOG(Info, "main loop end");
         return EExitCode::Success;
     }
 
+    void finalize(EExitCode code) {
+        for (auto& plugin : _plugins) {
+            plugin->finalize();
+        }
+        Logger::finalize();
+    };
+
     void tick(f64 tickTime) {};
     void processEvents() {};
-    void finalize(EExitCode code) {};
+    
     void requestExit(){ bRequestExit = true; }
     bool exitRequested() const{ return bRequestExit;}
 
@@ -186,6 +197,8 @@ private:
     String externalStorageDir{};
     String tempDir{};
     String internalDataDir{};
+    //CRTP
+    Derive* derive{};
 
     inline static String None{"[None]"};
 };

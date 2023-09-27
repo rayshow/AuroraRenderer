@@ -65,7 +65,6 @@ public:
     
 };
 
-using ELogLevel = ELogLevel;
 using Logger = AndroidLogger;
 
 #endif

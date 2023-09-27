@@ -26,7 +26,11 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		freopen_s(&fDummy, "CONIN$", "r", stdin);
 		freopen_s(&fDummy, "CONOUT$", "w", stderr);
 		freopen_s(&fDummy, "CONOUT$", "w", stdout);
-		printf("allocate console");
+		AR_LOG(Info, "allocate console");
+		AR_LOG_LOC(Info, "allocate console");
+		const char* fmt = "%d %d";
+		AR_RELOG(Error, fmt, 123, 321);
+		AR_RELOG_LOC(Warning, fmt, 123, 321);
 	}
 	
 	
@@ -36,7 +40,7 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		wcstombs(buf, argv[i], 2048);
 		StringView param{ buf };
 		if (i == 0) {
-			param.strip().findLastRemove("\\");
+			param.strip().removeLastBefore("\\");
 			GAppConfigs.set(AppConfigs::InnerDataDir, String{ param });
 			GAppConfigs.set(AppConfigs::ExternalDataDir, String{ param });
 			GAppConfigs.set(AppConfigs::TempDir, String{param});
