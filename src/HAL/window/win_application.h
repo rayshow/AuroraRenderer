@@ -20,7 +20,7 @@ public:
         return EExitCode::Success;
     }
 
-    virtual void tick(f64 time) {
+    void tick(f64 time) {
         Super::tick(time);
         _window->tick(time);
     }

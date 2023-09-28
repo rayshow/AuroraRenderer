@@ -12,10 +12,11 @@
 
 #include"core/type.h"
 #include"core/util/singleton.h"
-#include"HAL/filesystem.h"
-#include"../logger.h"
 #include"top_window.h"
 #include"engine.h"
+#include"../filesystem.h"
+#include"../logger.h"
+#include"../vulkan_context.h"
 
 
 PROJECT_NAMESPACE_BEGIN
@@ -106,7 +107,11 @@ public:
 
         AR_LOG( Info, "app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
 
-       
+        // setup vulkan system
+        if (!VulkanContext::getInstance().initialize()) {
+            AR_LOG(Info, "create vulkan context failed!");
+            return EExitCode::Fatal;
+        }
 
         // timer
         timer.start();

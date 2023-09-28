@@ -122,7 +122,7 @@ struct DispatchPolymorphSerailize
     }
 
     bool deserialize(T*& t, File* file) const {
-        //rs_check(t==nullptr);
+        //ARCheck(t==nullptr);
         t = T::template polymorphismDeserialize<T>(file);
         return t!=nullptr;
     }

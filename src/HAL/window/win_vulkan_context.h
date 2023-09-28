@@ -6,23 +6,25 @@
 
 #define GET_VK_BASIC_ENTRYPOINTS(Func)  \
 				GGlobalCommands()->Func = (PFN_##Func)GetProcAddress(libvulkan, #Func ); \
-				rs_check(GGlobalCommands()->Func!=nullptr);                     \
+				ARCheck(GGlobalCommands()->Func!=nullptr);                     \
                 if(GGlobalCommands()->Func==nullptr){ return false; }
 
 PROJECT_NAMESPACE_BEGIN
 
 struct WindowVulkanContext
-            : public VulkanContext<WindowVulkanContext>
+            : public CommonVulkanContext<WindowVulkanContext>
             , Singleton<WindowVulkanContext>
 {
     bool initBasicEntryPoints(){
-        AR_LOG("vulkan context: load basic funtion begin");
+        AR_LOG(Info, "vulkan context: load basic funtion begin");
         HMODULE libvulkan = LoadLibraryA("vulkan-1.dll");
         if (!libvulkan) return false;
         ENUM_VK_ENTRYPOINTS_BASE(GET_VK_BASIC_ENTRYPOINTS)
-        AR_LOG("vulkan context: load basic funtion end");
+        AR_LOG(Info, "vulkan context: load basic funtion end");
         return true;
     }
 };
+
+using VulkanContext = WindowVulkanContext;
 
 PROJECT_NAMESPACE_END

@@ -34,7 +34,7 @@ inline char const* GetAppCmdString(int32_t cmd){
 
 inline void onAppCmd(android_app *app, int32_t cmd){
 	auto application = reinterpret_cast<Application*>(app->userData);
-    rs_check(application!=nullptr);
+    ARCheck(application!=nullptr);
 	switch (cmd){
 		case APP_CMD_INIT_WINDOW: {
 			application->resize(ANativeWindow_getWidth(app->window),

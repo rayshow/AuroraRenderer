@@ -16,13 +16,13 @@
 #include<string>
 #include<string_view>
 #include<vector>
+#include<algorithm>
 #include<array>
 #include<unordered_map>
 #include<unordered_set>
 #include<tuple>
 #include<optional>
 #include"compile.h" 
-
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -41,6 +41,10 @@ using wchar   = wchar_t;
 using achar   = char;
 using char16  = char16_t;
 using char32  = char32_t;
+using RawCStr = char*;
+using RawWStr = wchar_t*;
+using CRawCStr = char const*;
+using CRawWStr = wchar_t const*;
 
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
@@ -87,7 +91,7 @@ static_assert(sizeof(i32) == 4, "i32 is not 4 byte.");
 static_assert(sizeof(u64) == 8, "u64 is not 8 byte.");
 static_assert(sizeof(i64) == 8, "i64 is not 8 byte.");
 
-template<typename Int> constexpr Int kIntInvalid = (Int)(-1);
+template<typename Int> constexpr Int kInvalidInteger = (Int)(-1);
 
 #if defined(max)
 #define OLD_MAX max
@@ -249,6 +253,59 @@ struct RawStrOps<char>
         else {
             return strncmp(str1, str2, n);
         }
+    }
+};
+
+
+
+namespace AlgOps {
+
+    struct RawStrEqual {
+        template<typename T>
+        constexpr bool operator()(T const* first, T const* second) {
+            return 0 == RawStrOps< T>::compare(first,second);
+        }
+    };
+    struct RawStrLess {
+        template<typename T>
+        constexpr bool operator()(T const* first, T const* second) {
+            return RawStrOps<T>::compare(first, second) < 0;
+        }
+    };
+
+    constexpr RawStrEqual rawStrEqual{};
+    constexpr RawStrLess  rawStrLess{};
+    constexpr std::equal_to<> defaultEqualTo{};
+    constexpr std::less<>     defaultLess{};
+
+    template<typename Container, typename SortFn, typename IdentityFn>
+    AR_FORCEINLINE void unique(Container& container, SortFn&& sortFn, IdentityFn identityFn )
+    {
+        std::sort(container.begin(), container.end(), std::forward<SortFn>(sortFn) );
+        auto&& last = std::unique(container.begin(), container.end(), std::forward<IdentityFn>(identityFn) );
+        container.erase(last, container.end());
+    }
+
+    template<typename Container, typename SortFn>
+    AR_FORCEINLINE void unique(Container& container, SortFn&& sortFn)
+    {
+        unique(container, sortFn, defaultEqualTo);
+    }
+
+    template<typename Container>
+    AR_FORCEINLINE void unique(Container& container)
+    {
+        unique(container, defaultLess, defaultEqualTo);
+    }
+
+    template<typename It,typename Pred>
+    AR_FORCEINLINE void sort(It const& begin, It const& end, Pred&& pred) {
+        std::sort(begin, end, std::move(pred));
+    }
+
+    template<typename It, typename Pred>
+    AR_FORCEINLINE void sort(It const& begin, It const& end) {
+        std::sort(begin, end);
     }
 };
 

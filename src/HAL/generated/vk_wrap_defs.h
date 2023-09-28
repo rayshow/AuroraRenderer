@@ -326,7 +326,7 @@ struct WSubpassDescription:public VkSubpassDescription{
 		this->pColorAttachments = colorAttachments.data();
 	}
 	void setResolveAttachments(std::vector<WAttachmentReference> const& resolveAttachments){
-		rs_check( this->colorAttachmentCount == resolveAttachments.size());
+		ARCheck( this->colorAttachmentCount == resolveAttachments.size());
 		this->pResolveAttachments = resolveAttachments.data();
 	}
 	void setPreserveAttachments(std::vector<uint32_t> const& preserveAttachments){
@@ -424,7 +424,7 @@ struct WSubpassDescription2:public VkSubpassDescription2{
 		this->pColorAttachments = colorAttachments.data();
 	}
 	void setResolveAttachments(std::vector<WAttachmentReference2> const& resolveAttachments){
-		rs_check( this->colorAttachmentCount == resolveAttachments.size());
+		ARCheck( this->colorAttachmentCount == resolveAttachments.size());
 		this->pResolveAttachments = resolveAttachments.data();
 	}
 	void setPreserveAttachments(std::vector<uint32_t> const& preserveAttachments){
@@ -673,11 +673,11 @@ struct WPresentInfoKHR:public VkPresentInfoKHR{
 		this->pSwapchains = swapchains.data();
 	}
 	void setImageIndices(std::vector<uint32_t> const& imageIndices){
-		rs_check( this->swapchainCount == imageIndices.size());
+		ARCheck( this->swapchainCount == imageIndices.size());
 		this->pImageIndices = imageIndices.data();
 	}
 	void setResults(std::vector<VkResult> & results){
-		rs_check( this->swapchainCount == results.size());
+		ARCheck( this->swapchainCount == results.size());
 		this->pResults = results.data();
 	}
 };
@@ -719,7 +719,7 @@ struct WSemaphoreWaitInfo:public VkSemaphoreWaitInfo{
 		this->pSemaphores = semaphores.data();
 	}
 	void setValues(std::vector<uint64_t> const& values){
-		rs_check( this->semaphoreCount == values.size());
+		ARCheck( this->semaphoreCount == values.size());
 		this->pValues = values.data();
 	}
 };
@@ -1049,11 +1049,11 @@ struct WWriteDescriptorSet:public VkWriteDescriptorSet{
 		this->pImageInfo = imageInfo.data();
 	}
 	void setBufferInfo(std::vector<WDescriptorBufferInfo> const& bufferInfo){
-		rs_check( this->descriptorCount == bufferInfo.size());
+		ARCheck( this->descriptorCount == bufferInfo.size());
 		this->pBufferInfo = bufferInfo.data();
 	}
 	void setTexelBufferView(std::vector<VkBufferView> const& texelBufferView){
-		rs_check( this->descriptorCount == texelBufferView.size());
+		ARCheck( this->descriptorCount == texelBufferView.size());
 		this->pTexelBufferView = texelBufferView.data();
 	}
 };
@@ -1251,7 +1251,7 @@ struct WSubmitInfo:public VkSubmitInfo{
 		this->pWaitSemaphores = waitSemaphores.data();
 	}
 	void setWaitDstStageMask(std::vector<VkPipelineStageFlags> const& waitDstStageMask){
-		rs_check( this->waitSemaphoreCount == waitDstStageMask.size());
+		ARCheck( this->waitSemaphoreCount == waitDstStageMask.size());
 		this->pWaitDstStageMask = waitDstStageMask.data();
 	}
 	void setCommandBuffers(std::vector<VkCommandBuffer> const& commandBuffers){
@@ -1316,59 +1316,59 @@ struct WInstance: public VkInstDispatchTable{
 	{}
 
 	void destroyInstance( ){
-		rs_check(this->vkDestroyInstance!=nullptr);
+		ARCheck(this->vkDestroyInstance!=nullptr);
 		this->vkDestroyInstance(handle, nullptr);
 	}
 
 	VkResult enumeratePhysicalDevices(  uint32_t * pPhysicalDeviceCount, VkPhysicalDevice * pPhysicalDevices){
-		rs_check(this->vkEnumeratePhysicalDevices!=nullptr);
+		ARCheck(this->vkEnumeratePhysicalDevices!=nullptr);
 		return this->vkEnumeratePhysicalDevices(handle, pPhysicalDeviceCount, pPhysicalDevices);
 	}
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 	VkResult createAndroidSurfaceKHR(  VkAndroidSurfaceCreateInfoKHR const* pCreateInfo, VkSurfaceKHR * pSurface){
-		rs_check(this->vkCreateAndroidSurfaceKHR!=nullptr);
+		ARCheck(this->vkCreateAndroidSurfaceKHR!=nullptr);
 		return this->vkCreateAndroidSurfaceKHR(handle, pCreateInfo, nullptr, pSurface);
 	}
 #endif
 
 	VkResult createDisplayPlaneSurfaceKHR(  VkDisplaySurfaceCreateInfoKHR const* pCreateInfo, VkSurfaceKHR * pSurface){
-		rs_check(this->vkCreateDisplayPlaneSurfaceKHR!=nullptr);
+		ARCheck(this->vkCreateDisplayPlaneSurfaceKHR!=nullptr);
 		return this->vkCreateDisplayPlaneSurfaceKHR(handle, pCreateInfo, nullptr, pSurface);
 	}
 
 	void destroySurfaceKHR(  VkSurfaceKHR  surface){
-		rs_check(this->vkDestroySurfaceKHR!=nullptr);
+		ARCheck(this->vkDestroySurfaceKHR!=nullptr);
 		this->vkDestroySurfaceKHR(handle, surface, nullptr);
 	}
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	VkResult createWin32SurfaceKHR(  VkWin32SurfaceCreateInfoKHR const* pCreateInfo, VkSurfaceKHR * pSurface){
-		rs_check(this->vkCreateWin32SurfaceKHR!=nullptr);
+		ARCheck(this->vkCreateWin32SurfaceKHR!=nullptr);
 		return this->vkCreateWin32SurfaceKHR(handle, pCreateInfo, nullptr, pSurface);
 	}
 #endif
 
 	VkResult createDebugReportCallbackEXT(  VkDebugReportCallbackCreateInfoEXT const* pCreateInfo, VkDebugReportCallbackEXT * pCallback){
-		rs_check(this->vkCreateDebugReportCallbackEXT!=nullptr);
+		ARCheck(this->vkCreateDebugReportCallbackEXT!=nullptr);
 		return this->vkCreateDebugReportCallbackEXT(handle, pCreateInfo, nullptr, pCallback);
 	}
 
 	void destroyDebugReportCallbackEXT(  VkDebugReportCallbackEXT  callback){
-		rs_check(this->vkDestroyDebugReportCallbackEXT!=nullptr);
+		ARCheck(this->vkDestroyDebugReportCallbackEXT!=nullptr);
 		this->vkDestroyDebugReportCallbackEXT(handle, callback, nullptr);
 	}
 
 	void debugReportMessageEXT(  VkDebugReportFlagsEXT  flags, VkDebugReportObjectTypeEXT  objectType, uint64_t  object, size_t  location, int32_t  messageCode, char const* pLayerPrefix, char const* pMessage){
-		rs_check(this->vkDebugReportMessageEXT!=nullptr);
+		ARCheck(this->vkDebugReportMessageEXT!=nullptr);
 		this->vkDebugReportMessageEXT(handle, flags, objectType, object, location, messageCode, pLayerPrefix, pMessage);
 	}
 
 	VkResult enumeratePhysicalDeviceGroups(  uint32_t * pPhysicalDeviceGroupCount, VkPhysicalDeviceGroupProperties * pPhysicalDeviceGroupProperties){
-		rs_check(this->vkEnumeratePhysicalDeviceGroups!=nullptr);
+		ARCheck(this->vkEnumeratePhysicalDeviceGroups!=nullptr);
 		return this->vkEnumeratePhysicalDeviceGroups(handle, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
 	}
 
 	VkResult enumeratePhysicalDeviceGroupsKHR(  uint32_t * pPhysicalDeviceGroupCount, VkPhysicalDeviceGroupProperties * pPhysicalDeviceGroupProperties){
-		rs_check(this->vkEnumeratePhysicalDeviceGroupsKHR!=nullptr);
+		ARCheck(this->vkEnumeratePhysicalDeviceGroupsKHR!=nullptr);
 		return this->vkEnumeratePhysicalDeviceGroupsKHR(handle, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
 	}
 };
@@ -1379,233 +1379,233 @@ struct WPhysicalDevice: public VkDevDispatchTable{
 	{}
 
 	void getPhysicalDeviceProperties(  VkPhysicalDeviceProperties * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceProperties(physicalHandle, pProperties);
 	}
 
 	void getPhysicalDeviceQueueFamilyProperties(  uint32_t * pQueueFamilyPropertyCount, VkQueueFamilyProperties * pQueueFamilyProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties(physicalHandle, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 	}
 
 	void getPhysicalDeviceMemoryProperties(  VkPhysicalDeviceMemoryProperties * pMemoryProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties(physicalHandle, pMemoryProperties);
 	}
 
 	void getPhysicalDeviceFeatures(  VkPhysicalDeviceFeatures * pFeatures){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFeatures!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFeatures!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceFeatures(physicalHandle, pFeatures);
 	}
 
 	void getPhysicalDeviceFormatProperties(  VkFormat  format, VkFormatProperties * pFormatProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFormatProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFormatProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceFormatProperties(physicalHandle, format, pFormatProperties);
 	}
 
 	VkResult getPhysicalDeviceImageFormatProperties(  VkFormat  format, VkImageType  type, VkImageTiling  tiling, VkImageUsageFlags  usage, VkImageCreateFlags  flags, VkImageFormatProperties * pImageFormatProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties(physicalHandle, format, type, tiling, usage, flags, pImageFormatProperties);
 	}
 
 	VkResult createDevice(  VkDeviceCreateInfo const* pCreateInfo, VkDevice * pDevice){
-		rs_check(GInstanceCommands()->vkCreateDevice!=nullptr);
+		ARCheck(GInstanceCommands()->vkCreateDevice!=nullptr);
 		return GInstanceCommands()->vkCreateDevice(physicalHandle, pCreateInfo, nullptr, pDevice);
 	}
 
 	VkResult enumerateDeviceLayerProperties(  uint32_t * pPropertyCount, VkLayerProperties * pProperties){
-		rs_check(GInstanceCommands()->vkEnumerateDeviceLayerProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkEnumerateDeviceLayerProperties!=nullptr);
 		return GInstanceCommands()->vkEnumerateDeviceLayerProperties(physicalHandle, pPropertyCount, pProperties);
 	}
 
 	VkResult enumerateDeviceExtensionProperties(  char const* pLayerName, uint32_t * pPropertyCount, VkExtensionProperties * pProperties){
-		rs_check(GInstanceCommands()->vkEnumerateDeviceExtensionProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkEnumerateDeviceExtensionProperties!=nullptr);
 		return GInstanceCommands()->vkEnumerateDeviceExtensionProperties(physicalHandle, pLayerName, pPropertyCount, pProperties);
 	}
 
 	void getPhysicalDeviceSparseImageFormatProperties(  VkFormat  format, VkImageType  type, VkSampleCountFlagBits  samples, VkImageUsageFlags  usage, VkImageTiling  tiling, uint32_t * pPropertyCount, VkSparseImageFormatProperties * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties(physicalHandle, format, type, samples, usage, tiling, pPropertyCount, pProperties);
 	}
 
 	VkResult getPhysicalDeviceDisplayPropertiesKHR(  uint32_t * pPropertyCount, VkDisplayPropertiesKHR * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceDisplayPropertiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceDisplayPropertiesKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceDisplayPropertiesKHR(physicalHandle, pPropertyCount, pProperties);
 	}
 
 	VkResult getPhysicalDeviceDisplayPlanePropertiesKHR(  uint32_t * pPropertyCount, VkDisplayPlanePropertiesKHR * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceDisplayPlanePropertiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceDisplayPlanePropertiesKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physicalHandle, pPropertyCount, pProperties);
 	}
 
 	VkResult getDisplayPlaneSupportedDisplaysKHR(  uint32_t  planeIndex, uint32_t * pDisplayCount, VkDisplayKHR * pDisplays){
-		rs_check(GInstanceCommands()->vkGetDisplayPlaneSupportedDisplaysKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetDisplayPlaneSupportedDisplaysKHR!=nullptr);
 		return GInstanceCommands()->vkGetDisplayPlaneSupportedDisplaysKHR(physicalHandle, planeIndex, pDisplayCount, pDisplays);
 	}
 
 	VkResult getDisplayModePropertiesKHR(  VkDisplayKHR  display, uint32_t * pPropertyCount, VkDisplayModePropertiesKHR * pProperties){
-		rs_check(GInstanceCommands()->vkGetDisplayModePropertiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetDisplayModePropertiesKHR!=nullptr);
 		return GInstanceCommands()->vkGetDisplayModePropertiesKHR(physicalHandle, display, pPropertyCount, pProperties);
 	}
 
 	VkResult createDisplayModeKHR(  VkDisplayKHR  display, VkDisplayModeCreateInfoKHR const* pCreateInfo, VkDisplayModeKHR * pMode){
-		rs_check(GInstanceCommands()->vkCreateDisplayModeKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkCreateDisplayModeKHR!=nullptr);
 		return GInstanceCommands()->vkCreateDisplayModeKHR(physicalHandle, display, pCreateInfo, nullptr, pMode);
 	}
 
 	VkResult getDisplayPlaneCapabilitiesKHR(  VkDisplayModeKHR  mode, uint32_t  planeIndex, VkDisplayPlaneCapabilitiesKHR * pCapabilities){
-		rs_check(GInstanceCommands()->vkGetDisplayPlaneCapabilitiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetDisplayPlaneCapabilitiesKHR!=nullptr);
 		return GInstanceCommands()->vkGetDisplayPlaneCapabilitiesKHR(physicalHandle, mode, planeIndex, pCapabilities);
 	}
 
 	VkResult getPhysicalDeviceSurfaceSupportKHR(  uint32_t  queueFamilyIndex, VkSurfaceKHR  surface, VkBool32 * pSupported){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSurfaceSupportKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSurfaceSupportKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceSurfaceSupportKHR(physicalHandle, queueFamilyIndex, surface, pSupported);
 	}
 
 	VkResult getPhysicalDeviceSurfaceCapabilitiesKHR(  VkSurfaceKHR  surface, VkSurfaceCapabilitiesKHR * pSurfaceCapabilities){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSurfaceCapabilitiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSurfaceCapabilitiesKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalHandle, surface, pSurfaceCapabilities);
 	}
 
 	VkResult getPhysicalDeviceSurfaceFormatsKHR(  VkSurfaceKHR  surface, uint32_t * pSurfaceFormatCount, VkSurfaceFormatKHR * pSurfaceFormats){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSurfaceFormatsKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSurfaceFormatsKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalHandle, surface, pSurfaceFormatCount, pSurfaceFormats);
 	}
 
 	VkResult getPhysicalDeviceSurfacePresentModesKHR(  VkSurfaceKHR  surface, uint32_t * pPresentModeCount, VkPresentModeKHR * pPresentModes){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSurfacePresentModesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSurfacePresentModesKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalHandle, surface, pPresentModeCount, pPresentModes);
 	}
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	VkBool32 getPhysicalDeviceWin32PresentationSupportKHR(  uint32_t  queueFamilyIndex){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceWin32PresentationSupportKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceWin32PresentationSupportKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalHandle, queueFamilyIndex);
 	}
 #endif
 
 	void getPhysicalDeviceFeatures2(  VkPhysicalDeviceFeatures2 * pFeatures){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFeatures2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFeatures2!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceFeatures2(physicalHandle, pFeatures);
 	}
 
 	void getPhysicalDeviceFeatures2KHR(  VkPhysicalDeviceFeatures2 * pFeatures){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFeatures2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFeatures2KHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceFeatures2KHR(physicalHandle, pFeatures);
 	}
 
 	void getPhysicalDeviceProperties2(  VkPhysicalDeviceProperties2 * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceProperties2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceProperties2!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceProperties2(physicalHandle, pProperties);
 	}
 
 	void getPhysicalDeviceProperties2KHR(  VkPhysicalDeviceProperties2 * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceProperties2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceProperties2KHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceProperties2KHR(physicalHandle, pProperties);
 	}
 
 	void getPhysicalDeviceFormatProperties2(  VkFormat  format, VkFormatProperties2 * pFormatProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFormatProperties2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFormatProperties2!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceFormatProperties2(physicalHandle, format, pFormatProperties);
 	}
 
 	void getPhysicalDeviceFormatProperties2KHR(  VkFormat  format, VkFormatProperties2 * pFormatProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFormatProperties2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFormatProperties2KHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceFormatProperties2KHR(physicalHandle, format, pFormatProperties);
 	}
 
 	VkResult getPhysicalDeviceImageFormatProperties2(  VkPhysicalDeviceImageFormatInfo2 const* pImageFormatInfo, VkImageFormatProperties2 * pImageFormatProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties2!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties2(physicalHandle, pImageFormatInfo, pImageFormatProperties);
 	}
 
 	VkResult getPhysicalDeviceImageFormatProperties2KHR(  VkPhysicalDeviceImageFormatInfo2 const* pImageFormatInfo, VkImageFormatProperties2 * pImageFormatProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties2KHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceImageFormatProperties2KHR(physicalHandle, pImageFormatInfo, pImageFormatProperties);
 	}
 
 	void getPhysicalDeviceQueueFamilyProperties2(  uint32_t * pQueueFamilyPropertyCount, VkQueueFamilyProperties2 * pQueueFamilyProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties2!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties2(physicalHandle, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 	}
 
 	void getPhysicalDeviceQueueFamilyProperties2KHR(  uint32_t * pQueueFamilyPropertyCount, VkQueueFamilyProperties2 * pQueueFamilyProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties2KHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties2KHR(physicalHandle, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 	}
 
 	void getPhysicalDeviceMemoryProperties2(  VkPhysicalDeviceMemoryProperties2 * pMemoryProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties2!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties2(physicalHandle, pMemoryProperties);
 	}
 
 	void getPhysicalDeviceMemoryProperties2KHR(  VkPhysicalDeviceMemoryProperties2 * pMemoryProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties2KHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceMemoryProperties2KHR(physicalHandle, pMemoryProperties);
 	}
 
 	void getPhysicalDeviceSparseImageFormatProperties2(  VkPhysicalDeviceSparseImageFormatInfo2 const* pFormatInfo, uint32_t * pPropertyCount, VkSparseImageFormatProperties2 * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties2!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties2!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties2(physicalHandle, pFormatInfo, pPropertyCount, pProperties);
 	}
 
 	void getPhysicalDeviceSparseImageFormatProperties2KHR(  VkPhysicalDeviceSparseImageFormatInfo2 const* pFormatInfo, uint32_t * pPropertyCount, VkSparseImageFormatProperties2 * pProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties2KHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalHandle, pFormatInfo, pPropertyCount, pProperties);
 	}
 
 	void getPhysicalDeviceExternalBufferProperties(  VkPhysicalDeviceExternalBufferInfo const* pExternalBufferInfo, VkExternalBufferProperties * pExternalBufferProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceExternalBufferProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceExternalBufferProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceExternalBufferProperties(physicalHandle, pExternalBufferInfo, pExternalBufferProperties);
 	}
 
 	void getPhysicalDeviceExternalBufferPropertiesKHR(  VkPhysicalDeviceExternalBufferInfo const* pExternalBufferInfo, VkExternalBufferProperties * pExternalBufferProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceExternalBufferPropertiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceExternalBufferPropertiesKHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceExternalBufferPropertiesKHR(physicalHandle, pExternalBufferInfo, pExternalBufferProperties);
 	}
 
 	void getPhysicalDeviceExternalSemaphoreProperties(  VkPhysicalDeviceExternalSemaphoreInfo const* pExternalSemaphoreInfo, VkExternalSemaphoreProperties * pExternalSemaphoreProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceExternalSemaphoreProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceExternalSemaphoreProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceExternalSemaphoreProperties(physicalHandle, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 	}
 
 	void getPhysicalDeviceExternalSemaphorePropertiesKHR(  VkPhysicalDeviceExternalSemaphoreInfo const* pExternalSemaphoreInfo, VkExternalSemaphoreProperties * pExternalSemaphoreProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(physicalHandle, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 	}
 
 	void getPhysicalDeviceExternalFenceProperties(  VkPhysicalDeviceExternalFenceInfo const* pExternalFenceInfo, VkExternalFenceProperties * pExternalFenceProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceExternalFenceProperties!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceExternalFenceProperties!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceExternalFenceProperties(physicalHandle, pExternalFenceInfo, pExternalFenceProperties);
 	}
 
 	void getPhysicalDeviceExternalFencePropertiesKHR(  VkPhysicalDeviceExternalFenceInfo const* pExternalFenceInfo, VkExternalFenceProperties * pExternalFenceProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceExternalFencePropertiesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceExternalFencePropertiesKHR!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceExternalFencePropertiesKHR(physicalHandle, pExternalFenceInfo, pExternalFenceProperties);
 	}
 
 	VkResult getPhysicalDevicePresentRectanglesKHR(  VkSurfaceKHR  surface, uint32_t * pRectCount, VkRect2D * pRects){
-		rs_check(GInstanceCommands()->vkGetPhysicalDevicePresentRectanglesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDevicePresentRectanglesKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDevicePresentRectanglesKHR(physicalHandle, surface, pRectCount, pRects);
 	}
 
 	void getPhysicalDeviceMultisamplePropertiesEXT(  VkSampleCountFlagBits  samples, VkMultisamplePropertiesEXT * pMultisampleProperties){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceMultisamplePropertiesEXT!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceMultisamplePropertiesEXT!=nullptr);
 		GInstanceCommands()->vkGetPhysicalDeviceMultisamplePropertiesEXT(physicalHandle, samples, pMultisampleProperties);
 	}
 
 	VkResult getPhysicalDeviceSurfaceCapabilities2KHR(  VkPhysicalDeviceSurfaceInfo2KHR const* pSurfaceInfo, VkSurfaceCapabilities2KHR * pSurfaceCapabilities){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSurfaceCapabilities2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSurfaceCapabilities2KHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalHandle, pSurfaceInfo, pSurfaceCapabilities);
 	}
 
 	VkResult getPhysicalDeviceSurfaceFormats2KHR(  VkPhysicalDeviceSurfaceInfo2KHR const* pSurfaceInfo, uint32_t * pSurfaceFormatCount, VkSurfaceFormat2KHR * pSurfaceFormats){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceSurfaceFormats2KHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceSurfaceFormats2KHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceSurfaceFormats2KHR(physicalHandle, pSurfaceInfo, pSurfaceFormatCount, pSurfaceFormats);
 	}
 
 	VkResult getPhysicalDeviceFragmentShadingRatesKHR(  uint32_t * pFragmentShadingRateCount, VkPhysicalDeviceFragmentShadingRateKHR * pFragmentShadingRates){
-		rs_check(GInstanceCommands()->vkGetPhysicalDeviceFragmentShadingRatesKHR!=nullptr);
+		ARCheck(GInstanceCommands()->vkGetPhysicalDeviceFragmentShadingRatesKHR!=nullptr);
 		return GInstanceCommands()->vkGetPhysicalDeviceFragmentShadingRatesKHR(physicalHandle, pFragmentShadingRateCount, pFragmentShadingRates);
 	}
 };
@@ -1616,652 +1616,652 @@ struct WDevice: public WPhysicalDevice{
 	{}
 
 	PFN_vkVoidFunction getDeviceProcAddr(  char const* pName){
-		rs_check(this->vkGetDeviceProcAddr!=nullptr);
+		ARCheck(this->vkGetDeviceProcAddr!=nullptr);
 		return this->vkGetDeviceProcAddr(handle, pName);
 	}
 
 	void destroyDevice( ){
-		rs_check(this->vkDestroyDevice!=nullptr);
+		ARCheck(this->vkDestroyDevice!=nullptr);
 		this->vkDestroyDevice(handle, nullptr);
 	}
 
 	void getDeviceQueue(  uint32_t  queueFamilyIndex, uint32_t  queueIndex, VkQueue * pQueue){
-		rs_check(this->vkGetDeviceQueue!=nullptr);
+		ARCheck(this->vkGetDeviceQueue!=nullptr);
 		this->vkGetDeviceQueue(handle, queueFamilyIndex, queueIndex, pQueue);
 	}
 
 	VkResult deviceWaitIdle( ){
-		rs_check(this->vkDeviceWaitIdle!=nullptr);
+		ARCheck(this->vkDeviceWaitIdle!=nullptr);
 		return this->vkDeviceWaitIdle(handle);
 	}
 
 	VkResult allocateMemory(  VkMemoryAllocateInfo const* pAllocateInfo, VkDeviceMemory * pMemory){
-		rs_check(this->vkAllocateMemory!=nullptr);
+		ARCheck(this->vkAllocateMemory!=nullptr);
 		return this->vkAllocateMemory(handle, pAllocateInfo, nullptr, pMemory);
 	}
 
 	void freeMemory(  VkDeviceMemory  memory){
-		rs_check(this->vkFreeMemory!=nullptr);
+		ARCheck(this->vkFreeMemory!=nullptr);
 		this->vkFreeMemory(handle, memory, nullptr);
 	}
 
 	VkResult mapMemory(  VkDeviceMemory  memory, VkDeviceSize  offset, VkDeviceSize  size, VkMemoryMapFlags  flags, void ** ppData){
-		rs_check(this->vkMapMemory!=nullptr);
+		ARCheck(this->vkMapMemory!=nullptr);
 		return this->vkMapMemory(handle, memory, offset, size, flags, ppData);
 	}
 
 	void unmapMemory(  VkDeviceMemory  memory){
-		rs_check(this->vkUnmapMemory!=nullptr);
+		ARCheck(this->vkUnmapMemory!=nullptr);
 		this->vkUnmapMemory(handle, memory);
 	}
 
 	VkResult flushMappedMemoryRanges(  uint32_t  memoryRangeCount, VkMappedMemoryRange const* pMemoryRanges){
-		rs_check(this->vkFlushMappedMemoryRanges!=nullptr);
+		ARCheck(this->vkFlushMappedMemoryRanges!=nullptr);
 		return this->vkFlushMappedMemoryRanges(handle, memoryRangeCount, pMemoryRanges);
 	}
 
 	VkResult invalidateMappedMemoryRanges(  uint32_t  memoryRangeCount, VkMappedMemoryRange const* pMemoryRanges){
-		rs_check(this->vkInvalidateMappedMemoryRanges!=nullptr);
+		ARCheck(this->vkInvalidateMappedMemoryRanges!=nullptr);
 		return this->vkInvalidateMappedMemoryRanges(handle, memoryRangeCount, pMemoryRanges);
 	}
 
 	void getDeviceMemoryCommitment(  VkDeviceMemory  memory, VkDeviceSize * pCommittedMemoryInBytes){
-		rs_check(this->vkGetDeviceMemoryCommitment!=nullptr);
+		ARCheck(this->vkGetDeviceMemoryCommitment!=nullptr);
 		this->vkGetDeviceMemoryCommitment(handle, memory, pCommittedMemoryInBytes);
 	}
 
 	void getBufferMemoryRequirements(  VkBuffer  buffer, VkMemoryRequirements * pMemoryRequirements){
-		rs_check(this->vkGetBufferMemoryRequirements!=nullptr);
+		ARCheck(this->vkGetBufferMemoryRequirements!=nullptr);
 		this->vkGetBufferMemoryRequirements(handle, buffer, pMemoryRequirements);
 	}
 
 	VkResult bindBufferMemory(  VkBuffer  buffer, VkDeviceMemory  memory, VkDeviceSize  memoryOffset){
-		rs_check(this->vkBindBufferMemory!=nullptr);
+		ARCheck(this->vkBindBufferMemory!=nullptr);
 		return this->vkBindBufferMemory(handle, buffer, memory, memoryOffset);
 	}
 
 	void getImageMemoryRequirements(  VkImage  image, VkMemoryRequirements * pMemoryRequirements){
-		rs_check(this->vkGetImageMemoryRequirements!=nullptr);
+		ARCheck(this->vkGetImageMemoryRequirements!=nullptr);
 		this->vkGetImageMemoryRequirements(handle, image, pMemoryRequirements);
 	}
 
 	VkResult bindImageMemory(  VkImage  image, VkDeviceMemory  memory, VkDeviceSize  memoryOffset){
-		rs_check(this->vkBindImageMemory!=nullptr);
+		ARCheck(this->vkBindImageMemory!=nullptr);
 		return this->vkBindImageMemory(handle, image, memory, memoryOffset);
 	}
 
 	void getImageSparseMemoryRequirements(  VkImage  image, uint32_t * pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements * pSparseMemoryRequirements){
-		rs_check(this->vkGetImageSparseMemoryRequirements!=nullptr);
+		ARCheck(this->vkGetImageSparseMemoryRequirements!=nullptr);
 		this->vkGetImageSparseMemoryRequirements(handle, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 	}
 
 	VkResult createFence(  VkFenceCreateInfo const* pCreateInfo, VkFence * pFence){
-		rs_check(this->vkCreateFence!=nullptr);
+		ARCheck(this->vkCreateFence!=nullptr);
 		return this->vkCreateFence(handle, pCreateInfo, nullptr, pFence);
 	}
 
 	void destroyFence(  VkFence  fence){
-		rs_check(this->vkDestroyFence!=nullptr);
+		ARCheck(this->vkDestroyFence!=nullptr);
 		this->vkDestroyFence(handle, fence, nullptr);
 	}
 
 	VkResult resetFences(  uint32_t  fenceCount, VkFence const* pFences){
-		rs_check(this->vkResetFences!=nullptr);
+		ARCheck(this->vkResetFences!=nullptr);
 		return this->vkResetFences(handle, fenceCount, pFences);
 	}
 
 	VkResult getFenceStatus(  VkFence  fence){
-		rs_check(this->vkGetFenceStatus!=nullptr);
+		ARCheck(this->vkGetFenceStatus!=nullptr);
 		return this->vkGetFenceStatus(handle, fence);
 	}
 
 	VkResult waitForFences(  uint32_t  fenceCount, VkFence const* pFences, VkBool32  waitAll, uint64_t  timeout){
-		rs_check(this->vkWaitForFences!=nullptr);
+		ARCheck(this->vkWaitForFences!=nullptr);
 		return this->vkWaitForFences(handle, fenceCount, pFences, waitAll, timeout);
 	}
 
 	VkResult createSemaphore(  VkSemaphoreCreateInfo const* pCreateInfo, VkSemaphore * pSemaphore){
-		rs_check(this->vkCreateSemaphore!=nullptr);
+		ARCheck(this->vkCreateSemaphore!=nullptr);
 		return this->vkCreateSemaphore(handle, pCreateInfo, nullptr, pSemaphore);
 	}
 
 	void destroySemaphore(  VkSemaphore  semaphore){
-		rs_check(this->vkDestroySemaphore!=nullptr);
+		ARCheck(this->vkDestroySemaphore!=nullptr);
 		this->vkDestroySemaphore(handle, semaphore, nullptr);
 	}
 
 	VkResult createEvent(  VkEventCreateInfo const* pCreateInfo, VkEvent * pEvent){
-		rs_check(this->vkCreateEvent!=nullptr);
+		ARCheck(this->vkCreateEvent!=nullptr);
 		return this->vkCreateEvent(handle, pCreateInfo, nullptr, pEvent);
 	}
 
 	void destroyEvent(  VkEvent  event){
-		rs_check(this->vkDestroyEvent!=nullptr);
+		ARCheck(this->vkDestroyEvent!=nullptr);
 		this->vkDestroyEvent(handle, event, nullptr);
 	}
 
 	VkResult getEventStatus(  VkEvent  event){
-		rs_check(this->vkGetEventStatus!=nullptr);
+		ARCheck(this->vkGetEventStatus!=nullptr);
 		return this->vkGetEventStatus(handle, event);
 	}
 
 	VkResult setEvent(  VkEvent  event){
-		rs_check(this->vkSetEvent!=nullptr);
+		ARCheck(this->vkSetEvent!=nullptr);
 		return this->vkSetEvent(handle, event);
 	}
 
 	VkResult resetEvent(  VkEvent  event){
-		rs_check(this->vkResetEvent!=nullptr);
+		ARCheck(this->vkResetEvent!=nullptr);
 		return this->vkResetEvent(handle, event);
 	}
 
 	VkResult createQueryPool(  VkQueryPoolCreateInfo const* pCreateInfo, VkQueryPool * pQueryPool){
-		rs_check(this->vkCreateQueryPool!=nullptr);
+		ARCheck(this->vkCreateQueryPool!=nullptr);
 		return this->vkCreateQueryPool(handle, pCreateInfo, nullptr, pQueryPool);
 	}
 
 	void destroyQueryPool(  VkQueryPool  queryPool){
-		rs_check(this->vkDestroyQueryPool!=nullptr);
+		ARCheck(this->vkDestroyQueryPool!=nullptr);
 		this->vkDestroyQueryPool(handle, queryPool, nullptr);
 	}
 
 	VkResult getQueryPoolResults(  VkQueryPool  queryPool, uint32_t  firstQuery, uint32_t  queryCount, size_t  dataSize, void * pData, VkDeviceSize  stride, VkQueryResultFlags  flags){
-		rs_check(this->vkGetQueryPoolResults!=nullptr);
+		ARCheck(this->vkGetQueryPoolResults!=nullptr);
 		return this->vkGetQueryPoolResults(handle, queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
 	}
 
 	void resetQueryPool(  VkQueryPool  queryPool, uint32_t  firstQuery, uint32_t  queryCount){
-		rs_check(this->vkResetQueryPool!=nullptr);
+		ARCheck(this->vkResetQueryPool!=nullptr);
 		this->vkResetQueryPool(handle, queryPool, firstQuery, queryCount);
 	}
 
 	VkResult createBuffer(  VkBufferCreateInfo const* pCreateInfo, VkBuffer * pBuffer){
-		rs_check(this->vkCreateBuffer!=nullptr);
+		ARCheck(this->vkCreateBuffer!=nullptr);
 		return this->vkCreateBuffer(handle, pCreateInfo, nullptr, pBuffer);
 	}
 
 	void destroyBuffer(  VkBuffer  buffer){
-		rs_check(this->vkDestroyBuffer!=nullptr);
+		ARCheck(this->vkDestroyBuffer!=nullptr);
 		this->vkDestroyBuffer(handle, buffer, nullptr);
 	}
 
 	VkResult createBufferView(  VkBufferViewCreateInfo const* pCreateInfo, VkBufferView * pView){
-		rs_check(this->vkCreateBufferView!=nullptr);
+		ARCheck(this->vkCreateBufferView!=nullptr);
 		return this->vkCreateBufferView(handle, pCreateInfo, nullptr, pView);
 	}
 
 	void destroyBufferView(  VkBufferView  bufferView){
-		rs_check(this->vkDestroyBufferView!=nullptr);
+		ARCheck(this->vkDestroyBufferView!=nullptr);
 		this->vkDestroyBufferView(handle, bufferView, nullptr);
 	}
 
 	VkResult createImage(  VkImageCreateInfo const* pCreateInfo, VkImage * pImage){
-		rs_check(this->vkCreateImage!=nullptr);
+		ARCheck(this->vkCreateImage!=nullptr);
 		return this->vkCreateImage(handle, pCreateInfo, nullptr, pImage);
 	}
 
 	void destroyImage(  VkImage  image){
-		rs_check(this->vkDestroyImage!=nullptr);
+		ARCheck(this->vkDestroyImage!=nullptr);
 		this->vkDestroyImage(handle, image, nullptr);
 	}
 
 	void getImageSubresourceLayout(  VkImage  image, VkImageSubresource const* pSubresource, VkSubresourceLayout * pLayout){
-		rs_check(this->vkGetImageSubresourceLayout!=nullptr);
+		ARCheck(this->vkGetImageSubresourceLayout!=nullptr);
 		this->vkGetImageSubresourceLayout(handle, image, pSubresource, pLayout);
 	}
 
 	VkResult createImageView(  VkImageViewCreateInfo const* pCreateInfo, VkImageView * pView){
-		rs_check(this->vkCreateImageView!=nullptr);
+		ARCheck(this->vkCreateImageView!=nullptr);
 		return this->vkCreateImageView(handle, pCreateInfo, nullptr, pView);
 	}
 
 	void destroyImageView(  VkImageView  imageView){
-		rs_check(this->vkDestroyImageView!=nullptr);
+		ARCheck(this->vkDestroyImageView!=nullptr);
 		this->vkDestroyImageView(handle, imageView, nullptr);
 	}
 
 	VkResult createShaderModule(  VkShaderModuleCreateInfo const* pCreateInfo, VkShaderModule * pShaderModule){
-		rs_check(this->vkCreateShaderModule!=nullptr);
+		ARCheck(this->vkCreateShaderModule!=nullptr);
 		return this->vkCreateShaderModule(handle, pCreateInfo, nullptr, pShaderModule);
 	}
 
 	void destroyShaderModule(  VkShaderModule  shaderModule){
-		rs_check(this->vkDestroyShaderModule!=nullptr);
+		ARCheck(this->vkDestroyShaderModule!=nullptr);
 		this->vkDestroyShaderModule(handle, shaderModule, nullptr);
 	}
 
 	VkResult createPipelineCache(  VkPipelineCacheCreateInfo const* pCreateInfo, VkPipelineCache * pPipelineCache){
-		rs_check(this->vkCreatePipelineCache!=nullptr);
+		ARCheck(this->vkCreatePipelineCache!=nullptr);
 		return this->vkCreatePipelineCache(handle, pCreateInfo, nullptr, pPipelineCache);
 	}
 
 	void destroyPipelineCache(  VkPipelineCache  pipelineCache){
-		rs_check(this->vkDestroyPipelineCache!=nullptr);
+		ARCheck(this->vkDestroyPipelineCache!=nullptr);
 		this->vkDestroyPipelineCache(handle, pipelineCache, nullptr);
 	}
 
 	VkResult getPipelineCacheData(  VkPipelineCache  pipelineCache, size_t * pDataSize, void * pData){
-		rs_check(this->vkGetPipelineCacheData!=nullptr);
+		ARCheck(this->vkGetPipelineCacheData!=nullptr);
 		return this->vkGetPipelineCacheData(handle, pipelineCache, pDataSize, pData);
 	}
 
 	VkResult mergePipelineCaches(  VkPipelineCache  dstCache, uint32_t  srcCacheCount, VkPipelineCache const* pSrcCaches){
-		rs_check(this->vkMergePipelineCaches!=nullptr);
+		ARCheck(this->vkMergePipelineCaches!=nullptr);
 		return this->vkMergePipelineCaches(handle, dstCache, srcCacheCount, pSrcCaches);
 	}
 
 	VkResult createGraphicsPipelines(  VkPipelineCache  pipelineCache, uint32_t  createInfoCount, VkGraphicsPipelineCreateInfo const* pCreateInfos, VkPipeline * pPipelines){
-		rs_check(this->vkCreateGraphicsPipelines!=nullptr);
+		ARCheck(this->vkCreateGraphicsPipelines!=nullptr);
 		return this->vkCreateGraphicsPipelines(handle, pipelineCache, createInfoCount, pCreateInfos, nullptr, pPipelines);
 	}
 
 	VkResult createComputePipelines(  VkPipelineCache  pipelineCache, uint32_t  createInfoCount, VkComputePipelineCreateInfo const* pCreateInfos, VkPipeline * pPipelines){
-		rs_check(this->vkCreateComputePipelines!=nullptr);
+		ARCheck(this->vkCreateComputePipelines!=nullptr);
 		return this->vkCreateComputePipelines(handle, pipelineCache, createInfoCount, pCreateInfos, nullptr, pPipelines);
 	}
 
 	void destroyPipeline(  VkPipeline  pipeline){
-		rs_check(this->vkDestroyPipeline!=nullptr);
+		ARCheck(this->vkDestroyPipeline!=nullptr);
 		this->vkDestroyPipeline(handle, pipeline, nullptr);
 	}
 
 	VkResult createPipelineLayout(  VkPipelineLayoutCreateInfo const* pCreateInfo, VkPipelineLayout * pPipelineLayout){
-		rs_check(this->vkCreatePipelineLayout!=nullptr);
+		ARCheck(this->vkCreatePipelineLayout!=nullptr);
 		return this->vkCreatePipelineLayout(handle, pCreateInfo, nullptr, pPipelineLayout);
 	}
 
 	void destroyPipelineLayout(  VkPipelineLayout  pipelineLayout){
-		rs_check(this->vkDestroyPipelineLayout!=nullptr);
+		ARCheck(this->vkDestroyPipelineLayout!=nullptr);
 		this->vkDestroyPipelineLayout(handle, pipelineLayout, nullptr);
 	}
 
 	VkResult createSampler(  VkSamplerCreateInfo const* pCreateInfo, VkSampler * pSampler){
-		rs_check(this->vkCreateSampler!=nullptr);
+		ARCheck(this->vkCreateSampler!=nullptr);
 		return this->vkCreateSampler(handle, pCreateInfo, nullptr, pSampler);
 	}
 
 	void destroySampler(  VkSampler  sampler){
-		rs_check(this->vkDestroySampler!=nullptr);
+		ARCheck(this->vkDestroySampler!=nullptr);
 		this->vkDestroySampler(handle, sampler, nullptr);
 	}
 
 	VkResult createDescriptorSetLayout(  VkDescriptorSetLayoutCreateInfo const* pCreateInfo, VkDescriptorSetLayout * pSetLayout){
-		rs_check(this->vkCreateDescriptorSetLayout!=nullptr);
+		ARCheck(this->vkCreateDescriptorSetLayout!=nullptr);
 		return this->vkCreateDescriptorSetLayout(handle, pCreateInfo, nullptr, pSetLayout);
 	}
 
 	void destroyDescriptorSetLayout(  VkDescriptorSetLayout  descriptorSetLayout){
-		rs_check(this->vkDestroyDescriptorSetLayout!=nullptr);
+		ARCheck(this->vkDestroyDescriptorSetLayout!=nullptr);
 		this->vkDestroyDescriptorSetLayout(handle, descriptorSetLayout, nullptr);
 	}
 
 	VkResult createDescriptorPool(  VkDescriptorPoolCreateInfo const* pCreateInfo, VkDescriptorPool * pDescriptorPool){
-		rs_check(this->vkCreateDescriptorPool!=nullptr);
+		ARCheck(this->vkCreateDescriptorPool!=nullptr);
 		return this->vkCreateDescriptorPool(handle, pCreateInfo, nullptr, pDescriptorPool);
 	}
 
 	void destroyDescriptorPool(  VkDescriptorPool  descriptorPool){
-		rs_check(this->vkDestroyDescriptorPool!=nullptr);
+		ARCheck(this->vkDestroyDescriptorPool!=nullptr);
 		this->vkDestroyDescriptorPool(handle, descriptorPool, nullptr);
 	}
 
 	VkResult resetDescriptorPool(  VkDescriptorPool  descriptorPool, VkDescriptorPoolResetFlags  flags){
-		rs_check(this->vkResetDescriptorPool!=nullptr);
+		ARCheck(this->vkResetDescriptorPool!=nullptr);
 		return this->vkResetDescriptorPool(handle, descriptorPool, flags);
 	}
 
 	VkResult allocateDescriptorSets(  VkDescriptorSetAllocateInfo const* pAllocateInfo, VkDescriptorSet * pDescriptorSets){
-		rs_check(this->vkAllocateDescriptorSets!=nullptr);
+		ARCheck(this->vkAllocateDescriptorSets!=nullptr);
 		return this->vkAllocateDescriptorSets(handle, pAllocateInfo, pDescriptorSets);
 	}
 
 	VkResult freeDescriptorSets(  VkDescriptorPool  descriptorPool, uint32_t  descriptorSetCount, VkDescriptorSet const* pDescriptorSets){
-		rs_check(this->vkFreeDescriptorSets!=nullptr);
+		ARCheck(this->vkFreeDescriptorSets!=nullptr);
 		return this->vkFreeDescriptorSets(handle, descriptorPool, descriptorSetCount, pDescriptorSets);
 	}
 
 	void updateDescriptorSets(  uint32_t  descriptorWriteCount, VkWriteDescriptorSet const* pDescriptorWrites, uint32_t  descriptorCopyCount, VkCopyDescriptorSet const* pDescriptorCopies){
-		rs_check(this->vkUpdateDescriptorSets!=nullptr);
+		ARCheck(this->vkUpdateDescriptorSets!=nullptr);
 		this->vkUpdateDescriptorSets(handle, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
 	}
 
 	VkResult createFramebuffer(  VkFramebufferCreateInfo const* pCreateInfo, VkFramebuffer * pFramebuffer){
-		rs_check(this->vkCreateFramebuffer!=nullptr);
+		ARCheck(this->vkCreateFramebuffer!=nullptr);
 		return this->vkCreateFramebuffer(handle, pCreateInfo, nullptr, pFramebuffer);
 	}
 
 	void destroyFramebuffer(  VkFramebuffer  framebuffer){
-		rs_check(this->vkDestroyFramebuffer!=nullptr);
+		ARCheck(this->vkDestroyFramebuffer!=nullptr);
 		this->vkDestroyFramebuffer(handle, framebuffer, nullptr);
 	}
 
 	VkResult createRenderPass(  VkRenderPassCreateInfo const* pCreateInfo, VkRenderPass * pRenderPass){
-		rs_check(this->vkCreateRenderPass!=nullptr);
+		ARCheck(this->vkCreateRenderPass!=nullptr);
 		return this->vkCreateRenderPass(handle, pCreateInfo, nullptr, pRenderPass);
 	}
 
 	void destroyRenderPass(  VkRenderPass  renderPass){
-		rs_check(this->vkDestroyRenderPass!=nullptr);
+		ARCheck(this->vkDestroyRenderPass!=nullptr);
 		this->vkDestroyRenderPass(handle, renderPass, nullptr);
 	}
 
 	void getRenderAreaGranularity(  VkRenderPass  renderPass, VkExtent2D * pGranularity){
-		rs_check(this->vkGetRenderAreaGranularity!=nullptr);
+		ARCheck(this->vkGetRenderAreaGranularity!=nullptr);
 		this->vkGetRenderAreaGranularity(handle, renderPass, pGranularity);
 	}
 
 	VkResult createCommandPool(  VkCommandPoolCreateInfo const* pCreateInfo, VkCommandPool * pCommandPool){
-		rs_check(this->vkCreateCommandPool!=nullptr);
+		ARCheck(this->vkCreateCommandPool!=nullptr);
 		return this->vkCreateCommandPool(handle, pCreateInfo, nullptr, pCommandPool);
 	}
 
 	void destroyCommandPool(  VkCommandPool  commandPool){
-		rs_check(this->vkDestroyCommandPool!=nullptr);
+		ARCheck(this->vkDestroyCommandPool!=nullptr);
 		this->vkDestroyCommandPool(handle, commandPool, nullptr);
 	}
 
 	VkResult resetCommandPool(  VkCommandPool  commandPool, VkCommandPoolResetFlags  flags){
-		rs_check(this->vkResetCommandPool!=nullptr);
+		ARCheck(this->vkResetCommandPool!=nullptr);
 		return this->vkResetCommandPool(handle, commandPool, flags);
 	}
 
 	VkResult allocateCommandBuffers(  VkCommandBufferAllocateInfo const* pAllocateInfo, VkCommandBuffer * pCommandBuffers){
-		rs_check(this->vkAllocateCommandBuffers!=nullptr);
+		ARCheck(this->vkAllocateCommandBuffers!=nullptr);
 		return this->vkAllocateCommandBuffers(handle, pAllocateInfo, pCommandBuffers);
 	}
 
 	void freeCommandBuffers(  VkCommandPool  commandPool, uint32_t  commandBufferCount, VkCommandBuffer const* pCommandBuffers){
-		rs_check(this->vkFreeCommandBuffers!=nullptr);
+		ARCheck(this->vkFreeCommandBuffers!=nullptr);
 		this->vkFreeCommandBuffers(handle, commandPool, commandBufferCount, pCommandBuffers);
 	}
 
 	VkResult createSwapchainKHR(  VkSwapchainCreateInfoKHR const* pCreateInfo, VkSwapchainKHR * pSwapchain){
-		rs_check(this->vkCreateSwapchainKHR!=nullptr);
+		ARCheck(this->vkCreateSwapchainKHR!=nullptr);
 		return this->vkCreateSwapchainKHR(handle, pCreateInfo, nullptr, pSwapchain);
 	}
 
 	void destroySwapchainKHR(  VkSwapchainKHR  swapchain){
-		rs_check(this->vkDestroySwapchainKHR!=nullptr);
+		ARCheck(this->vkDestroySwapchainKHR!=nullptr);
 		this->vkDestroySwapchainKHR(handle, swapchain, nullptr);
 	}
 
 	VkResult getSwapchainImagesKHR(  VkSwapchainKHR  swapchain, uint32_t * pSwapchainImageCount, VkImage * pSwapchainImages){
-		rs_check(this->vkGetSwapchainImagesKHR!=nullptr);
+		ARCheck(this->vkGetSwapchainImagesKHR!=nullptr);
 		return this->vkGetSwapchainImagesKHR(handle, swapchain, pSwapchainImageCount, pSwapchainImages);
 	}
 
 	VkResult acquireNextImageKHR(  VkSwapchainKHR  swapchain, uint64_t  timeout, VkSemaphore  semaphore, VkFence  fence, uint32_t * pImageIndex){
-		rs_check(this->vkAcquireNextImageKHR!=nullptr);
+		ARCheck(this->vkAcquireNextImageKHR!=nullptr);
 		return this->vkAcquireNextImageKHR(handle, swapchain, timeout, semaphore, fence, pImageIndex);
 	}
 
 	VkResult debugMarkerSetObjectNameEXT(  VkDebugMarkerObjectNameInfoEXT const* pNameInfo){
-		rs_check(this->vkDebugMarkerSetObjectNameEXT!=nullptr);
+		ARCheck(this->vkDebugMarkerSetObjectNameEXT!=nullptr);
 		return this->vkDebugMarkerSetObjectNameEXT(handle, pNameInfo);
 	}
 
 	VkResult debugMarkerSetObjectTagEXT(  VkDebugMarkerObjectTagInfoEXT const* pTagInfo){
-		rs_check(this->vkDebugMarkerSetObjectTagEXT!=nullptr);
+		ARCheck(this->vkDebugMarkerSetObjectTagEXT!=nullptr);
 		return this->vkDebugMarkerSetObjectTagEXT(handle, pTagInfo);
 	}
 
 	void trimCommandPool(  VkCommandPool  commandPool, VkCommandPoolTrimFlags  flags){
-		rs_check(this->vkTrimCommandPool!=nullptr);
+		ARCheck(this->vkTrimCommandPool!=nullptr);
 		this->vkTrimCommandPool(handle, commandPool, flags);
 	}
 
 	void trimCommandPoolKHR(  VkCommandPool  commandPool, VkCommandPoolTrimFlags  flags){
-		rs_check(this->vkTrimCommandPoolKHR!=nullptr);
+		ARCheck(this->vkTrimCommandPoolKHR!=nullptr);
 		this->vkTrimCommandPoolKHR(handle, commandPool, flags);
 	}
 
 	VkResult getMemoryFdKHR(  VkMemoryGetFdInfoKHR const* pGetFdInfo, int * pFd){
-		rs_check(this->vkGetMemoryFdKHR!=nullptr);
+		ARCheck(this->vkGetMemoryFdKHR!=nullptr);
 		return this->vkGetMemoryFdKHR(handle, pGetFdInfo, pFd);
 	}
 
 	VkResult getMemoryFdPropertiesKHR(  VkExternalMemoryHandleTypeFlagBits  handleType, int  fd, VkMemoryFdPropertiesKHR * pMemoryFdProperties){
-		rs_check(this->vkGetMemoryFdPropertiesKHR!=nullptr);
+		ARCheck(this->vkGetMemoryFdPropertiesKHR!=nullptr);
 		return this->vkGetMemoryFdPropertiesKHR(handle, handleType, fd, pMemoryFdProperties);
 	}
 
 	VkResult getSemaphoreFdKHR(  VkSemaphoreGetFdInfoKHR const* pGetFdInfo, int * pFd){
-		rs_check(this->vkGetSemaphoreFdKHR!=nullptr);
+		ARCheck(this->vkGetSemaphoreFdKHR!=nullptr);
 		return this->vkGetSemaphoreFdKHR(handle, pGetFdInfo, pFd);
 	}
 
 	VkResult importSemaphoreFdKHR(  VkImportSemaphoreFdInfoKHR const* pImportSemaphoreFdInfo){
-		rs_check(this->vkImportSemaphoreFdKHR!=nullptr);
+		ARCheck(this->vkImportSemaphoreFdKHR!=nullptr);
 		return this->vkImportSemaphoreFdKHR(handle, pImportSemaphoreFdInfo);
 	}
 
 	VkResult getFenceFdKHR(  VkFenceGetFdInfoKHR const* pGetFdInfo, int * pFd){
-		rs_check(this->vkGetFenceFdKHR!=nullptr);
+		ARCheck(this->vkGetFenceFdKHR!=nullptr);
 		return this->vkGetFenceFdKHR(handle, pGetFdInfo, pFd);
 	}
 
 	VkResult importFenceFdKHR(  VkImportFenceFdInfoKHR const* pImportFenceFdInfo){
-		rs_check(this->vkImportFenceFdKHR!=nullptr);
+		ARCheck(this->vkImportFenceFdKHR!=nullptr);
 		return this->vkImportFenceFdKHR(handle, pImportFenceFdInfo);
 	}
 
 	void getDeviceGroupPeerMemoryFeatures(  uint32_t  heapIndex, uint32_t  localDeviceIndex, uint32_t  remoteDeviceIndex, VkPeerMemoryFeatureFlags * pPeerMemoryFeatures){
-		rs_check(this->vkGetDeviceGroupPeerMemoryFeatures!=nullptr);
+		ARCheck(this->vkGetDeviceGroupPeerMemoryFeatures!=nullptr);
 		this->vkGetDeviceGroupPeerMemoryFeatures(handle, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
 	}
 
 	void getDeviceGroupPeerMemoryFeaturesKHR(  uint32_t  heapIndex, uint32_t  localDeviceIndex, uint32_t  remoteDeviceIndex, VkPeerMemoryFeatureFlags * pPeerMemoryFeatures){
-		rs_check(this->vkGetDeviceGroupPeerMemoryFeaturesKHR!=nullptr);
+		ARCheck(this->vkGetDeviceGroupPeerMemoryFeaturesKHR!=nullptr);
 		this->vkGetDeviceGroupPeerMemoryFeaturesKHR(handle, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
 	}
 
 	VkResult bindBufferMemory2(  uint32_t  bindInfoCount, VkBindBufferMemoryInfo const* pBindInfos){
-		rs_check(this->vkBindBufferMemory2!=nullptr);
+		ARCheck(this->vkBindBufferMemory2!=nullptr);
 		return this->vkBindBufferMemory2(handle, bindInfoCount, pBindInfos);
 	}
 
 	VkResult bindBufferMemory2KHR(  uint32_t  bindInfoCount, VkBindBufferMemoryInfo const* pBindInfos){
-		rs_check(this->vkBindBufferMemory2KHR!=nullptr);
+		ARCheck(this->vkBindBufferMemory2KHR!=nullptr);
 		return this->vkBindBufferMemory2KHR(handle, bindInfoCount, pBindInfos);
 	}
 
 	VkResult bindImageMemory2(  uint32_t  bindInfoCount, VkBindImageMemoryInfo const* pBindInfos){
-		rs_check(this->vkBindImageMemory2!=nullptr);
+		ARCheck(this->vkBindImageMemory2!=nullptr);
 		return this->vkBindImageMemory2(handle, bindInfoCount, pBindInfos);
 	}
 
 	VkResult bindImageMemory2KHR(  uint32_t  bindInfoCount, VkBindImageMemoryInfo const* pBindInfos){
-		rs_check(this->vkBindImageMemory2KHR!=nullptr);
+		ARCheck(this->vkBindImageMemory2KHR!=nullptr);
 		return this->vkBindImageMemory2KHR(handle, bindInfoCount, pBindInfos);
 	}
 
 	VkResult getDeviceGroupPresentCapabilitiesKHR(  VkDeviceGroupPresentCapabilitiesKHR * pDeviceGroupPresentCapabilities){
-		rs_check(this->vkGetDeviceGroupPresentCapabilitiesKHR!=nullptr);
+		ARCheck(this->vkGetDeviceGroupPresentCapabilitiesKHR!=nullptr);
 		return this->vkGetDeviceGroupPresentCapabilitiesKHR(handle, pDeviceGroupPresentCapabilities);
 	}
 
 	VkResult getDeviceGroupSurfacePresentModesKHR(  VkSurfaceKHR  surface, VkDeviceGroupPresentModeFlagsKHR * pModes){
-		rs_check(this->vkGetDeviceGroupSurfacePresentModesKHR!=nullptr);
+		ARCheck(this->vkGetDeviceGroupSurfacePresentModesKHR!=nullptr);
 		return this->vkGetDeviceGroupSurfacePresentModesKHR(handle, surface, pModes);
 	}
 
 	VkResult acquireNextImage2KHR(  VkAcquireNextImageInfoKHR const* pAcquireInfo, uint32_t * pImageIndex){
-		rs_check(this->vkAcquireNextImage2KHR!=nullptr);
+		ARCheck(this->vkAcquireNextImage2KHR!=nullptr);
 		return this->vkAcquireNextImage2KHR(handle, pAcquireInfo, pImageIndex);
 	}
 
 	VkResult createDescriptorUpdateTemplate(  VkDescriptorUpdateTemplateCreateInfo const* pCreateInfo, VkDescriptorUpdateTemplate * pDescriptorUpdateTemplate){
-		rs_check(this->vkCreateDescriptorUpdateTemplate!=nullptr);
+		ARCheck(this->vkCreateDescriptorUpdateTemplate!=nullptr);
 		return this->vkCreateDescriptorUpdateTemplate(handle, pCreateInfo, nullptr, pDescriptorUpdateTemplate);
 	}
 
 	VkResult createDescriptorUpdateTemplateKHR(  VkDescriptorUpdateTemplateCreateInfo const* pCreateInfo, VkDescriptorUpdateTemplate * pDescriptorUpdateTemplate){
-		rs_check(this->vkCreateDescriptorUpdateTemplateKHR!=nullptr);
+		ARCheck(this->vkCreateDescriptorUpdateTemplateKHR!=nullptr);
 		return this->vkCreateDescriptorUpdateTemplateKHR(handle, pCreateInfo, nullptr, pDescriptorUpdateTemplate);
 	}
 
 	void destroyDescriptorUpdateTemplate(  VkDescriptorUpdateTemplate  descriptorUpdateTemplate){
-		rs_check(this->vkDestroyDescriptorUpdateTemplate!=nullptr);
+		ARCheck(this->vkDestroyDescriptorUpdateTemplate!=nullptr);
 		this->vkDestroyDescriptorUpdateTemplate(handle, descriptorUpdateTemplate, nullptr);
 	}
 
 	void destroyDescriptorUpdateTemplateKHR(  VkDescriptorUpdateTemplate  descriptorUpdateTemplate){
-		rs_check(this->vkDestroyDescriptorUpdateTemplateKHR!=nullptr);
+		ARCheck(this->vkDestroyDescriptorUpdateTemplateKHR!=nullptr);
 		this->vkDestroyDescriptorUpdateTemplateKHR(handle, descriptorUpdateTemplate, nullptr);
 	}
 
 	void updateDescriptorSetWithTemplate(  VkDescriptorSet  descriptorSet, VkDescriptorUpdateTemplate  descriptorUpdateTemplate, void const* pData){
-		rs_check(this->vkUpdateDescriptorSetWithTemplate!=nullptr);
+		ARCheck(this->vkUpdateDescriptorSetWithTemplate!=nullptr);
 		this->vkUpdateDescriptorSetWithTemplate(handle, descriptorSet, descriptorUpdateTemplate, pData);
 	}
 
 	void updateDescriptorSetWithTemplateKHR(  VkDescriptorSet  descriptorSet, VkDescriptorUpdateTemplate  descriptorUpdateTemplate, void const* pData){
-		rs_check(this->vkUpdateDescriptorSetWithTemplateKHR!=nullptr);
+		ARCheck(this->vkUpdateDescriptorSetWithTemplateKHR!=nullptr);
 		this->vkUpdateDescriptorSetWithTemplateKHR(handle, descriptorSet, descriptorUpdateTemplate, pData);
 	}
 
 	void setHdrMetadataEXT(  uint32_t  swapchainCount, VkSwapchainKHR const* pSwapchains, VkHdrMetadataEXT const* pMetadata){
-		rs_check(this->vkSetHdrMetadataEXT!=nullptr);
+		ARCheck(this->vkSetHdrMetadataEXT!=nullptr);
 		this->vkSetHdrMetadataEXT(handle, swapchainCount, pSwapchains, pMetadata);
 	}
 
 	VkResult getSwapchainStatusKHR(  VkSwapchainKHR  swapchain){
-		rs_check(this->vkGetSwapchainStatusKHR!=nullptr);
+		ARCheck(this->vkGetSwapchainStatusKHR!=nullptr);
 		return this->vkGetSwapchainStatusKHR(handle, swapchain);
 	}
 
 	VkResult getRefreshCycleDurationGOOGLE(  VkSwapchainKHR  swapchain, VkRefreshCycleDurationGOOGLE * pDisplayTimingProperties){
-		rs_check(this->vkGetRefreshCycleDurationGOOGLE!=nullptr);
+		ARCheck(this->vkGetRefreshCycleDurationGOOGLE!=nullptr);
 		return this->vkGetRefreshCycleDurationGOOGLE(handle, swapchain, pDisplayTimingProperties);
 	}
 
 	VkResult getPastPresentationTimingGOOGLE(  VkSwapchainKHR  swapchain, uint32_t * pPresentationTimingCount, VkPastPresentationTimingGOOGLE * pPresentationTimings){
-		rs_check(this->vkGetPastPresentationTimingGOOGLE!=nullptr);
+		ARCheck(this->vkGetPastPresentationTimingGOOGLE!=nullptr);
 		return this->vkGetPastPresentationTimingGOOGLE(handle, swapchain, pPresentationTimingCount, pPresentationTimings);
 	}
 
 	void getBufferMemoryRequirements2(  VkBufferMemoryRequirementsInfo2 const* pInfo, VkMemoryRequirements2 * pMemoryRequirements){
-		rs_check(this->vkGetBufferMemoryRequirements2!=nullptr);
+		ARCheck(this->vkGetBufferMemoryRequirements2!=nullptr);
 		this->vkGetBufferMemoryRequirements2(handle, pInfo, pMemoryRequirements);
 	}
 
 	void getBufferMemoryRequirements2KHR(  VkBufferMemoryRequirementsInfo2 const* pInfo, VkMemoryRequirements2 * pMemoryRequirements){
-		rs_check(this->vkGetBufferMemoryRequirements2KHR!=nullptr);
+		ARCheck(this->vkGetBufferMemoryRequirements2KHR!=nullptr);
 		this->vkGetBufferMemoryRequirements2KHR(handle, pInfo, pMemoryRequirements);
 	}
 
 	void getImageMemoryRequirements2(  VkImageMemoryRequirementsInfo2 const* pInfo, VkMemoryRequirements2 * pMemoryRequirements){
-		rs_check(this->vkGetImageMemoryRequirements2!=nullptr);
+		ARCheck(this->vkGetImageMemoryRequirements2!=nullptr);
 		this->vkGetImageMemoryRequirements2(handle, pInfo, pMemoryRequirements);
 	}
 
 	void getImageMemoryRequirements2KHR(  VkImageMemoryRequirementsInfo2 const* pInfo, VkMemoryRequirements2 * pMemoryRequirements){
-		rs_check(this->vkGetImageMemoryRequirements2KHR!=nullptr);
+		ARCheck(this->vkGetImageMemoryRequirements2KHR!=nullptr);
 		this->vkGetImageMemoryRequirements2KHR(handle, pInfo, pMemoryRequirements);
 	}
 
 	void getImageSparseMemoryRequirements2(  VkImageSparseMemoryRequirementsInfo2 const* pInfo, uint32_t * pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2 * pSparseMemoryRequirements){
-		rs_check(this->vkGetImageSparseMemoryRequirements2!=nullptr);
+		ARCheck(this->vkGetImageSparseMemoryRequirements2!=nullptr);
 		this->vkGetImageSparseMemoryRequirements2(handle, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 	}
 
 	void getImageSparseMemoryRequirements2KHR(  VkImageSparseMemoryRequirementsInfo2 const* pInfo, uint32_t * pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2 * pSparseMemoryRequirements){
-		rs_check(this->vkGetImageSparseMemoryRequirements2KHR!=nullptr);
+		ARCheck(this->vkGetImageSparseMemoryRequirements2KHR!=nullptr);
 		this->vkGetImageSparseMemoryRequirements2KHR(handle, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 	}
 
 	VkResult createSamplerYcbcrConversion(  VkSamplerYcbcrConversionCreateInfo const* pCreateInfo, VkSamplerYcbcrConversion * pYcbcrConversion){
-		rs_check(this->vkCreateSamplerYcbcrConversion!=nullptr);
+		ARCheck(this->vkCreateSamplerYcbcrConversion!=nullptr);
 		return this->vkCreateSamplerYcbcrConversion(handle, pCreateInfo, nullptr, pYcbcrConversion);
 	}
 
 	VkResult createSamplerYcbcrConversionKHR(  VkSamplerYcbcrConversionCreateInfo const* pCreateInfo, VkSamplerYcbcrConversion * pYcbcrConversion){
-		rs_check(this->vkCreateSamplerYcbcrConversionKHR!=nullptr);
+		ARCheck(this->vkCreateSamplerYcbcrConversionKHR!=nullptr);
 		return this->vkCreateSamplerYcbcrConversionKHR(handle, pCreateInfo, nullptr, pYcbcrConversion);
 	}
 
 	void destroySamplerYcbcrConversion(  VkSamplerYcbcrConversion  ycbcrConversion){
-		rs_check(this->vkDestroySamplerYcbcrConversion!=nullptr);
+		ARCheck(this->vkDestroySamplerYcbcrConversion!=nullptr);
 		this->vkDestroySamplerYcbcrConversion(handle, ycbcrConversion, nullptr);
 	}
 
 	void destroySamplerYcbcrConversionKHR(  VkSamplerYcbcrConversion  ycbcrConversion){
-		rs_check(this->vkDestroySamplerYcbcrConversionKHR!=nullptr);
+		ARCheck(this->vkDestroySamplerYcbcrConversionKHR!=nullptr);
 		this->vkDestroySamplerYcbcrConversionKHR(handle, ycbcrConversion, nullptr);
 	}
 
 	void getDeviceQueue2(  VkDeviceQueueInfo2 const* pQueueInfo, VkQueue * pQueue){
-		rs_check(this->vkGetDeviceQueue2!=nullptr);
+		ARCheck(this->vkGetDeviceQueue2!=nullptr);
 		this->vkGetDeviceQueue2(handle, pQueueInfo, pQueue);
 	}
 
 	VkResult createValidationCacheEXT(  VkValidationCacheCreateInfoEXT const* pCreateInfo, VkValidationCacheEXT * pValidationCache){
-		rs_check(this->vkCreateValidationCacheEXT!=nullptr);
+		ARCheck(this->vkCreateValidationCacheEXT!=nullptr);
 		return this->vkCreateValidationCacheEXT(handle, pCreateInfo, nullptr, pValidationCache);
 	}
 
 	void destroyValidationCacheEXT(  VkValidationCacheEXT  validationCache){
-		rs_check(this->vkDestroyValidationCacheEXT!=nullptr);
+		ARCheck(this->vkDestroyValidationCacheEXT!=nullptr);
 		this->vkDestroyValidationCacheEXT(handle, validationCache, nullptr);
 	}
 
 	VkResult getValidationCacheDataEXT(  VkValidationCacheEXT  validationCache, size_t * pDataSize, void * pData){
-		rs_check(this->vkGetValidationCacheDataEXT!=nullptr);
+		ARCheck(this->vkGetValidationCacheDataEXT!=nullptr);
 		return this->vkGetValidationCacheDataEXT(handle, validationCache, pDataSize, pData);
 	}
 
 	VkResult mergeValidationCachesEXT(  VkValidationCacheEXT  dstCache, uint32_t  srcCacheCount, VkValidationCacheEXT const* pSrcCaches){
-		rs_check(this->vkMergeValidationCachesEXT!=nullptr);
+		ARCheck(this->vkMergeValidationCachesEXT!=nullptr);
 		return this->vkMergeValidationCachesEXT(handle, dstCache, srcCacheCount, pSrcCaches);
 	}
 
 	void getDescriptorSetLayoutSupport(  VkDescriptorSetLayoutCreateInfo const* pCreateInfo, VkDescriptorSetLayoutSupport * pSupport){
-		rs_check(this->vkGetDescriptorSetLayoutSupport!=nullptr);
+		ARCheck(this->vkGetDescriptorSetLayoutSupport!=nullptr);
 		this->vkGetDescriptorSetLayoutSupport(handle, pCreateInfo, pSupport);
 	}
 
 	void getDescriptorSetLayoutSupportKHR(  VkDescriptorSetLayoutCreateInfo const* pCreateInfo, VkDescriptorSetLayoutSupport * pSupport){
-		rs_check(this->vkGetDescriptorSetLayoutSupportKHR!=nullptr);
+		ARCheck(this->vkGetDescriptorSetLayoutSupportKHR!=nullptr);
 		this->vkGetDescriptorSetLayoutSupportKHR(handle, pCreateInfo, pSupport);
 	}
 
 	VkResult createRenderPass2(  VkRenderPassCreateInfo2 const* pCreateInfo, VkRenderPass * pRenderPass){
-		rs_check(this->vkCreateRenderPass2!=nullptr);
+		ARCheck(this->vkCreateRenderPass2!=nullptr);
 		return this->vkCreateRenderPass2(handle, pCreateInfo, nullptr, pRenderPass);
 	}
 
 	VkResult createRenderPass2KHR(  VkRenderPassCreateInfo2 const* pCreateInfo, VkRenderPass * pRenderPass){
-		rs_check(this->vkCreateRenderPass2KHR!=nullptr);
+		ARCheck(this->vkCreateRenderPass2KHR!=nullptr);
 		return this->vkCreateRenderPass2KHR(handle, pCreateInfo, nullptr, pRenderPass);
 	}
 
 	VkResult getSemaphoreCounterValue(  VkSemaphore  semaphore, uint64_t * pValue){
-		rs_check(this->vkGetSemaphoreCounterValue!=nullptr);
+		ARCheck(this->vkGetSemaphoreCounterValue!=nullptr);
 		return this->vkGetSemaphoreCounterValue(handle, semaphore, pValue);
 	}
 
 	VkResult waitSemaphores(  VkSemaphoreWaitInfo const* pWaitInfo, uint64_t  timeout){
-		rs_check(this->vkWaitSemaphores!=nullptr);
+		ARCheck(this->vkWaitSemaphores!=nullptr);
 		return this->vkWaitSemaphores(handle, pWaitInfo, timeout);
 	}
 
 	VkResult signalSemaphore(  VkSemaphoreSignalInfo const* pSignalInfo){
-		rs_check(this->vkSignalSemaphore!=nullptr);
+		ARCheck(this->vkSignalSemaphore!=nullptr);
 		return this->vkSignalSemaphore(handle, pSignalInfo);
 	}
 
 	uint64_t getBufferOpaqueCaptureAddress(  VkBufferDeviceAddressInfo const* pInfo){
-		rs_check(this->vkGetBufferOpaqueCaptureAddress!=nullptr);
+		ARCheck(this->vkGetBufferOpaqueCaptureAddress!=nullptr);
 		return this->vkGetBufferOpaqueCaptureAddress(handle, pInfo);
 	}
 
 	VkDeviceAddress getBufferDeviceAddress(  VkBufferDeviceAddressInfo const* pInfo){
-		rs_check(this->vkGetBufferDeviceAddress!=nullptr);
+		ARCheck(this->vkGetBufferDeviceAddress!=nullptr);
 		return this->vkGetBufferDeviceAddress(handle, pInfo);
 	}
 
 	uint64_t getDeviceMemoryOpaqueCaptureAddress(  VkDeviceMemoryOpaqueCaptureAddressInfo const* pInfo){
-		rs_check(this->vkGetDeviceMemoryOpaqueCaptureAddress!=nullptr);
+		ARCheck(this->vkGetDeviceMemoryOpaqueCaptureAddress!=nullptr);
 		return this->vkGetDeviceMemoryOpaqueCaptureAddress(handle, pInfo);
 	}
 };
@@ -2275,377 +2275,377 @@ struct WCommandBuffer{
 	{}
 
 	VkResult beginCommandBuffer(  VkCommandBufferBeginInfo const* pBeginInfo){
-		rs_check(DispatchTable.vkBeginCommandBuffer!=nullptr);
+		ARCheck(DispatchTable.vkBeginCommandBuffer!=nullptr);
 		return DispatchTable.vkBeginCommandBuffer(handle, pBeginInfo);
 	}
 
 	VkResult endCommandBuffer( ){
-		rs_check(DispatchTable.vkEndCommandBuffer!=nullptr);
+		ARCheck(DispatchTable.vkEndCommandBuffer!=nullptr);
 		return DispatchTable.vkEndCommandBuffer(handle);
 	}
 
 	VkResult resetCommandBuffer(  VkCommandBufferResetFlags  flags){
-		rs_check(DispatchTable.vkResetCommandBuffer!=nullptr);
+		ARCheck(DispatchTable.vkResetCommandBuffer!=nullptr);
 		return DispatchTable.vkResetCommandBuffer(handle, flags);
 	}
 
 	void cmdBindPipeline(  VkPipelineBindPoint  pipelineBindPoint, VkPipeline  pipeline){
-		rs_check(DispatchTable.vkCmdBindPipeline!=nullptr);
+		ARCheck(DispatchTable.vkCmdBindPipeline!=nullptr);
 		DispatchTable.vkCmdBindPipeline(handle, pipelineBindPoint, pipeline);
 	}
 
 	void cmdSetViewport(  uint32_t  firstViewport, uint32_t  viewportCount, VkViewport const* pViewports){
-		rs_check(DispatchTable.vkCmdSetViewport!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetViewport!=nullptr);
 		DispatchTable.vkCmdSetViewport(handle, firstViewport, viewportCount, pViewports);
 	}
 
 	void cmdSetScissor(  uint32_t  firstScissor, uint32_t  scissorCount, VkRect2D const* pScissors){
-		rs_check(DispatchTable.vkCmdSetScissor!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetScissor!=nullptr);
 		DispatchTable.vkCmdSetScissor(handle, firstScissor, scissorCount, pScissors);
 	}
 
 	void cmdSetLineWidth(  float  lineWidth){
-		rs_check(DispatchTable.vkCmdSetLineWidth!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetLineWidth!=nullptr);
 		DispatchTable.vkCmdSetLineWidth(handle, lineWidth);
 	}
 
 	void cmdSetDepthBias(  float  depthBiasConstantFactor, float  depthBiasClamp, float  depthBiasSlopeFactor){
-		rs_check(DispatchTable.vkCmdSetDepthBias!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetDepthBias!=nullptr);
 		DispatchTable.vkCmdSetDepthBias(handle, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
 	}
 
 	void cmdSetBlendConstants(  float const blendConstants[4]){
-		rs_check(DispatchTable.vkCmdSetBlendConstants!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetBlendConstants!=nullptr);
 		DispatchTable.vkCmdSetBlendConstants(handle, blendConstants);
 	}
 
 	void cmdSetDepthBounds(  float  minDepthBounds, float  maxDepthBounds){
-		rs_check(DispatchTable.vkCmdSetDepthBounds!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetDepthBounds!=nullptr);
 		DispatchTable.vkCmdSetDepthBounds(handle, minDepthBounds, maxDepthBounds);
 	}
 
 	void cmdSetStencilCompareMask(  VkStencilFaceFlags  faceMask, uint32_t  compareMask){
-		rs_check(DispatchTable.vkCmdSetStencilCompareMask!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetStencilCompareMask!=nullptr);
 		DispatchTable.vkCmdSetStencilCompareMask(handle, faceMask, compareMask);
 	}
 
 	void cmdSetStencilWriteMask(  VkStencilFaceFlags  faceMask, uint32_t  writeMask){
-		rs_check(DispatchTable.vkCmdSetStencilWriteMask!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetStencilWriteMask!=nullptr);
 		DispatchTable.vkCmdSetStencilWriteMask(handle, faceMask, writeMask);
 	}
 
 	void cmdSetStencilReference(  VkStencilFaceFlags  faceMask, uint32_t  reference){
-		rs_check(DispatchTable.vkCmdSetStencilReference!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetStencilReference!=nullptr);
 		DispatchTable.vkCmdSetStencilReference(handle, faceMask, reference);
 	}
 
 	void cmdBindDescriptorSets(  VkPipelineBindPoint  pipelineBindPoint, VkPipelineLayout  layout, uint32_t  firstSet, uint32_t  descriptorSetCount, VkDescriptorSet const* pDescriptorSets, uint32_t  dynamicOffsetCount, uint32_t const* pDynamicOffsets){
-		rs_check(DispatchTable.vkCmdBindDescriptorSets!=nullptr);
+		ARCheck(DispatchTable.vkCmdBindDescriptorSets!=nullptr);
 		DispatchTable.vkCmdBindDescriptorSets(handle, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
 	}
 
 	void cmdBindIndexBuffer(  VkBuffer  buffer, VkDeviceSize  offset, VkIndexType  indexType){
-		rs_check(DispatchTable.vkCmdBindIndexBuffer!=nullptr);
+		ARCheck(DispatchTable.vkCmdBindIndexBuffer!=nullptr);
 		DispatchTable.vkCmdBindIndexBuffer(handle, buffer, offset, indexType);
 	}
 
 	void cmdBindVertexBuffers(  uint32_t  firstBinding, uint32_t  bindingCount, VkBuffer const* pBuffers, VkDeviceSize const* pOffsets){
-		rs_check(DispatchTable.vkCmdBindVertexBuffers!=nullptr);
+		ARCheck(DispatchTable.vkCmdBindVertexBuffers!=nullptr);
 		DispatchTable.vkCmdBindVertexBuffers(handle, firstBinding, bindingCount, pBuffers, pOffsets);
 	}
 
 	void cmdDraw(  uint32_t  vertexCount, uint32_t  instanceCount, uint32_t  firstVertex, uint32_t  firstInstance){
-		rs_check(DispatchTable.vkCmdDraw!=nullptr);
+		ARCheck(DispatchTable.vkCmdDraw!=nullptr);
 		DispatchTable.vkCmdDraw(handle, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
 	void cmdDrawIndexed(  uint32_t  indexCount, uint32_t  instanceCount, uint32_t  firstIndex, int32_t  vertexOffset, uint32_t  firstInstance){
-		rs_check(DispatchTable.vkCmdDrawIndexed!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndexed!=nullptr);
 		DispatchTable.vkCmdDrawIndexed(handle, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
 
 	void cmdDrawIndirect(  VkBuffer  buffer, VkDeviceSize  offset, uint32_t  drawCount, uint32_t  stride){
-		rs_check(DispatchTable.vkCmdDrawIndirect!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndirect!=nullptr);
 		DispatchTable.vkCmdDrawIndirect(handle, buffer, offset, drawCount, stride);
 	}
 
 	void cmdDrawIndexedIndirect(  VkBuffer  buffer, VkDeviceSize  offset, uint32_t  drawCount, uint32_t  stride){
-		rs_check(DispatchTable.vkCmdDrawIndexedIndirect!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndexedIndirect!=nullptr);
 		DispatchTable.vkCmdDrawIndexedIndirect(handle, buffer, offset, drawCount, stride);
 	}
 
 	void cmdDispatch(  uint32_t  groupCountX, uint32_t  groupCountY, uint32_t  groupCountZ){
-		rs_check(DispatchTable.vkCmdDispatch!=nullptr);
+		ARCheck(DispatchTable.vkCmdDispatch!=nullptr);
 		DispatchTable.vkCmdDispatch(handle, groupCountX, groupCountY, groupCountZ);
 	}
 
 	void cmdDispatchIndirect(  VkBuffer  buffer, VkDeviceSize  offset){
-		rs_check(DispatchTable.vkCmdDispatchIndirect!=nullptr);
+		ARCheck(DispatchTable.vkCmdDispatchIndirect!=nullptr);
 		DispatchTable.vkCmdDispatchIndirect(handle, buffer, offset);
 	}
 
 	void cmdCopyBuffer(  VkBuffer  srcBuffer, VkBuffer  dstBuffer, uint32_t  regionCount, VkBufferCopy const* pRegions){
-		rs_check(DispatchTable.vkCmdCopyBuffer!=nullptr);
+		ARCheck(DispatchTable.vkCmdCopyBuffer!=nullptr);
 		DispatchTable.vkCmdCopyBuffer(handle, srcBuffer, dstBuffer, regionCount, pRegions);
 	}
 
 	void cmdCopyImage(  VkImage  srcImage, VkImageLayout  srcImageLayout, VkImage  dstImage, VkImageLayout  dstImageLayout, uint32_t  regionCount, VkImageCopy const* pRegions){
-		rs_check(DispatchTable.vkCmdCopyImage!=nullptr);
+		ARCheck(DispatchTable.vkCmdCopyImage!=nullptr);
 		DispatchTable.vkCmdCopyImage(handle, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
 	}
 
 	void cmdBlitImage(  VkImage  srcImage, VkImageLayout  srcImageLayout, VkImage  dstImage, VkImageLayout  dstImageLayout, uint32_t  regionCount, VkImageBlit const* pRegions, VkFilter  filter){
-		rs_check(DispatchTable.vkCmdBlitImage!=nullptr);
+		ARCheck(DispatchTable.vkCmdBlitImage!=nullptr);
 		DispatchTable.vkCmdBlitImage(handle, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
 	}
 
 	void cmdCopyBufferToImage(  VkBuffer  srcBuffer, VkImage  dstImage, VkImageLayout  dstImageLayout, uint32_t  regionCount, VkBufferImageCopy const* pRegions){
-		rs_check(DispatchTable.vkCmdCopyBufferToImage!=nullptr);
+		ARCheck(DispatchTable.vkCmdCopyBufferToImage!=nullptr);
 		DispatchTable.vkCmdCopyBufferToImage(handle, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
 	}
 
 	void cmdCopyImageToBuffer(  VkImage  srcImage, VkImageLayout  srcImageLayout, VkBuffer  dstBuffer, uint32_t  regionCount, VkBufferImageCopy const* pRegions){
-		rs_check(DispatchTable.vkCmdCopyImageToBuffer!=nullptr);
+		ARCheck(DispatchTable.vkCmdCopyImageToBuffer!=nullptr);
 		DispatchTable.vkCmdCopyImageToBuffer(handle, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
 	}
 
 	void cmdUpdateBuffer(  VkBuffer  dstBuffer, VkDeviceSize  dstOffset, VkDeviceSize  dataSize, void const* pData){
-		rs_check(DispatchTable.vkCmdUpdateBuffer!=nullptr);
+		ARCheck(DispatchTable.vkCmdUpdateBuffer!=nullptr);
 		DispatchTable.vkCmdUpdateBuffer(handle, dstBuffer, dstOffset, dataSize, pData);
 	}
 
 	void cmdFillBuffer(  VkBuffer  dstBuffer, VkDeviceSize  dstOffset, VkDeviceSize  size, uint32_t  data){
-		rs_check(DispatchTable.vkCmdFillBuffer!=nullptr);
+		ARCheck(DispatchTable.vkCmdFillBuffer!=nullptr);
 		DispatchTable.vkCmdFillBuffer(handle, dstBuffer, dstOffset, size, data);
 	}
 
 	void cmdClearColorImage(  VkImage  image, VkImageLayout  imageLayout, VkClearColorValue const* pColor, uint32_t  rangeCount, VkImageSubresourceRange const* pRanges){
-		rs_check(DispatchTable.vkCmdClearColorImage!=nullptr);
+		ARCheck(DispatchTable.vkCmdClearColorImage!=nullptr);
 		DispatchTable.vkCmdClearColorImage(handle, image, imageLayout, pColor, rangeCount, pRanges);
 	}
 
 	void cmdClearDepthStencilImage(  VkImage  image, VkImageLayout  imageLayout, VkClearDepthStencilValue const* pDepthStencil, uint32_t  rangeCount, VkImageSubresourceRange const* pRanges){
-		rs_check(DispatchTable.vkCmdClearDepthStencilImage!=nullptr);
+		ARCheck(DispatchTable.vkCmdClearDepthStencilImage!=nullptr);
 		DispatchTable.vkCmdClearDepthStencilImage(handle, image, imageLayout, pDepthStencil, rangeCount, pRanges);
 	}
 
 	void cmdClearAttachments(  uint32_t  attachmentCount, VkClearAttachment const* pAttachments, uint32_t  rectCount, VkClearRect const* pRects){
-		rs_check(DispatchTable.vkCmdClearAttachments!=nullptr);
+		ARCheck(DispatchTable.vkCmdClearAttachments!=nullptr);
 		DispatchTable.vkCmdClearAttachments(handle, attachmentCount, pAttachments, rectCount, pRects);
 	}
 
 	void cmdResolveImage(  VkImage  srcImage, VkImageLayout  srcImageLayout, VkImage  dstImage, VkImageLayout  dstImageLayout, uint32_t  regionCount, VkImageResolve const* pRegions){
-		rs_check(DispatchTable.vkCmdResolveImage!=nullptr);
+		ARCheck(DispatchTable.vkCmdResolveImage!=nullptr);
 		DispatchTable.vkCmdResolveImage(handle, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
 	}
 
 	void cmdSetEvent(  VkEvent  event, VkPipelineStageFlags  stageMask){
-		rs_check(DispatchTable.vkCmdSetEvent!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetEvent!=nullptr);
 		DispatchTable.vkCmdSetEvent(handle, event, stageMask);
 	}
 
 	void cmdResetEvent(  VkEvent  event, VkPipelineStageFlags  stageMask){
-		rs_check(DispatchTable.vkCmdResetEvent!=nullptr);
+		ARCheck(DispatchTable.vkCmdResetEvent!=nullptr);
 		DispatchTable.vkCmdResetEvent(handle, event, stageMask);
 	}
 
 	void cmdWaitEvents(  uint32_t  eventCount, VkEvent const* pEvents, VkPipelineStageFlags  srcStageMask, VkPipelineStageFlags  dstStageMask, uint32_t  memoryBarrierCount, VkMemoryBarrier const* pMemoryBarriers, uint32_t  bufferMemoryBarrierCount, VkBufferMemoryBarrier const* pBufferMemoryBarriers, uint32_t  imageMemoryBarrierCount, VkImageMemoryBarrier const* pImageMemoryBarriers){
-		rs_check(DispatchTable.vkCmdWaitEvents!=nullptr);
+		ARCheck(DispatchTable.vkCmdWaitEvents!=nullptr);
 		DispatchTable.vkCmdWaitEvents(handle, eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
 	}
 
 	void cmdPipelineBarrier(  VkPipelineStageFlags  srcStageMask, VkPipelineStageFlags  dstStageMask, VkDependencyFlags  dependencyFlags, uint32_t  memoryBarrierCount, VkMemoryBarrier const* pMemoryBarriers, uint32_t  bufferMemoryBarrierCount, VkBufferMemoryBarrier const* pBufferMemoryBarriers, uint32_t  imageMemoryBarrierCount, VkImageMemoryBarrier const* pImageMemoryBarriers){
-		rs_check(DispatchTable.vkCmdPipelineBarrier!=nullptr);
+		ARCheck(DispatchTable.vkCmdPipelineBarrier!=nullptr);
 		DispatchTable.vkCmdPipelineBarrier(handle, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
 	}
 
 	void cmdBeginQuery(  VkQueryPool  queryPool, uint32_t  query, VkQueryControlFlags  flags){
-		rs_check(DispatchTable.vkCmdBeginQuery!=nullptr);
+		ARCheck(DispatchTable.vkCmdBeginQuery!=nullptr);
 		DispatchTable.vkCmdBeginQuery(handle, queryPool, query, flags);
 	}
 
 	void cmdEndQuery(  VkQueryPool  queryPool, uint32_t  query){
-		rs_check(DispatchTable.vkCmdEndQuery!=nullptr);
+		ARCheck(DispatchTable.vkCmdEndQuery!=nullptr);
 		DispatchTable.vkCmdEndQuery(handle, queryPool, query);
 	}
 
 	void cmdResetQueryPool(  VkQueryPool  queryPool, uint32_t  firstQuery, uint32_t  queryCount){
-		rs_check(DispatchTable.vkCmdResetQueryPool!=nullptr);
+		ARCheck(DispatchTable.vkCmdResetQueryPool!=nullptr);
 		DispatchTable.vkCmdResetQueryPool(handle, queryPool, firstQuery, queryCount);
 	}
 
 	void cmdWriteTimestamp(  VkPipelineStageFlagBits  pipelineStage, VkQueryPool  queryPool, uint32_t  query){
-		rs_check(DispatchTable.vkCmdWriteTimestamp!=nullptr);
+		ARCheck(DispatchTable.vkCmdWriteTimestamp!=nullptr);
 		DispatchTable.vkCmdWriteTimestamp(handle, pipelineStage, queryPool, query);
 	}
 
 	void cmdCopyQueryPoolResults(  VkQueryPool  queryPool, uint32_t  firstQuery, uint32_t  queryCount, VkBuffer  dstBuffer, VkDeviceSize  dstOffset, VkDeviceSize  stride, VkQueryResultFlags  flags){
-		rs_check(DispatchTable.vkCmdCopyQueryPoolResults!=nullptr);
+		ARCheck(DispatchTable.vkCmdCopyQueryPoolResults!=nullptr);
 		DispatchTable.vkCmdCopyQueryPoolResults(handle, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
 	}
 
 	void cmdPushConstants(  VkPipelineLayout  layout, VkShaderStageFlags  stageFlags, uint32_t  offset, uint32_t  size, void const* pValues){
-		rs_check(DispatchTable.vkCmdPushConstants!=nullptr);
+		ARCheck(DispatchTable.vkCmdPushConstants!=nullptr);
 		DispatchTable.vkCmdPushConstants(handle, layout, stageFlags, offset, size, pValues);
 	}
 
 	void cmdBeginRenderPass(  VkRenderPassBeginInfo const* pRenderPassBegin, VkSubpassContents  contents){
-		rs_check(DispatchTable.vkCmdBeginRenderPass!=nullptr);
+		ARCheck(DispatchTable.vkCmdBeginRenderPass!=nullptr);
 		DispatchTable.vkCmdBeginRenderPass(handle, pRenderPassBegin, contents);
 	}
 
 	void cmdNextSubpass(  VkSubpassContents  contents){
-		rs_check(DispatchTable.vkCmdNextSubpass!=nullptr);
+		ARCheck(DispatchTable.vkCmdNextSubpass!=nullptr);
 		DispatchTable.vkCmdNextSubpass(handle, contents);
 	}
 
 	void cmdEndRenderPass( ){
-		rs_check(DispatchTable.vkCmdEndRenderPass!=nullptr);
+		ARCheck(DispatchTable.vkCmdEndRenderPass!=nullptr);
 		DispatchTable.vkCmdEndRenderPass(handle);
 	}
 
 	void cmdExecuteCommands(  uint32_t  commandBufferCount, VkCommandBuffer const* pCommandBuffers){
-		rs_check(DispatchTable.vkCmdExecuteCommands!=nullptr);
+		ARCheck(DispatchTable.vkCmdExecuteCommands!=nullptr);
 		DispatchTable.vkCmdExecuteCommands(handle, commandBufferCount, pCommandBuffers);
 	}
 
 	void cmdDebugMarkerBeginEXT(  VkDebugMarkerMarkerInfoEXT const* pMarkerInfo){
-		rs_check(DispatchTable.vkCmdDebugMarkerBeginEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdDebugMarkerBeginEXT!=nullptr);
 		DispatchTable.vkCmdDebugMarkerBeginEXT(handle, pMarkerInfo);
 	}
 
 	void cmdDebugMarkerEndEXT( ){
-		rs_check(DispatchTable.vkCmdDebugMarkerEndEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdDebugMarkerEndEXT!=nullptr);
 		DispatchTable.vkCmdDebugMarkerEndEXT(handle);
 	}
 
 	void cmdDebugMarkerInsertEXT(  VkDebugMarkerMarkerInfoEXT const* pMarkerInfo){
-		rs_check(DispatchTable.vkCmdDebugMarkerInsertEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdDebugMarkerInsertEXT!=nullptr);
 		DispatchTable.vkCmdDebugMarkerInsertEXT(handle, pMarkerInfo);
 	}
 
 	void cmdPushDescriptorSetKHR(  VkPipelineBindPoint  pipelineBindPoint, VkPipelineLayout  layout, uint32_t  set, uint32_t  descriptorWriteCount, VkWriteDescriptorSet const* pDescriptorWrites){
-		rs_check(DispatchTable.vkCmdPushDescriptorSetKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdPushDescriptorSetKHR!=nullptr);
 		DispatchTable.vkCmdPushDescriptorSetKHR(handle, pipelineBindPoint, layout, set, descriptorWriteCount, pDescriptorWrites);
 	}
 
 	void cmdSetDeviceMask(  uint32_t  deviceMask){
-		rs_check(DispatchTable.vkCmdSetDeviceMask!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetDeviceMask!=nullptr);
 		DispatchTable.vkCmdSetDeviceMask(handle, deviceMask);
 	}
 
 	void cmdSetDeviceMaskKHR(  uint32_t  deviceMask){
-		rs_check(DispatchTable.vkCmdSetDeviceMaskKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetDeviceMaskKHR!=nullptr);
 		DispatchTable.vkCmdSetDeviceMaskKHR(handle, deviceMask);
 	}
 
 	void cmdDispatchBase(  uint32_t  baseGroupX, uint32_t  baseGroupY, uint32_t  baseGroupZ, uint32_t  groupCountX, uint32_t  groupCountY, uint32_t  groupCountZ){
-		rs_check(DispatchTable.vkCmdDispatchBase!=nullptr);
+		ARCheck(DispatchTable.vkCmdDispatchBase!=nullptr);
 		DispatchTable.vkCmdDispatchBase(handle, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
 	}
 
 	void cmdDispatchBaseKHR(  uint32_t  baseGroupX, uint32_t  baseGroupY, uint32_t  baseGroupZ, uint32_t  groupCountX, uint32_t  groupCountY, uint32_t  groupCountZ){
-		rs_check(DispatchTable.vkCmdDispatchBaseKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdDispatchBaseKHR!=nullptr);
 		DispatchTable.vkCmdDispatchBaseKHR(handle, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
 	}
 
 	void cmdPushDescriptorSetWithTemplateKHR(  VkDescriptorUpdateTemplate  descriptorUpdateTemplate, VkPipelineLayout  layout, uint32_t  set, void const* pData){
-		rs_check(DispatchTable.vkCmdPushDescriptorSetWithTemplateKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdPushDescriptorSetWithTemplateKHR!=nullptr);
 		DispatchTable.vkCmdPushDescriptorSetWithTemplateKHR(handle, descriptorUpdateTemplate, layout, set, pData);
 	}
 
 	void cmdSetSampleLocationsEXT(  VkSampleLocationsInfoEXT const* pSampleLocationsInfo){
-		rs_check(DispatchTable.vkCmdSetSampleLocationsEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetSampleLocationsEXT!=nullptr);
 		DispatchTable.vkCmdSetSampleLocationsEXT(handle, pSampleLocationsInfo);
 	}
 
 	void cmdBeginRenderPass2(  VkRenderPassBeginInfo const* pRenderPassBegin, VkSubpassBeginInfo const* pSubpassBeginInfo){
-		rs_check(DispatchTable.vkCmdBeginRenderPass2!=nullptr);
+		ARCheck(DispatchTable.vkCmdBeginRenderPass2!=nullptr);
 		DispatchTable.vkCmdBeginRenderPass2(handle, pRenderPassBegin, pSubpassBeginInfo);
 	}
 
 	void cmdBeginRenderPass2KHR(  VkRenderPassBeginInfo const* pRenderPassBegin, VkSubpassBeginInfo const* pSubpassBeginInfo){
-		rs_check(DispatchTable.vkCmdBeginRenderPass2KHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdBeginRenderPass2KHR!=nullptr);
 		DispatchTable.vkCmdBeginRenderPass2KHR(handle, pRenderPassBegin, pSubpassBeginInfo);
 	}
 
 	void cmdNextSubpass2(  VkSubpassBeginInfo const* pSubpassBeginInfo, VkSubpassEndInfo const* pSubpassEndInfo){
-		rs_check(DispatchTable.vkCmdNextSubpass2!=nullptr);
+		ARCheck(DispatchTable.vkCmdNextSubpass2!=nullptr);
 		DispatchTable.vkCmdNextSubpass2(handle, pSubpassBeginInfo, pSubpassEndInfo);
 	}
 
 	void cmdNextSubpass2KHR(  VkSubpassBeginInfo const* pSubpassBeginInfo, VkSubpassEndInfo const* pSubpassEndInfo){
-		rs_check(DispatchTable.vkCmdNextSubpass2KHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdNextSubpass2KHR!=nullptr);
 		DispatchTable.vkCmdNextSubpass2KHR(handle, pSubpassBeginInfo, pSubpassEndInfo);
 	}
 
 	void cmdEndRenderPass2(  VkSubpassEndInfo const* pSubpassEndInfo){
-		rs_check(DispatchTable.vkCmdEndRenderPass2!=nullptr);
+		ARCheck(DispatchTable.vkCmdEndRenderPass2!=nullptr);
 		DispatchTable.vkCmdEndRenderPass2(handle, pSubpassEndInfo);
 	}
 
 	void cmdEndRenderPass2KHR(  VkSubpassEndInfo const* pSubpassEndInfo){
-		rs_check(DispatchTable.vkCmdEndRenderPass2KHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdEndRenderPass2KHR!=nullptr);
 		DispatchTable.vkCmdEndRenderPass2KHR(handle, pSubpassEndInfo);
 	}
 
 	void cmdDrawIndirectCount(  VkBuffer  buffer, VkDeviceSize  offset, VkBuffer  countBuffer, VkDeviceSize  countBufferOffset, uint32_t  maxDrawCount, uint32_t  stride){
-		rs_check(DispatchTable.vkCmdDrawIndirectCount!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndirectCount!=nullptr);
 		DispatchTable.vkCmdDrawIndirectCount(handle, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
 	}
 
 	void cmdDrawIndirectCountKHR(  VkBuffer  buffer, VkDeviceSize  offset, VkBuffer  countBuffer, VkDeviceSize  countBufferOffset, uint32_t  maxDrawCount, uint32_t  stride){
-		rs_check(DispatchTable.vkCmdDrawIndirectCountKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndirectCountKHR!=nullptr);
 		DispatchTable.vkCmdDrawIndirectCountKHR(handle, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
 	}
 
 	void cmdDrawIndexedIndirectCount(  VkBuffer  buffer, VkDeviceSize  offset, VkBuffer  countBuffer, VkDeviceSize  countBufferOffset, uint32_t  maxDrawCount, uint32_t  stride){
-		rs_check(DispatchTable.vkCmdDrawIndexedIndirectCount!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndexedIndirectCount!=nullptr);
 		DispatchTable.vkCmdDrawIndexedIndirectCount(handle, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
 	}
 
 	void cmdDrawIndexedIndirectCountKHR(  VkBuffer  buffer, VkDeviceSize  offset, VkBuffer  countBuffer, VkDeviceSize  countBufferOffset, uint32_t  maxDrawCount, uint32_t  stride){
-		rs_check(DispatchTable.vkCmdDrawIndexedIndirectCountKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndexedIndirectCountKHR!=nullptr);
 		DispatchTable.vkCmdDrawIndexedIndirectCountKHR(handle, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
 	}
 
 	void cmdBindTransformFeedbackBuffersEXT(  uint32_t  firstBinding, uint32_t  bindingCount, VkBuffer const* pBuffers, VkDeviceSize const* pOffsets, VkDeviceSize const* pSizes){
-		rs_check(DispatchTable.vkCmdBindTransformFeedbackBuffersEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdBindTransformFeedbackBuffersEXT!=nullptr);
 		DispatchTable.vkCmdBindTransformFeedbackBuffersEXT(handle, firstBinding, bindingCount, pBuffers, pOffsets, pSizes);
 	}
 
 	void cmdBeginTransformFeedbackEXT(  uint32_t  firstCounterBuffer, uint32_t  counterBufferCount, VkBuffer const* pCounterBuffers, VkDeviceSize const* pCounterBufferOffsets){
-		rs_check(DispatchTable.vkCmdBeginTransformFeedbackEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdBeginTransformFeedbackEXT!=nullptr);
 		DispatchTable.vkCmdBeginTransformFeedbackEXT(handle, firstCounterBuffer, counterBufferCount, pCounterBuffers, pCounterBufferOffsets);
 	}
 
 	void cmdEndTransformFeedbackEXT(  uint32_t  firstCounterBuffer, uint32_t  counterBufferCount, VkBuffer const* pCounterBuffers, VkDeviceSize const* pCounterBufferOffsets){
-		rs_check(DispatchTable.vkCmdEndTransformFeedbackEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdEndTransformFeedbackEXT!=nullptr);
 		DispatchTable.vkCmdEndTransformFeedbackEXT(handle, firstCounterBuffer, counterBufferCount, pCounterBuffers, pCounterBufferOffsets);
 	}
 
 	void cmdBeginQueryIndexedEXT(  VkQueryPool  queryPool, uint32_t  query, VkQueryControlFlags  flags, uint32_t  index){
-		rs_check(DispatchTable.vkCmdBeginQueryIndexedEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdBeginQueryIndexedEXT!=nullptr);
 		DispatchTable.vkCmdBeginQueryIndexedEXT(handle, queryPool, query, flags, index);
 	}
 
 	void cmdEndQueryIndexedEXT(  VkQueryPool  queryPool, uint32_t  query, uint32_t  index){
-		rs_check(DispatchTable.vkCmdEndQueryIndexedEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdEndQueryIndexedEXT!=nullptr);
 		DispatchTable.vkCmdEndQueryIndexedEXT(handle, queryPool, query, index);
 	}
 
 	void cmdDrawIndirectByteCountEXT(  uint32_t  instanceCount, uint32_t  firstInstance, VkBuffer  counterBuffer, VkDeviceSize  counterBufferOffset, uint32_t  counterOffset, uint32_t  vertexStride){
-		rs_check(DispatchTable.vkCmdDrawIndirectByteCountEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdDrawIndirectByteCountEXT!=nullptr);
 		DispatchTable.vkCmdDrawIndirectByteCountEXT(handle, instanceCount, firstInstance, counterBuffer, counterBufferOffset, counterOffset, vertexStride);
 	}
 
 	void cmdSetLineStippleEXT(  uint32_t  lineStippleFactor, uint16_t  lineStipplePattern){
-		rs_check(DispatchTable.vkCmdSetLineStippleEXT!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetLineStippleEXT!=nullptr);
 		DispatchTable.vkCmdSetLineStippleEXT(handle, lineStippleFactor, lineStipplePattern);
 	}
 
 	void cmdSetFragmentShadingRateKHR(  VkExtent2D const* pFragmentSize, VkFragmentShadingRateCombinerOpKHR const combinerOps[2]){
-		rs_check(DispatchTable.vkCmdSetFragmentShadingRateKHR!=nullptr);
+		ARCheck(DispatchTable.vkCmdSetFragmentShadingRateKHR!=nullptr);
 		DispatchTable.vkCmdSetFragmentShadingRateKHR(handle, pFragmentSize, combinerOps);
 	}
 };
@@ -2659,22 +2659,22 @@ struct WQueue{
 	{}
 
 	VkResult queueSubmit(  uint32_t  submitCount, VkSubmitInfo const* pSubmits, VkFence  fence){
-		rs_check(DispatchTable.vkQueueSubmit!=nullptr);
+		ARCheck(DispatchTable.vkQueueSubmit!=nullptr);
 		return DispatchTable.vkQueueSubmit(handle, submitCount, pSubmits, fence);
 	}
 
 	VkResult queueWaitIdle( ){
-		rs_check(DispatchTable.vkQueueWaitIdle!=nullptr);
+		ARCheck(DispatchTable.vkQueueWaitIdle!=nullptr);
 		return DispatchTable.vkQueueWaitIdle(handle);
 	}
 
 	VkResult queueBindSparse(  uint32_t  bindInfoCount, VkBindSparseInfo const* pBindInfo, VkFence  fence){
-		rs_check(DispatchTable.vkQueueBindSparse!=nullptr);
+		ARCheck(DispatchTable.vkQueueBindSparse!=nullptr);
 		return DispatchTable.vkQueueBindSparse(handle, bindInfoCount, pBindInfo, fence);
 	}
 
 	VkResult queuePresentKHR(  VkPresentInfoKHR const* pPresentInfo){
-		rs_check(DispatchTable.vkQueuePresentKHR!=nullptr);
+		ARCheck(DispatchTable.vkQueuePresentKHR!=nullptr);
 		return DispatchTable.vkQueuePresentKHR(handle, pPresentInfo);
 	}
 };

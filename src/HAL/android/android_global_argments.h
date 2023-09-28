@@ -20,8 +20,8 @@ class AndroidGlobalArgments
     static constexpr int32 kBufferSize = 256;
 
     static bool getProperty(const char* key, char* out, char* def = nullptr){
-        rs_check(key!=nullptr);
-        rs_check(out!=nullptr);
+        ARCheck(key!=nullptr);
+        ARCheck(out!=nullptr);
         std::string cmd = "getprop debug.vk_rs_debug_layer.";
         cmd += key;
         FILE* file = popen(cmd.c_str(), "r");
@@ -42,8 +42,8 @@ class AndroidGlobalArgments
     }
     public:
     static bool setProperty(char const* key, char const* value){
-        rs_check(key!=nullptr);
-        rs_check(value!=nullptr);
+        ARCheck(key!=nullptr);
+        ARCheck(value!=nullptr);
         ptr::size_t  n = strlen(value);
         if(n>0){
             std::string cmd = "setprop debug.vk_rs_debug_layer.";

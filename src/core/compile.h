@@ -40,16 +40,19 @@ C++20: 202002L
 // AR_PLATFORM_MAC
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(	_WIN64)
 #	define AR_PLATFORM_WINDOW 1
+#	define VK_USE_PLATFORM_WIN32_KHR 1
 #	define AR_MAX_PATH        MAX_PATH
 #	define AR_ANSI_LINE_TERMINATOR "\r\n"
 #	define AR_WIDE_LINE_TERMINATOR L"\r\n"
 #elif defined(__ANDROID__)
 #	define AR_PLATFORM_ANDROID 1
+#	define VK_USE_PLATFORM_ANDROID_KHR 1
 #	define AR_MAX_PATH  PATH_MAX
 #	define AR_ANSI_LINE_TERMINATOR "\n"
 #	define AR_WIDE_LINE_TERMINATOR L"\n"
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 #   define AR_PLATFORM_LINUX   1
+#	define VK_USE_PLATFORM_WAYLAND_KHR 1
 #	define AR_MAX_PATH    PATH_MAX
 #	define AR_ANSI_LINE_TERMINATOR "\n"
 #	define AR_WIDE_LINE_TERMINATOR L"\n"
@@ -66,6 +69,12 @@ C++20: 202002L
     #else
         #define AR_PLATFORM_MAC    1
     #endif
+
+#if AR_PLATFORM_IPHONE
+#define VK_USE_PLATFORM_IOS_MVK 1
+#elif AR_PLATFORM_MAC
+#define VK_USE_PLATFORM_MACOS_MVK
+#endif 
 
 #	define AR_MAX_PATH    1024
 #	define AR_ANSI_LINE_TERMINATOR "\r"

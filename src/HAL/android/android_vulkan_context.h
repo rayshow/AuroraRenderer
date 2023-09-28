@@ -8,7 +8,7 @@
 
 #define GET_VK_BASIC_ENTRYPOINTS(Func)  \
 				GGlobalCommands()->Func = (PFN_##Func)dlsym(libvulkan, #Func ); \
-				rs_check(GGlobalCommands()->Func!=nullptr);                     \
+				ARCheck(GGlobalCommands()->Func!=nullptr);                     \
                 if(GGlobalCommands()->Func==nullptr){ return false; }
 
 PROJECT_NAMESPACE_BEGIN
