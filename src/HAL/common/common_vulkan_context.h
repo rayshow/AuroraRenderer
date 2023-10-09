@@ -317,12 +317,28 @@ struct VulkanInstance: public WInstance {
 #define ENABLE_DEVICE_ID_PROPERTIES_KHR ENABLE_VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES || ENABLE_VK_KHR_EXTERNAL_FENCE_CAPABILITIES || ENABLE_VK_KHR_EXTERNAL_MEMORY_CAPABILITIES
 
 
-enum class EVkQueueType:uint8{
-    Graphics,
-    Compute,
-    Transfer,
-    Sparse,
+enum EVkQueueType:uint8{
+    Graphics = 0x01,
+    Compute = 0x02,
+    Transfer = 0x04,
+    Sparse = 0x0,
     Num
+};
+
+struct VulkanQueueFamily : public WQueueFamilyProperties2
+{
+    i32 usedCount{ 0 };
+
+    VulkanQueueFamily() : WQueueFamilyProperties2{} {
+        MemoryOps::zero(this->queueFamilyProperties);
+    }
+
+    bool isFull() {
+        return this->usedCount == this->queueFamilyProperties.queueCount;
+    }
+
+
+
 };
 
 struct VulkanQueue{
@@ -335,7 +351,6 @@ struct VulkanQueue{
         , index{kInvalidInteger<uint32>}
         , handle{VK_NULL_HANDLE}
     {}
-
 };
 
 //multi-gpu
@@ -347,7 +362,7 @@ struct VulkanDevice: public WDevice{
     WPhysicalDeviceMemoryProperties memoryProperties;
 
     // queue properties
-    std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+    std::vector<VulkanQueueFamily> queueFamilyProperties;
     VulkanQueue queues[kQueueCount];
     VulkanQueue& getQueue(EVkQueueType type){ return queues[(int)type]; }
     /*

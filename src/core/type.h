@@ -310,8 +310,18 @@ namespace AlgOps {
 };
 
 
-struct MemoryOps
+namespace MemoryOps
 {
+    template<typename T>
+    AR_FORCEINLINE void zero(T& t) {
+        memset(&t, 0, sizeof(T));
+    }
+
+    template<typename T>
+    AR_FORCEINLINE void clearToByte(T& t, u8 value) {
+        memset(&t, value, sizeof(T));
+    }
+
     template<typename R>
     AR_FORCEINLINE R* copyArray(R const* array, usize length = 1) {
         R* newArray = nullptr;
