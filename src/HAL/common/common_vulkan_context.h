@@ -325,33 +325,15 @@ enum EVkQueueType:uint8{
     Num
 };
 
-struct VulkanQueueFamily : public WQueueFamilyProperties2
+
+template<typename T>
+struct VulkanParent
 {
-    i32 usedCount{ 0 };
-
-    VulkanQueueFamily() : WQueueFamilyProperties2{} {
-        MemoryOps::zero(this->queueFamilyProperties);
-    }
-
-    bool isFull() {
-        return this->usedCount == this->queueFamilyProperties.queueCount;
-    }
-
-
-
+    using ParentType = VulkanParent<T>;
+    T& parent;
+    VulkanParent(T const& t) :parent(t) {}
 };
 
-struct VulkanQueue{
-    uint32 familyIndex;
-    uint32 index;
-    VkQueue handle;
-
-    VulkanQueue()
-        : familyIndex{kInvalidInteger<uint32>}
-        , index{kInvalidInteger<uint32>}
-        , handle{VK_NULL_HANDLE}
-    {}
-};
 
 //multi-gpu
 struct VulkanDevice: public WDevice{
@@ -362,7 +344,7 @@ struct VulkanDevice: public WDevice{
     WPhysicalDeviceMemoryProperties memoryProperties;
 
     // queue properties
-    std::vector<VulkanQueueFamily> queueFamilyProperties;
+    std::vector<VulkanQueueFamily> queueFamilies;
     VulkanQueue queues[kQueueCount];
     VulkanQueue& getQueue(EVkQueueType type){ return queues[(int)type]; }
     /*
@@ -571,12 +553,31 @@ struct VulkanDevice: public WDevice{
     }
 };
 
-struct VulkanSemaphore{
+struct VulkanQueueFamily : public WQueueFamilyProperties2
+{
+    i32 usedCount{ 0 };
+    VulkanQueueFamily() : WQueueFamilyProperties2{} {
+        MemoryOps::zero(this->queueFamilyProperties);
+    }
+    bool isFull() {
+        return this->usedCount == this->queueFamilyProperties.queueCount;
+    }
+};
+
+struct VulkanQueue {
+    uint32 familyIndex{ kInvalidInteger<uint32> };
+    uint32 index{ kInvalidInteger<uint32> };
+    VkQueue handle{ VK_NULL_HANDLE };
+};
+
+
+struct VulkanSemaphore :public VulkanParent< VulkanDevice > {
     VkSemaphore handle;
     VulkanDevice& device;
 
-    VulkanSemaphore(VulkanDevice& inDevice)
-        : handle{VK_NULL_HANDLE}
+    VulkanSemaphore(VulkanDevice& inDevice) 
+        : ParentType{ inDevice }
+        , handle{VK_NULL_HANDLE}
         , device{inDevice}
     {
         WSemaphoreCreateInfo info;
