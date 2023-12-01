@@ -600,8 +600,8 @@ template<typename Derive>
 struct CommonVulkanContext
 {
     using Type = Derive;
-    VulkanInstance __instance;
-    std::vector<VulkanDevice> __devices;
+    VulkanInstance _instance;
+    std::vector<VulkanDevice> _devices;
     
     // debug
     VkDebugReportCallbackEXT MsgCallback = VK_NULL_HANDLE;
@@ -734,7 +734,7 @@ struct CommonVulkanContext
         AR_LOG(Info, "** createDevice ");
         std::vector<VkPhysicalDevice> physicalDevices;
         // enumerate physical device
-        auto getPhysicalDevice = [](uint32& count, std::vector<VkPhysicalDevice>* physicalDevices){
+        auto getPhysicalDevice = [this](uint32& count, std::vector<VkPhysicalDevice>* physicalDevices){
             ARCheck(_instance.vkEnumeratePhysicalDevices!=nullptr);
             return _instance.vkEnumeratePhysicalDevices(_instance.handle, &count, physicalDevices? physicalDevices->data():nullptr);
         };
