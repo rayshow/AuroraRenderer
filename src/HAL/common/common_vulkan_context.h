@@ -299,7 +299,7 @@ struct VulkanLayersAndExtensions {
 };
 
 
-// single instance
+// single _instance
 struct VulkanInstance: public WInstance {
     VulkanLayersAndExtensions layerAndExtensions;
     
@@ -335,6 +335,24 @@ struct VulkanParent
 };
 
 
+struct VulkanQueueFamily : public WQueueFamilyProperties2
+{
+    i32 usedCount{ 0 };
+    VulkanQueueFamily() : WQueueFamilyProperties2{} {
+        MemoryOps::zero(this->queueFamilyProperties);
+    }
+    bool isFull() {
+        return this->usedCount == this->queueFamilyProperties.queueCount;
+    }
+};
+
+struct VulkanQueue {
+    uint32 familyIndex{ kInvalidInteger<uint32> };
+    uint32 index{ kInvalidInteger<uint32> };
+    VkQueue handle{ VK_NULL_HANDLE };
+};
+
+
 //multi-gpu
 struct VulkanDevice: public WDevice{
     static constexpr int32 kQueueCount = (int32)EVkQueueType::Num;
@@ -344,7 +362,7 @@ struct VulkanDevice: public WDevice{
     WPhysicalDeviceMemoryProperties memoryProperties;
 
     // queue properties
-    std::vector<VulkanQueueFamily> queueFamilies;
+    TArray<VulkanQueueFamily> queueFamilies;
     VulkanQueue queues[kQueueCount];
     VulkanQueue& getQueue(EVkQueueType type){ return queues[(int)type]; }
     /*
@@ -553,23 +571,6 @@ struct VulkanDevice: public WDevice{
     }
 };
 
-struct VulkanQueueFamily : public WQueueFamilyProperties2
-{
-    i32 usedCount{ 0 };
-    VulkanQueueFamily() : WQueueFamilyProperties2{} {
-        MemoryOps::zero(this->queueFamilyProperties);
-    }
-    bool isFull() {
-        return this->usedCount == this->queueFamilyProperties.queueCount;
-    }
-};
-
-struct VulkanQueue {
-    uint32 familyIndex{ kInvalidInteger<uint32> };
-    uint32 index{ kInvalidInteger<uint32> };
-    VkQueue handle{ VK_NULL_HANDLE };
-};
-
 
 struct VulkanSemaphore :public VulkanParent< VulkanDevice > {
     VkSemaphore handle;
@@ -599,8 +600,8 @@ template<typename Derive>
 struct CommonVulkanContext
 {
     using Type = Derive;
-    VulkanInstance instance;
-    std::vector<VulkanDevice> devices;
+    VulkanInstance __instance;
+    std::vector<VulkanDevice> __devices;
     
     // debug
     VkDebugReportCallbackEXT MsgCallback = VK_NULL_HANDLE;
@@ -694,11 +695,11 @@ struct CommonVulkanContext
         std::vector<const char*> availableExtensions{};
         std::vector<const char*> availableLayers{};
 
-        GetVulkanInstanceExtensionStrings(instance.layerAndExtensions.avaiableExtensions);
-        instance.layerAndExtensions.avaiableLayers.clear();
+        GetVulkanInstanceExtensionStrings(_instance.layerAndExtensions.avaiableExtensions);
+        _instance.layerAndExtensions.avaiableLayers.clear();
 
         AR_LOG(Info, "*** Instance Layer and Extension: **");
-        getLayerAndExtension(instance.layerAndExtensions , getInstanceLayerProperties , getInstanceExtensionProperties);
+        getLayerAndExtension(_instance.layerAndExtensions , getInstanceLayerProperties , getInstanceExtensionProperties);
 
         WApplicationInfo appInfo;
         appInfo.pNext= nullptr;
@@ -712,20 +713,20 @@ struct CommonVulkanContext
         CreateInfo.setEnabledLayerNames(outInstanceLayers);
         CreateInfo.setEnabledExtensionNames(outInstanceExtension);
         ARCheck(GGlobalCommands()->vkCreateInstance!=nullptr);
-        VkResult ret = GGlobalCommands()->vkCreateInstance(&CreateInfo, nullptr, &instance.handle);
+        VkResult ret = GGlobalCommands()->vkCreateInstance(&CreateInfo, nullptr, &_instance.handle);
 
         if (ret != VK_SUCCESS){
             AR_LOG(Info, "create instance raise %s error, exit!", GetVkResultString(ret));
             return false;
         }
 
-        // get instance proc addr
-        if(!instance.GetCommandAddrs()){
-            AR_LOG(Info, "get instance commands  error, exit!");
+        // get _instance proc addr
+        if(!_instance.GetCommandAddrs()){
+            AR_LOG(Info, "get _instance commands  error, exit!");
             return false;
         }
         // set to global
-        GInstanceCommandsRef() = &instance;
+        GInstanceCommandsRef() = &_instance;
         return true;
     }
     
@@ -734,8 +735,8 @@ struct CommonVulkanContext
         std::vector<VkPhysicalDevice> physicalDevices;
         // enumerate physical device
         auto getPhysicalDevice = [](uint32& count, std::vector<VkPhysicalDevice>* physicalDevices){
-            ARCheck(GInstanceCommands()->vkEnumeratePhysicalDevices!=nullptr);
-            return GInstanceCommands()->vkEnumeratePhysicalDevices(GInstanceCommands()->handle, &count, physicalDevices? physicalDevices->data():nullptr);
+            ARCheck(_instance.vkEnumeratePhysicalDevices!=nullptr);
+            return _instance.vkEnumeratePhysicalDevices(_instance.handle, &count, physicalDevices? physicalDevices->data():nullptr);
         };
         enumerateProperties(physicalDevices, getPhysicalDevice);
         AR_LOG(Info, "*** physical device count : %d ***", physicalDevices.size());
@@ -743,7 +744,7 @@ struct CommonVulkanContext
             AR_LOG(Info, " no physical found, exit!");
             return false;
         }
-        devices.resize(physicalDevices.size());
+        _devices.resize(physicalDevices.size());
 
         std::vector<const char*> outDeviceExtensions{};
         std::vector<const char*> outDeviceLayers{};
@@ -752,8 +753,8 @@ struct CommonVulkanContext
 
         // for each device
         for(uint32 i=0; i<physicalDevices.size(); ++i){
-            auto&& physicalDevice = physicalDevices[i];
-            auto&& device =  devices[i];
+            auto& physicalDevice = physicalDevices[i];
+            auto& device =  _devices[i];
             device.physicalHandle = physicalDevice;
 
             // enumerate the extension
@@ -804,9 +805,9 @@ struct CommonVulkanContext
                 return false;
             }
 
-            // get instance proc addr
+            // get _instance proc addr
             if(!device.GetCommandAddrs()){
-                AR_LOG(Info, "get instance commands  error, exit!");
+                AR_LOG(Info, "get _instance commands  error, exit!");
                 return false;
             }
             // set to global
@@ -847,13 +848,13 @@ struct CommonVulkanContext
 
     bool finalize(){
         AR_LOG(Info, "vulkan context: finalize");
-        if(instance.handle!=VK_NULL_HANDLE){
-            GInstanceCommands()->vkDestroyInstance(instance.handle, nullptr);
-            instance.handle = VK_NULL_HANDLE;
+        if(_instance.handle!=VK_NULL_HANDLE){
+            GInstanceCommands()->vkDestroyInstance(_instance.handle, nullptr);
+            _instance.handle = VK_NULL_HANDLE;
         }
         
 
-        AR_LOG(Info, "vulkan context: destroy instance");
+        AR_LOG(Info, "vulkan context: destroy _instance");
         return true;
     }
 
