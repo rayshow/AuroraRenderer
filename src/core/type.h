@@ -24,6 +24,17 @@
 #include<optional>
 #include"compile.h" 
 
+// avoid system header #define min/max
+#if defined(max)
+#define OLD_MAX max
+#undef max
+#endif
+#if defined(min)
+#define OLD_MIN min
+#undef min
+#endif
+
+
 PROJECT_NAMESPACE_BEGIN
 
 // base type
@@ -93,16 +104,9 @@ static_assert(sizeof(i64) == 8, "i64 is not 8 byte.");
 
 template<typename Int> constexpr Int kInvalidInteger = (Int)(-1);
 
-#if defined(max)
-#define OLD_MAX max
-#undef max
-#endif
 template<typename Int>
 constexpr Int kIntMax = std::numeric_limits<Int>::max();
-#if defined(OLD_MAX)
-#define max OLD_MAX
-#undef OLD_MAX
-#endif
+
 
 template<typename T>
 struct TVector2
@@ -256,6 +260,62 @@ struct RawStrOps<char>
     }
 };
 
+template<typename T>
+struct TArrayView
+{
+public:
+    using ThisType = TArrayView<T>;
+
+    template<typename Allocator>
+    TArrayView(TArray<T, Allocator> const& inArray)
+        : dataRef{ nullptr }
+        , size{ inArray.size() }
+    {
+        if (size > 0) {
+            dataRef = &static_cast<TArray<T, Allocator>&>(inArray)[0];
+        }
+    }
+
+    TArrayView(T const* inRawArray, usize inSize)
+        : dataRef{ static_cast<T*>(inRawArray) }
+        , length{ length }
+    {}
+
+    TArrayView(TArrayView const& inOther)
+        : dataRef{ static_cast<T*>(inOther.dataRef) }
+        , length{ inOther.length }
+    {}
+
+    TArrayView(TArrayView const& inOther, usize inLength)
+        : dataRef{ static_cast<T*>(inOther.dataRef) }
+        , length{ std::min(inOther.length, inLength) }
+    {}
+    
+    TArrayView& operator=(TArrayView const& inOther) {
+        if (std::addressof(inOther) != this) {
+            dataRef = inOther.dataRef;
+            length = inOther.length;
+        }
+    }
+
+    T& operator[](usize index) {
+        ARAssert(index < length);
+        return dataRef[index];
+    }
+
+    bool isValid() {
+        return dataRef != nullptr && length > 0;
+    }
+
+    void reset() {
+        dataRef = nullptr;
+        length = 0;
+    }
+
+private:
+    T* dataRef;
+    usize length;
+};
 
 
 namespace AlgOps {
@@ -306,6 +366,16 @@ namespace AlgOps {
     template<typename It, typename Pred>
     AR_FORCEINLINE void sort(It const& begin, It const& end) {
         std::sort(begin, end);
+    }
+
+    template<typename T>
+    AR_FORCEINLINE T const& min(T const& first, T const& second) {
+        return std::min(first, second);
+    }
+
+    template<typename T>
+    AR_FORCEINLINE T const& max(T const& first, T const& second) {
+        return std::max(first, second);
     }
 };
 
@@ -439,6 +509,15 @@ namespace MemoryOps
     }
 };
 
+
+#if defined(OLD_MAX)
+#define max OLD_MAX
+#undef OLD_MAX
+#endif
+#if defined(OLD_MIN)
+#define max OLD_MIN
+#undef OLD_MIN
+#endif
 
 PROJECT_NAMESPACE_END
 

@@ -689,7 +689,6 @@ struct CommonVulkanContext
             }
             return ret;
         };
-        
         std::vector<const char*> outInstanceExtension{};
         std::vector<const char*> outInstanceLayers{};
         std::vector<const char*> availableExtensions{};
