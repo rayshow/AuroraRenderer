@@ -296,6 +296,14 @@ struct VulkanLayersAndExtensions {
     std::vector<const char*> avaiableExtensions; // static define in header
     std::vector<const char*> uniqueExtensions; // queried unique extensions
     std::vector<const char*> usedExtensions;   // final used extensions
+
+    bool extensionExists(const char* inName) {
+
+    }
+
+    bool layerExists(const char* inLayerName) {
+        
+    }
 };
 
 
@@ -318,31 +326,28 @@ struct VulkanInstance: public WInstance {
 
 
 enum EVkQueueType:uint8{
-    Graphics = 0x01,
-    Compute = 0x02,
-    Transfer = 0x04,
-    Sparse = 0x0,
-    Num
+    Graphics,
+    Compute,
+    Transfer,
+    Sparse,
+    Num,
 };
 
 
+
 template<typename T>
-struct VulkanParent
+struct VulkanNode
 {
-    using ParentType = VulkanParent<T>;
-    T& parent;
-    VulkanParent(T const& t) :parent(t) {}
+    using ParentType = VulkanNode<T>;
+    T const& parent;
+    VulkanNode(T const& t) :parent(t) {}
 };
 
 
 struct VulkanQueueFamily : public WQueueFamilyProperties2
 {
-    i32 usedCount{ 0 };
     VulkanQueueFamily() : WQueueFamilyProperties2{} {
         MemoryOps::zero(this->queueFamilyProperties);
-    }
-    bool isFull() {
-        return this->usedCount == this->queueFamilyProperties.queueCount;
     }
 };
 
@@ -387,7 +392,7 @@ struct VulkanDevice: public WDevice{
         return true;
     }
 
-    void queryGPUProperties(uint32 index){
+    void queryGPUInfo(uint32 index){
         ARCheck( physicalHandle!=VK_NULL_HANDLE);
         // query physical device properties
         getPhysicalDeviceProperties(&deviceProperties);
@@ -457,54 +462,32 @@ struct VulkanDevice: public WDevice{
         AR_LOG(Info, " - mipmapPrecisionBits:                  %d ", limits.mipmapPrecisionBits);
         AR_LOG(Info, " - storageImageSampleCounts:             %d ", (int)limits.storageImageSampleCounts);
 
-        /*
-         uint32_t        memoryTypeCount;
-         VkMemoryType    memoryTypes[VK_MAX_MEMORY_TYPES];
-         uint32_t        memoryHeapCount;
-         VkMemoryHeap    [VK_MAX_MEMORY_HEAPS];
-
-         VkMemoryPropertyFlags    propertyFlags;
-        uint32_t                 heapIndex;
-
-        typedef struct  {
-            VkDeviceSize         size;
-            VkMemoryHeapFlags    flags;
-        } VkMemoryHeap;
-
-        */
-
-
-
-        /*
-        void*& next = devicePropes->pNext;
-        if(GVulkanExtension(VK_KHR_get_physical_device_properties2).enable){
-            deviceProperties2.pNext = next;
-            next = &deviceProperties2;
-            if(isDeviceIDPropertiesEnabled()){
-                deviceID.pNext = next;
-                next = &deviceID;
-            }
-            getPhysicalDeviceProperties2KHR(&deviceProperties2);
-        }
-        if(GVulkanExtension(VK_KHR_fragment_shading_rate).enable){
-        }
-        */
-        auto getQueueFamilyProp = [](VkPhysicalDevice handle, uint32& count, std::vector<VkQueueFamilyProperties>* allProperties){
+        auto getQueueFamilyProp = [](VkPhysicalDevice handle, uint32& count, std::vector<VkQueueFamilyProperties>* allProperties) {
             GInstanceCommands()->vkGetPhysicalDeviceQueueFamilyProperties(handle, &count, allProperties ? allProperties->data() : nullptr);
             return VK_SUCCESS;
-        };
-        enumerateProperties(queueFamilyProperties, getQueueFamilyProp, physicalHandle);
-        AR_LOG(Info, "familyIndex:%d, handle:%p", queues[1].familyIndex, queues[1].handle);
-        ARCheck(queues[1].familyIndex == kInvalidInteger<uint32>);
-        ARCheck(queues[1].handle == VK_NULL_HANDLE);
+            };
+
+        TArray<VkQueueFamilyProperties> queueFamilyProps;
+        enumerateProperties(queueFamilyProps, getQueueFamilyProp, physicalHandle);
+        if (queueFamilyProps.size() == 0) return;
+        queueFamilies.resize(queueFamilyProps.size());
+        for (u32 i = 0; i < queueFamilyProps.size(); ++i) {
+            auto queueProp = queueFamilyProps[i];
+            queueFamilies[i].queueFamilyProperties = queueProp;
+            AR_LOG(Info, "familyIndex:%d, cout:%d flag:%d, timestamp:%d, minImageTransferGranularity:%d", i, queueProp.queueCount, queueProp.queueFlags,
+                queueProp.timestampValidBits, queueProp.minImageTransferGranularity);
+            //ARCheck(queues[i].familyIndex == kInvalidInteger<uint32>);
+            //ARCheck(queues[i].handle == VK_NULL_HANDLE);
+        }
     }
 
 
     void getQueueFamily(std::vector<WDeviceQueueCreateInfo>& queueInfos, std::vector<float>& priorities){
-        uint32 totalCount =0;
+
+        uint32 offset =0;
         bool allowAsyncCompute = false;
-        for(uint32 i=0; i<queueFamilyProperties.size(); ++i){
-            auto&& prop = queueFamilyProperties[i];
+        for(uint32 i=0; i< queueFamilies.size(); ++i){
+            auto& prop = queueFamilies[i].queueFamilyProperties;
             AR_LOG(Info, "** queue %d", i );
             AR_LOG(Info, "** queueFlags %d", prop.queueFlags );
             AR_LOG(Info, "** queueCount %d", prop.queueCount );
@@ -513,11 +496,14 @@ struct VulkanDevice: public WDevice{
              prop.minImageTransferGranularity.height, prop.minImageTransferGranularity.depth );
 
             bool foundIndex = false;
+            uint32 findCount = 0;
             auto foundQueueFamilyIndex = [&](VkQueueFlagBits flag, EVkQueueType type){
                 if ((prop.queueFlags & flag) == flag){
                     if(getQueue(type).familyIndex == kInvalidInteger<uint32>){
                         getQueue(type).familyIndex = i;
                         foundIndex=true;
+                        ++findCount;
+                        priorities.push_back(1.0f);
                     }
                 }
             };
@@ -533,20 +519,10 @@ struct VulkanDevice: public WDevice{
 
             WDeviceQueueCreateInfo queueInfo;
             queueInfo.queueFamilyIndex = i;
-            queueInfo.queueCount = prop.queueCount;
-            totalCount += prop.queueCount;
+            queueInfo.queueCount = findCount;
+            queueInfo.pQueuePriorities = priorities.data() + offset;
+            offset += findCount;
             queueInfos.emplace_back(queueInfo);
-        }
-        priorities.resize(totalCount);
-        float* data = priorities.data();
-        for(uint32 i=0; i<queueFamilyProperties.size(); ++i){
-            auto&& prop = queueFamilyProperties[i];
-            auto&& queueInfo = queueInfos[i];
-            queueInfo.pQueuePriorities = data;
-            for(uint32 i=0; i<prop.queueCount;++i ){
-                *(data+i) = 1.0f;
-            }
-            data+=prop.queueCount;
         }
     }
 
@@ -572,7 +548,7 @@ struct VulkanDevice: public WDevice{
 };
 
 
-struct VulkanSemaphore :public VulkanParent< VulkanDevice > {
+struct VulkanSemaphore :public VulkanNode< VulkanDevice > {
     VkSemaphore handle;
     VulkanDevice& device;
 
@@ -782,7 +758,7 @@ struct CommonVulkanContext
             getLayerAndExtension( device.layerAndExtensions,  getDeviceLayerProperties, getDeviceExtensionProperties);
 
             // query gpu properties
-            device.queryGPUProperties(i);
+            device.queryGPUInfo(i);
 
             // create device
             std::vector<WDeviceQueueCreateInfo> queueInfos;

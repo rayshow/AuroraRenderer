@@ -269,9 +269,9 @@ public:
     template<typename Allocator>
     TArrayView(TArray<T, Allocator> const& inArray)
         : dataRef{ nullptr }
-        , size{ inArray.size() }
+        , length{ inArray.length() }
     {
-        if (size > 0) {
+        if (length > 0) {
             dataRef = &static_cast<TArray<T, Allocator>&>(inArray)[0];
         }
     }
