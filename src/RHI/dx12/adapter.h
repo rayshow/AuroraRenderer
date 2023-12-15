@@ -4,9 +4,12 @@
 
 #include"core/type.h"
 
+PROJECT_NAMESPACE_BEGIN
+
 class DX12Adapter
 {
-	int32 a;
+private:
+	i32 a;
 public:
 	void initialize()
 	{
@@ -14,3 +17,5 @@ public:
 	}
 
 };
+
+PROJECT_NAMESPACE_END

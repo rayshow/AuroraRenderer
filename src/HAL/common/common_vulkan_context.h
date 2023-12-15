@@ -6,7 +6,7 @@
 
 #include"core/type.h"
 #include"../logger.h"
-#include"../common/to_string_protocol.h"
+#include"core/type_traits/has_to_string.h"
 #include"../generated/vk_dispatch_defs.h"
 #include"../generated/vk_api_enumerators.h"
 #include"../generated/vk_command_defs.h"
@@ -386,7 +386,7 @@ struct VulkanDevice: public WDevice{
         ARCheck(GInstanceCommands()->vkGetDeviceProcAddr);
         #define GET_DEVICE_PROC_ADDR(Func)  \
                 this->Func = (PFN_##Func)GInstanceCommands()->vkGetDeviceProcAddr(handle, #Func); \
-				AREnsure(this->Func!=nullptr);                     
+				AREnsureNoBreak(this->Func!=nullptr);                     
         ENUMERATE_VK_DEVICE_API(GET_DEVICE_PROC_ADDR);
         #undef GET_DEVICE_PROC_ADDR
         return true;

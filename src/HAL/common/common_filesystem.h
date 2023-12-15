@@ -10,8 +10,8 @@
 
 #include"core/type.h"
 #include"core/util/enum_as_flag.h"
-#include"file_protocol.h"
-
+#include"core/type_traits/has_to_string.h"
+#include"HAL/common/file_protocol.h"
 
 PROJECT_NAMESPACE_BEGIN
 

@@ -17,6 +17,7 @@
 #include"../filesystem.h"
 #include"../logger.h"
 #include"../vulkan_context.h"
+#include"RHI/rhi.h"
 
 
 PROJECT_NAMESPACE_BEGIN
@@ -112,6 +113,8 @@ public:
             AR_LOG(Info, "create vulkan context failed!");
             return EExitCode::Fatal;
         }
+
+
 
         // timer
         timer.start();

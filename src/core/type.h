@@ -57,6 +57,15 @@ using RawWStr = wchar_t*;
 using CRawCStr = char const*;
 using CRawWStr = wchar_t const*;
 
+template<typename T>
+struct is_char :public std::false_type {};
+template<> struct is_char<char> : public std::true_type {};
+template<> struct is_char<char const> : public std::true_type {};
+template<> struct is_char<char volatile> : public std::true_type {};
+template<> struct is_char<char const volatile> : public std::true_type {};
+template<typename T> constexpr bool is_char_v = is_char<T>::value;
+
+
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
 template<>         struct size_traits<8> { using size_t = u64 ; using diff_t = i64; };
@@ -378,6 +387,13 @@ namespace AlgOps {
         return std::max(first, second);
     }
 };
+
+
+/* char* c */
+template<typename T>
+struct is_raw_string :public std::bool_constant< std::is_pointer_v<T> && is_char_v< std::remove_pointer_t<T> > > {};
+template<typename T>
+constexpr bool is_raw_string_v = is_raw_string<T>::value;
 
 
 namespace MemoryOps
