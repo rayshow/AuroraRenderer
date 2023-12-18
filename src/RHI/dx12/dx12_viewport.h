@@ -8,9 +8,10 @@
  
 PROJECT_NAMESPACE_BEGIN
 
-class DX12Viewport
+class DX12Viewport: public DX12ContextChild
 {
 private:
+	DX12Viewport() :DX12ContextChild{} {}
 
 public:
 

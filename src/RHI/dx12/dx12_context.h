@@ -261,12 +261,11 @@ public:
 		return _deviceNodes[0]->GetCommandQueue(EDX12QueueType::Common).getHandle();
 	}
 
-	bool CreateSwapChain(DXGI_SWAP_CHAIN_DESC1 const& swapchainDesc) {
+	TRefCountPtr<IDXGISwapChain1> CreateSwapChain(DXGI_SWAP_CHAIN_DESC1 const& swapchainDesc) {
 		TRefCountPtr<IDXGISwapChain1> swapchain{};
-
+		HWND windowHandle = (HWND)GAppConfigs.get<void*>(AppConfigs::WinHandle, nullptr);
+		ARCheck(windowHandle != nullptr);
 		if (_dxgiFactory4.isValid()) {
-			HWND windowHandle = (HWND)GAppConfigs.get<void*>(AppConfigs::WinHandle, nullptr);
-			ARCheck(windowHandle != nullptr);
 			_dxgiFactory4->CreateSwapChainForHwnd(
 				GetMainCommandQueue(),        // Swap chain needs the queue so that it can force a flush on it.
 				windowHandle,
@@ -277,8 +276,21 @@ public:
 			);	
 		}
 		else {
-			//_dxgiFactory2->CreateSwapChain()
+			ARCheck(false);
+			DXGI_SWAP_CHAIN_DESC Desc;
+			Desc.BufferCount = swapchainDesc.BufferCount;
+			Desc.BufferUsage = swapchainDesc.BufferUsage;
+			Desc.BufferDesc.Width = swapchainDesc.Width;
+			Desc.BufferDesc.Height = swapchainDesc.Height;
+			Desc.BufferDesc.Format = swapchainDesc.Format;
+			Desc.Flags = swapchainDesc.Flags;
+			Desc.SwapEffect = swapchainDesc.SwapEffect;
+			Desc.OutputWindow = windowHandle;
+			Desc.Windowed = true;
+			Desc.SampleDesc = swapchainDesc.SampleDesc;
+			//_dxgiFactory2->CreateSwapChain(GetMainCommandQueue(), &Desc, swapchain.getInitAddress());
 		}
+		return swapchain;
 	}
 
 
