@@ -22,6 +22,10 @@
 #include<unordered_set>
 #include<tuple>
 #include<optional>
+#include<wchar.h>
+#include<stdlib.h>
+#include<memory>
+#include<functional>
 #include"compile.h" 
 
 // avoid system header #define min/max
@@ -101,6 +105,13 @@ using TTuple = std::tuple<Args...>;
 
 template<typename T>
 using TOptional = std::optional<T>;
+
+template<typename T>
+using TUniquePtr = std::unique_ptr<T>;
+
+template<typename T>
+using TFunction = std::function<T>;
+
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte.");
 static_assert(sizeof(i8) == 1, "i8 is not 1 byte.");
@@ -251,8 +262,8 @@ struct RawStrOps;
 template<>
 struct RawStrOps<char>
 {
-    static usize length(char const* str) {
-        return strlen(str);
+    static usize length(char const* str, usize length = 0) {
+        return length == 0 ? strlen(str) : strnlen_s(str, length);
     }
 
     static char* copy(char const* str) {
@@ -260,14 +271,63 @@ struct RawStrOps<char>
     }
 
     static i32 compare(char const* str1, char const* str2, usize n = 0 ) {
-        if (n == 0) {
-            return strcmp(str1, str2);
-        }
-        else {
-            return strncmp(str1, str2, n);
-        }
+        return n == 0 ? strcmp(str1, str2) : strncmp(str1, str2, n);
+    }
+
+    static String format() {
+        return kEmptyString;
     }
 };
+
+template<>
+struct RawStrOps<wchar_t>
+{
+    static isize length(wchar_t const* str, isize length = 0) {
+        return length == 0 ? wcslen(str) : wcsnlen_s(str, length);
+    }
+
+    static wchar_t* copy(wchar_t const* str) {
+        return wcsdup(str);
+    }
+
+    static i32 compare(wchar_t const* str1, wchar_t const* str2, isize n = 0) {
+        return n == 0 ? wcscmp(str1, str2) : wcsncmp(str1, str2, n);
+    }
+
+    static String format() {
+        return kEmptyString;
+    }
+};
+
+template<typename From, typename To>
+struct RawStrConvert {};
+
+template<>
+struct RawStrConvert<wchar_t, char>
+{
+    static isize toBuffer(wchar_t const* source, char* buf, isize buflen) {
+        return wcstombs(buf, source, buflen);
+    }
+
+    static TUniquePtr<char[]> to(wchar_t const* source)
+    {
+        isize length = RawStrOps<wchar_t>::length(source) * 2;
+        TUniquePtr<char[]> buf = std::make_unique<char[]>(length + 1);
+        if (nullptr == buf) return nullptr;
+        buf[length] = 0;
+        toBuffer(source, buf.get(), length);
+        return buf;
+    }
+};
+
+template<>
+struct RawStrConvert<char, wchar_t>
+{
+    static isize convertTo(char const* source, wchar_t* buf, isize buflen) {
+        return mbstowcs(buf, source, buflen);
+    }
+};
+
 
 template<typename T>
 struct TArrayView
@@ -277,53 +337,87 @@ public:
 
     template<typename Allocator>
     TArrayView(TArray<T, Allocator> const& inArray)
-        : dataRef{ nullptr }
-        , length{ inArray.length() }
+        : _dataRef{ static_cast<T*>(inArray.data()) }
+        , _length{ inArray.length() }
     {
-        if (length > 0) {
-            dataRef = &static_cast<TArray<T, Allocator>&>(inArray)[0];
-        }
     }
 
     TArrayView(T const* inRawArray, usize inSize)
-        : dataRef{ static_cast<T*>(inRawArray) }
-        , length{ length }
+        : _dataRef{ static_cast<T*>(inRawArray) }
+        , _length{ _length }
     {}
 
     TArrayView(TArrayView const& inOther)
-        : dataRef{ static_cast<T*>(inOther.dataRef) }
-        , length{ inOther.length }
+        : _dataRef{ const_cast<T*>(inOther._dataRef) }
+        , _length{ inOther._length }
     {}
 
+    TArrayView(TArrayView&& inOther)
+        : _dataRef{ const_cast<T*>(inOther._dataRef) }
+        , _length{ inOther._length }
+    {
+        inOther.reset();
+    }
+
     TArrayView(TArrayView const& inOther, usize inLength)
-        : dataRef{ static_cast<T*>(inOther.dataRef) }
-        , length{ std::min(inOther.length, inLength) }
+        : _dataRef{ const_cast<T*>(inOther._dataRef) }
+        , _length{ std::min(inOther._length, inLength) }
+    {}
+
+
+    template<i32 N>
+    TArrayView(T const (&fixArray)[N])
+        : _dataRef{ const_cast<T*>(static_cast<T const*>(fixArray)) }
+        , _length{N}
     {}
     
-    TArrayView& operator=(TArrayView const& inOther) {
-        if (std::addressof(inOther) != this) {
-            dataRef = inOther.dataRef;
-            length = inOther.length;
+    TArrayView& operator=(TArrayView const& other) {
+        if (std::addressof(other) != this) {
+            _dataRef = other._dataRef;
+            _length = other._length;
         }
     }
 
-    T& operator[](usize index) {
-        ARAssert(index < length);
-        return dataRef[index];
+    TArrayView& operator=(TArrayView&& other) {
+        if (std::addressof(other) != this) {
+            _dataRef = other._dataRef;
+            _length = other._length;
+            other.reset();
+        }
     }
 
-    bool isValid() {
-        return dataRef != nullptr && length > 0;
+    template<i32 N>
+    TArrayView& operator=(T const (&fixArray)[N]) {
+        _dataRef = const_cast<T*>(fixArray);
+        _length = N;
+    }
+
+    T& operator[](usize index) {
+        ARAssert(index < _length);
+        return _dataRef[index];
+    }
+
+    T const& operator[](usize index) const {
+        ARAssert(index < _length);
+        return _dataRef[index];
+    }
+
+    bool isValid() const {
+        return _dataRef != nullptr && _length > 0;
     }
 
     void reset() {
-        dataRef = nullptr;
-        length = 0;
+        _dataRef = nullptr;
+        _length = 0;
+    }
+
+    usize length() const {
+        return _length;
     }
 
 private:
-    T* dataRef;
-    usize length;
+    T* _dataRef;
+    usize _length;
 };
 
 
@@ -378,13 +472,29 @@ namespace AlgOps {
     }
 
     template<typename T>
-    AR_FORCEINLINE T const& min(T const& first, T const& second) {
+    AR_FORCEINLINE T const& min2(T const& first, T const& second) {
         return std::min(first, second);
     }
 
     template<typename T>
-    AR_FORCEINLINE T const& max(T const& first, T const& second) {
+    AR_FORCEINLINE T const& max2(T const& first, T const& second) {
         return std::max(first, second);
+    }
+
+    constexpr double DIVKB = 1.0 / 1024.0;
+    constexpr double DIVMB = 1.0 / (1024.0 * 1024.0);
+    constexpr double DIVGB = 1.0 / (1024.0 * 1024.0 * 1024.0);
+    constexpr double DIVTB = 1.0 / (1024.0 * 1024.0 * 1024.0 * 1024.0);
+    constexpr double KB(double bytes) {
+        return bytes * DIVKB;
+    }
+
+    constexpr double MB(double bytes) {
+        return bytes * DIVMB;
+    }
+
+    constexpr double GB(double bytes) {
+        return bytes * DIVGB;
     }
 };
 
@@ -524,6 +634,7 @@ namespace MemoryOps
         }
     }
 };
+
 
 
 #if defined(OLD_MAX)

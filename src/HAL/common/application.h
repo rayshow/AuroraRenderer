@@ -109,12 +109,16 @@ public:
         AR_LOG( Info, "app internalWorkDir:%s externalDir:%s, tempDir:%s", internalDataDir.c_str(), externalStorageDir.c_str(), tempDir.c_str());
 
         // setup vulkan system
-        if (!VulkanContext::getInstance().initialize()) {
-            AR_LOG(Info, "create vulkan context failed!");
+        //if (!VulkanContext::getInstance().initialize()) {
+        //    AR_LOG(Info, "create vulkan context failed!");
+        //    return EExitCode::Fatal;
+        //}
+
+        // setup rhi system
+        if (!RHI::initialize()) {
+            AR_LOG(Info, "create rhi system failed!");
             return EExitCode::Fatal;
         }
-
-
 
         // timer
         timer.start();

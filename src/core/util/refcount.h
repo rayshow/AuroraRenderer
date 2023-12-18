@@ -2,80 +2,89 @@
 
 #include"../type.h"
 
-template<typename ReferencedType>
+PROJECT_NAMESPACE_BEGIN
+
+/*
+struct T 
+{
+	AddRef(){}
+	Release(){}
+	int GetRefCount(){}
+};
+*/
+template<typename T>
 class TRefCountPtr
 {
-	typedef ReferencedType* ReferenceType;
-
+private:
+	T* _ptr;
 public:
+	typedef T* ReferenceType;
+
+	template <typename OtherType>
+	friend class TRefCountPtr;
+
 
 	AR_FORCEINLINE TRefCountPtr() :
-		Reference(nullptr)
+		_ptr(nullptr)
 	{ }
 
-	TRefCountPtr(ReferencedType* InReference, bool bAddRef = true)
+	TRefCountPtr(T* inPtr, bool bAddRef = true)
 	{
-		Reference = InReference;
-		if (Reference && bAddRef)
-		{
-			Reference->AddRef();
+		_ptr = inPtr;
+		if (_ptr && bAddRef) {
+			_ptr->AddRef();
 		}
 	}
 
-	TRefCountPtr(const TRefCountPtr& Copy)
+	TRefCountPtr(const TRefCountPtr& other)
 	{
-		Reference = Copy.Reference;
-		if (Reference)
-		{
-			Reference->AddRef();
+		_ptr = other._ptr;
+		if (_ptr){
+			_ptr->AddRef();
 		}
 	}
 
-	template<typename CopyReferencedType>
-	explicit TRefCountPtr(const TRefCountPtr<CopyReferencedType>& Copy)
+	template<typename T2>
+	explicit TRefCountPtr(const TRefCountPtr<T2>& other)
 	{
-		Reference = static_cast<ReferencedType*>(Copy.GetReference());
-		if (Reference)
-		{
-			Reference->AddRef();
+		_ptr = static_cast<T*>(other.getReference());
+		if (_ptr){
+			_ptr->AddRef();
 		}
 	}
 
-	AR_FORCEINLINE TRefCountPtr(TRefCountPtr&& Move)
+	AR_FORCEINLINE TRefCountPtr(TRefCountPtr&& other)
+		: _ptr{ other._ptr }
 	{
-		Reference = Move.Reference;
-		Move.Reference = nullptr;
+		other._ptr = nullptr;
 	}
 
-	template<typename MoveReferencedType>
-	explicit TRefCountPtr(TRefCountPtr<MoveReferencedType>&& Move)
+	template<typename T2>
+	explicit TRefCountPtr(TRefCountPtr<T2>&& other)
+		: _ptr{ static_cast<T*>(other.getReference()) }
 	{
-		Reference = static_cast<ReferencedType*>(Move.GetReference());
-		Move.Reference = nullptr;
+		other._ptr = nullptr;
 	}
 
 	~TRefCountPtr()
 	{
-		if (Reference)
-		{
-			Reference->Release();
+		if (_ptr) {
+			_ptr->Release();
 		}
 	}
 
-	TRefCountPtr& operator=(ReferencedType* InReference)
+	TRefCountPtr& operator=(T* raw)
 	{
-		if (Reference != InReference)
+		if (_ptr != raw)
 		{
 			// Call AddRef before Release, in case the new reference is the same as the old reference.
-			ReferencedType* OldReference = Reference;
-			Reference = InReference;
-			if (Reference)
-			{
-				Reference->AddRef();
+			T* oldRef = _ptr;
+			_ptr = raw;
+			if (_ptr) {
+				_ptr->AddRef();
 			}
-			if (OldReference)
-			{
-				OldReference->Release();
+			if (oldRef) {
+				oldRef->Release();
 			}
 		}
 		return *this;
@@ -83,113 +92,107 @@ public:
 
 	AR_FORCEINLINE TRefCountPtr& operator=(const TRefCountPtr& InPtr)
 	{
-		return *this = InPtr.Reference;
+		return *this = InPtr._ptr;
 	}
 
-	template<typename CopyReferencedType>
-	AR_FORCEINLINE TRefCountPtr& operator=(const TRefCountPtr<CopyReferencedType>& InPtr)
+	template<typename T2>
+	AR_FORCEINLINE TRefCountPtr& operator=(const TRefCountPtr<T2>& other)
 	{
-		return *this = InPtr.GetReference();
+		return *this = other.getReference();
 	}
 
-	TRefCountPtr& operator=(TRefCountPtr&& InPtr)
+	TRefCountPtr& operator=(TRefCountPtr&& other)
 	{
-		if (this != &InPtr)
-		{
-			ReferencedType* OldReference = Reference;
-			Reference = InPtr.Reference;
-			InPtr.Reference = nullptr;
-			if (OldReference)
-			{
-				OldReference->Release();
+		if (this != std::addressof(other)) {
+			T* old = _ptr;
+			_ptr = other._ptr;
+			other._ptr = nullptr;
+			if (old) {
+				old->Release();
 			}
 		}
 		return *this;
 	}
 
-	template<typename MoveReferencedType>
-	TRefCountPtr& operator=(TRefCountPtr<MoveReferencedType>&& InPtr)
+	template<typename T2>
+	TRefCountPtr& operator=(TRefCountPtr<T2>&& other)
 	{
-		// InPtr is a different type (or we would have called the other operator), so we need not test &InPtr != this
-		ReferencedType* OldReference = Reference;
-		Reference = InPtr.Reference;
-		InPtr.Reference = nullptr;
-		if (OldReference)
-		{
-			OldReference->Release();
+		T* oldPtr = _ptr;
+		_ptr = other._ptr;
+		other._ptr = nullptr;
+		if (oldPtr) {
+			oldPtr->Release();
 		}
 		return *this;
 	}
 
-	AR_FORCEINLINE ReferencedType* operator->() const
+	AR_FORCEINLINE T* operator->() const
 	{
-		return Reference;
+		return _ptr;
 	}
 
-	AR_FORCEINLINE operator ReferenceType() const
+	AR_FORCEINLINE operator T() const
 	{
-		return Reference;
+		return _ptr;
 	}
 
-	AR_FORCEINLINE ReferencedType** GetInitReference()
+	AR_FORCEINLINE T** getInitAddress()
 	{
 		*this = nullptr;
-		return &Reference;
+		return &_ptr;
 	}
 
-	AR_FORCEINLINE ReferencedType* GetReference() const
+	AR_FORCEINLINE T* getReference() const
 	{
-		return Reference;
+		return _ptr;
 	}
 
-	AR_FORCEINLINE friend bool IsValidRef(const TRefCountPtr& InReference)
+
+	AR_FORCEINLINE bool isValid() const
 	{
-		return InReference.Reference != nullptr;
+		return _ptr != nullptr;
 	}
 
-	AR_FORCEINLINE bool IsValid() const
-	{
-		return Reference != nullptr;
-	}
-
-	AR_FORCEINLINE void SafeRelease()
+	AR_FORCEINLINE void safeRelease()
 	{
 		*this = nullptr;
 	}
 
-	uint32 GetRefCount()
+	u32 getRefCount()
 	{
-		uint32 Result = 0;
-		if (Reference)
-		{
-			Result = Reference->GetRefCount();
-			check(Result > 0); // you should never have a zero ref count if there is a live ref counted pointer (*this is live)
+		u32 count = 0;
+		if (_ptr) {
+			count = _ptr->GetRefCount();
+			// you should never have a zero ref count if there is a live ref counted pointer (*this is live)
+			ARAssert(count > 0);
 		}
-		return Result;
+		return count;
 	}
 
-	AR_FORCEINLINE void Swap(TRefCountPtr& InPtr) // this does not change the reference count, and so is faster
+	// this does not change the reference count, and so is faster
+	AR_FORCEINLINE void swap(TRefCountPtr& other) 
 	{
-		ReferencedType* OldReference = Reference;
-		Reference = InPtr.Reference;
-		InPtr.Reference = OldReference;
+		if (_ptr != other._ptr) {
+			T* old = _ptr;
+			_ptr = other._ptr;
+			other._ptr = old;
+		}
 	}
 
-private:
-
-	ReferencedType* Reference;
-
-	template <typename OtherType>
-	friend class TRefCountPtr;
-
-public:
 	AR_FORCEINLINE bool operator==(const TRefCountPtr& B) const
 	{
-		return GetReference() == B.GetReference();
+		return _ptr == B.getReference();
 	}
 
-	AR_FORCEINLINE bool operator==(ReferencedType* B) const
+	AR_FORCEINLINE bool operator==(T* B) const
 	{
-		return GetReference() == B;
+		return _ptr == B;
+	}
+
+	AR_FORCEINLINE friend bool IsValidRef(const TRefCountPtr& refCount)
+	{
+		return refCount._ptr != nullptr;
 	}
 };
+
+PROJECT_NAMESPACE_END

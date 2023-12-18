@@ -36,9 +36,9 @@ inline bool CheckConditionWithLoc(char const* expr, char const* file, int line, 
 #define ARCheck(expr)                   ARLikely(expr) || _AR::CheckConditionWithLoc<true,false>( #expr, __FILE__, __LINE__  , "")|| ARDebugBreakWithFalse() 
 #define ARCheckFormat(expr, Fmt,  ...)  ARLikely(expr) || _AR::CheckConditionWithLoc<true,true>(#expr, __FILE__, __LINE__,Fmt,  __VA_ARGS__ )|| ARDebugBreakWithFalse() 
 
-#define AREnsureNoBreak(expr)           ARLikely(expr) || _AR::CheckConditionWithLoc<false,false>(#expr, __FILE__, __LINE__ , "")
-#define AREnsure(expr)                  AREnsureNoBreak(expr) || ARDebugBreakWithFalse()
-#define AREnsureFormat(expr, Fmt, ...)  ARLikely(expr) || _AR::CheckConditionWithLoc<false,true>(#expr, __FILE__, __LINE__, Fmt, __VA_ARGS__ )  || ARDebugBreakWithFalse()
+#define AREnsureNoBreak(expr)           (ARLikely(expr) || _AR::CheckConditionWithLoc<false,false>(#expr, __FILE__, __LINE__ , ""))
+#define AREnsure(expr)                  (AREnsureNoBreak(expr) || ARDebugBreakWithFalse())
+#define AREnsureFormat(expr, Fmt, ...)  (ARLikely(expr) || _AR::CheckConditionWithLoc<false,true>(#expr, __FILE__, __LINE__, Fmt, __VA_ARGS__ )  || ARDebugBreakWithFalse())
 
 
 

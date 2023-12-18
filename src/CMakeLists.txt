@@ -1,8 +1,10 @@
 set(ModuleName "SRC")
+set(DEPENDENT_LIBS "d3d12.lib;dxgi.lib;d3dcompiler.lib;")
 
 file(GLOB_RECURSE HEADERS LIST_DIRECTORIES TRUE  "*.h")
 file(GLOB_RECURSE CPP_FILES LIST_DIRECTORIES TRUE "*.cpp")
 add_library(${ModuleName} STATIC ${CPP_FILES} ${HEADERS} "core/util/refcount.h")
 target_include_directories(${ModuleName} PUBLIC ${PROJECT_SOURCE_DIR}/third-party/Vulkan/Include)
 target_include_directories(${ModuleName} PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(${ModuleName} PRIVATE ${DEPENDENT_LIBS})
 set_cpp_options(${ModuleName} 20 TRUE)

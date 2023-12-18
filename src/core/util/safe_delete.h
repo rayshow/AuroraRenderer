@@ -15,7 +15,7 @@ namespace ptr
 	#pragma clang diagnostic ignored "-Wunused-value"
 #endif
 	template<typename R> 
-	RS_FORCEINLINE R* safe_new_copy_array(R const* array, size_t length =1 ) { 
+	AR_FORCEINLINE R* safe_new_copy_array(R const* array, size_t length =1 ) { 
 		R* newArray = nullptr;
 		ptr::size_t size =0;
 		if(array && length>0){
@@ -48,7 +48,7 @@ namespace ptr
 	}
 
 	template<typename R, typename RawR = std::remove_const_t<R> > 
-	RS_FORCEINLINE R* safe_new_default_array(size_t length=1) { 
+	AR_FORCEINLINE R* safe_new_default_array(size_t length=1) { 
 		RawR* newArray = nullptr;
 		if(length>0){ 
 			size_t size = 0;
@@ -74,7 +74,7 @@ namespace ptr
 	}
 
 	template<typename R> 
-	RS_FORCEINLINE R* safe_new_copy(R const* object ) { 
+	AR_FORCEINLINE R* safe_new_copy(R const* object ) { 
 		if constexpr(is_char_v<R>){
 			// raw-string
 			return object ? strdup(object) : nullptr;

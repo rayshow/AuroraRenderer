@@ -52,6 +52,7 @@ public:
             GWinInstance,
             nullptr
         );
+        GAppConfigs.set(AppConfigs::WinHandle, (i64)_window);
 
         _app = this;
     }
