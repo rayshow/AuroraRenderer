@@ -11,6 +11,8 @@
 #define DX12_GET_REF_PTR(Object) IID_PPV_ARGS(Object.getInitAddress())
 #define DX12_ENSURE_SUCC(Ret) AREnsure(SUCCEEDED(Ret))
 #define DX12_CHECK_SUCC(Ret) ARCheck(SUCCEEDED(Ret))
+#define DX12_GET_INTERFACE(Object, Object2) (Object->QueryInterface(DX12_GET_REF_PTR(Object2)))
+#define DX12_SUCC_GET_INTERFACE(Object, Object2) SUCCEEDED(DX12_GET_INTERFACE(Object, Object2))
 
 enum class EGPUVender {
 	AMD = 0x1002,

@@ -293,6 +293,32 @@ public:
 		return swapchain;
 	}
 
+	TRefCountPtr<ID3D12Resource> CreateCommittedResource()
+	{ 
+		D3D12_HEAP_PROPERTIES heapProp;
+		// all visible
+		heapProp.VisibleNodeMask = nodeMask(_nodeCount);
+		// D3D12_MEMORY_POOL_L0 = DXGI_MEMORY_SEGMENT_GROUP_LOCAL, 
+		//  discrete GPU has greater bandwidth for the CPU and less bandwidth for the GPU
+		//  UMA GPU this pool is the only one which is valid
+		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		heapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+		heapProp.CreationNodeMask = nodeMask(0);
+		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+
+		D3D12_HEAP_FLAGS flag = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
+
+		D3D12_RESOURCE_DESC resourceDesc{};
+		
+		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
+
+		D3D12_CLEAR_VALUE clearValue;
+		TRefCountPtr<ID3D12Resource> Resource;
+		if (!SUCCEEDED(_device->CreateCommittedResource(&heapProp, flag, &resourceDesc, state, &clearValue, DX12_GET_REF_PTR(Resource)))) {
+			AREnsureFormat(false, "CreateCommittedResource failed");
+		}
+		return Resource;
+	}
 
 
 };
