@@ -63,7 +63,7 @@ public:
 
     template<typename T, typename = check_t<T>  >
     void set(i32 index, T const& t) {
-        rs_check(index >= 0 && index < Max);
+        ARAssert(index >= 0 && index < Max);
         definedConfigs[index] = t;
     }
 

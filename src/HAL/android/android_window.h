@@ -1,5 +1,5 @@
 #pragma once
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include"platform/common/window.h"
 #include"platform/common/application.h"

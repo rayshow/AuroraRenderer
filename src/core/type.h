@@ -16,15 +16,30 @@
 #include<string>
 #include<string_view>
 #include<vector>
+#include<algorithm>
 #include<array>
 #include<unordered_map>
 #include<unordered_set>
 #include<tuple>
 #include<optional>
+#include<wchar.h>
+#include<stdlib.h>
+#include<memory>
+#include<functional>
 #include"compile.h" 
 #include"type_traits/is_string.h"
 #include"type_traits/is_char.h"
 
+
+// avoid system header #define min/max
+#if defined(max)
+#define OLD_MAX max
+#undef max
+#endif
+#if defined(min)
+#define OLD_MIN min
+#undef min
+#endif
 
 
 PROJECT_NAMESPACE_BEGIN
@@ -44,6 +59,19 @@ using wchar   = wchar_t;
 using achar   = char;
 using char16  = char16_t;
 using char32  = char32_t;
+using RawCStr = char*;
+using RawWStr = wchar_t*;
+using CRawCStr = char const*;
+using CRawWStr = wchar_t const*;
+
+template<typename T>
+struct is_char :public std::false_type {};
+template<> struct is_char<char> : public std::true_type {};
+template<> struct is_char<char const> : public std::true_type {};
+template<> struct is_char<char volatile> : public std::true_type {};
+template<> struct is_char<char const volatile> : public std::true_type {};
+template<typename T> constexpr bool is_char_v = is_char<T>::value;
+
 
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
@@ -81,6 +109,13 @@ using TTuple = std::tuple<Args...>;
 template<typename T>
 using TOptional = std::optional<T>;
 
+template<typename T>
+using TUniquePtr = std::unique_ptr<T>;
+
+template<typename T>
+using TFunction = std::function<T>;
+
+
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte.");
 static_assert(sizeof(i8) == 1, "i8 is not 1 byte.");
 static_assert(sizeof(u16) == 2, "u16 is not 2 byte.");
@@ -90,18 +125,11 @@ static_assert(sizeof(i32) == 4, "i32 is not 4 byte.");
 static_assert(sizeof(u64) == 8, "u64 is not 8 byte.");
 static_assert(sizeof(i64) == 8, "i64 is not 8 byte.");
 
-template<typename Int> constexpr Int kIntInvalid = (Int)(-1);
+template<typename Int> constexpr Int kInvalidInteger = (Int)(-1);
 
-#if defined(max)
-#define OLD_MAX max
-#undef max
-#endif
 template<typename Int>
 constexpr Int kIntMax = std::numeric_limits<Int>::max();
-#if defined(OLD_MAX)
-#define max OLD_MAX
-#undef OLD_MAX
-#endif
+
 
 template<typename T>
 struct TVector2
@@ -217,12 +245,12 @@ struct TStringView : public std::basic_string_view<Char>
     }
 
     template<typename T>
-    This& findLastRemove(T const& c) {
+    This& removeLastBefore(T const& c) {
         SizeType i = Super::rfind(c);
         if (i == this->npos) {
             return emptyStringView();
         }
-        Super::remove_suffix(Super::size() - i);
+        Super::remove_suffix(Super::size() - i-1);
         return *this;
     }
 
@@ -237,8 +265,8 @@ struct RawStrOps;
 template<>
 struct RawStrOps<char>
 {
-    static usize length(char const* str) {
-        return strlen(str);
+    static usize length(char const* str, usize length = 0) {
+        return length == 0 ? strlen(str) : strnlen_s(str, length);
     }
 
     static char* copy(char const* str) {
@@ -246,20 +274,255 @@ struct RawStrOps<char>
     }
 
     static i32 compare(char const* str1, char const* str2, usize n = 0 ) {
-        if (n == 0) {
-            return strcmp(str1, str2);
-        }
-        else {
-            return strncmp(str1, str2, n);
-        }
+        return n == 0 ? strcmp(str1, str2) : strncmp(str1, str2, n);
+    }
+
+    static String format() {
+        return kEmptyString;
+    }
+};
+
+template<>
+struct RawStrOps<wchar_t>
+{
+    static isize length(wchar_t const* str, isize length = 0) {
+        return length == 0 ? wcslen(str) : wcsnlen_s(str, length);
+    }
+
+    static wchar_t* copy(wchar_t const* str) {
+        return wcsdup(str);
+    }
+
+    static i32 compare(wchar_t const* str1, wchar_t const* str2, isize n = 0) {
+        return n == 0 ? wcscmp(str1, str2) : wcsncmp(str1, str2, n);
+    }
+
+    static String format() {
+        return kEmptyString;
+    }
+};
+
+template<typename From, typename To>
+struct RawStrConvert {};
+
+template<>
+struct RawStrConvert<wchar_t, char>
+{
+    static isize toBuffer(wchar_t const* source, char* buf, isize buflen) {
+        return wcstombs(buf, source, buflen);
+    }
+
+    static TUniquePtr<char[]> to(wchar_t const* source)
+    {
+        isize length = RawStrOps<wchar_t>::length(source) * 2;
+        TUniquePtr<char[]> buf = std::make_unique<char[]>(length + 1);
+        if (nullptr == buf) return nullptr;
+        buf[length] = 0;
+        toBuffer(source, buf.get(), length);
+        return buf;
+    }
+};
+
+template<>
+struct RawStrConvert<char, wchar_t>
+{
+    static isize convertTo(char const* source, wchar_t* buf, isize buflen) {
+        return mbstowcs(buf, source, buflen);
     }
 };
 
 
-struct MemoryOps
+template<typename T>
+struct TArrayView
 {
+public:
+    using ThisType = TArrayView<T>;
+
+    template<typename Allocator>
+    TArrayView(TArray<T, Allocator> const& inArray)
+        : _dataRef{ static_cast<T*>(inArray.data()) }
+        , _length{ inArray.length() }
+    {
+    }
+
+    TArrayView(T const* inRawArray, usize inSize)
+        : _dataRef{ static_cast<T*>(inRawArray) }
+        , _length{ _length }
+    {}
+
+    TArrayView(TArrayView const& inOther)
+        : _dataRef{ const_cast<T*>(inOther._dataRef) }
+        , _length{ inOther._length }
+    {}
+
+    TArrayView(TArrayView&& inOther)
+        : _dataRef{ const_cast<T*>(inOther._dataRef) }
+        , _length{ inOther._length }
+    {
+        inOther.reset();
+    }
+
+    TArrayView(TArrayView const& inOther, usize inLength)
+        : _dataRef{ const_cast<T*>(inOther._dataRef) }
+        , _length{ std::min(inOther._length, inLength) }
+    {}
+
+
+    template<i32 N>
+    TArrayView(T const (&fixArray)[N])
+        : _dataRef{ const_cast<T*>(static_cast<T const*>(fixArray)) }
+        , _length{N}
+    {}
+    
+    TArrayView& operator=(TArrayView const& other) {
+        if (std::addressof(other) != this) {
+            _dataRef = other._dataRef;
+            _length = other._length;
+        }
+    }
+
+    TArrayView& operator=(TArrayView&& other) {
+        if (std::addressof(other) != this) {
+            _dataRef = other._dataRef;
+            _length = other._length;
+            other.reset();
+        }
+    }
+
+    template<i32 N>
+    TArrayView& operator=(T const (&fixArray)[N]) {
+        _dataRef = const_cast<T*>(fixArray);
+        _length = N;
+    }
+
+    T& operator[](usize index) {
+        ARAssert(index < _length);
+        return _dataRef[index];
+    }
+
+    T const& operator[](usize index) const {
+        ARAssert(index < _length);
+        return _dataRef[index];
+    }
+
+    bool isValid() const {
+        return _dataRef != nullptr && _length > 0;
+    }
+
+    void reset() {
+        _dataRef = nullptr;
+        _length = 0;
+    }
+
+    usize length() const {
+        return _length;
+    }
+
+private:
+    T* _dataRef;
+    usize _length;
+};
+
+
+namespace AlgOps {
+
+    struct RawStrEqual {
+        template<typename T>
+        constexpr bool operator()(T const* first, T const* second) {
+            return 0 == RawStrOps< T>::compare(first,second);
+        }
+    };
+    struct RawStrLess {
+        template<typename T>
+        constexpr bool operator()(T const* first, T const* second) {
+            return RawStrOps<T>::compare(first, second) < 0;
+        }
+    };
+
+    constexpr RawStrEqual rawStrEqual{};
+    constexpr RawStrLess  rawStrLess{};
+    constexpr std::equal_to<> defaultEqualTo{};
+    constexpr std::less<>     defaultLess{};
+
+    template<typename Container, typename SortFn, typename IdentityFn>
+    AR_FORCEINLINE void unique(Container& container, SortFn&& sortFn, IdentityFn identityFn )
+    {
+        std::sort(container.begin(), container.end(), std::forward<SortFn>(sortFn) );
+        auto&& last = std::unique(container.begin(), container.end(), std::forward<IdentityFn>(identityFn) );
+        container.erase(last, container.end());
+    }
+
+    template<typename Container, typename SortFn>
+    AR_FORCEINLINE void unique(Container& container, SortFn&& sortFn)
+    {
+        unique(container, sortFn, defaultEqualTo);
+    }
+
+    template<typename Container>
+    AR_FORCEINLINE void unique(Container& container)
+    {
+        unique(container, defaultLess, defaultEqualTo);
+    }
+
+    template<typename It,typename Pred>
+    AR_FORCEINLINE void sort(It const& begin, It const& end, Pred&& pred) {
+        std::sort(begin, end, std::move(pred));
+    }
+
+    template<typename It, typename Pred>
+    AR_FORCEINLINE void sort(It const& begin, It const& end) {
+        std::sort(begin, end);
+    }
+
+    template<typename T>
+    AR_FORCEINLINE T const& min2(T const& first, T const& second) {
+        return std::min(first, second);
+    }
+
+    template<typename T>
+    AR_FORCEINLINE T const& max2(T const& first, T const& second) {
+        return std::max(first, second);
+    }
+
+    constexpr double DIVKB = 1.0 / 1024.0;
+    constexpr double DIVMB = 1.0 / (1024.0 * 1024.0);
+    constexpr double DIVGB = 1.0 / (1024.0 * 1024.0 * 1024.0);
+    constexpr double DIVTB = 1.0 / (1024.0 * 1024.0 * 1024.0 * 1024.0);
+    constexpr double KB(double bytes) {
+        return bytes * DIVKB;
+    }
+
+    constexpr double MB(double bytes) {
+        return bytes * DIVMB;
+    }
+
+    constexpr double GB(double bytes) {
+        return bytes * DIVGB;
+    }
+};
+
+
+/* char* c */
+template<typename T>
+struct is_raw_string :public std::bool_constant< std::is_pointer_v<T> && is_char_v< std::remove_pointer_t<T> > > {};
+template<typename T>
+constexpr bool is_raw_string_v = is_raw_string<T>::value;
+
+
+namespace MemoryOps
+{
+    template<typename T>
+    AR_FORCEINLINE void zero(T& t) {
+        memset(&t, 0, sizeof(T));
+    }
+
+    template<typename T>
+    AR_FORCEINLINE void clearToByte(T& t, u8 value) {
+        memset(&t, value, sizeof(T));
+    }
+
     template<typename R>
-    RS_FORCEINLINE R* copyArray(R const* array, usize length = 1) {
+    AR_FORCEINLINE R* copyArray(R const* array, usize length = 1) {
         R* newArray = nullptr;
         usize size = 0;
         if (array && length > 0) {
@@ -270,7 +533,7 @@ struct MemoryOps
                 size = sizeof(R) * length;
             }
             newArray = reinterpret_cast<R*>(malloc(size));
-            rs_assert(newArray != nullptr);
+            ARAssert(newArray != nullptr);
             if constexpr (is_raw_string_v<R>) {
                 // raw-string array
                 for (u32 i = 0; i < length; ++i) {
@@ -293,7 +556,7 @@ struct MemoryOps
     }
 
     template<typename R, typename RawR = std::remove_const_t<R> >
-    RS_FORCEINLINE R* newDefaultArray(usize length = 1) {
+    AR_FORCEINLINE R* newDefaultArray(usize length = 1) {
         RawR* newArray = nullptr;
         if (length > 0) {
             usize size = 0;
@@ -304,7 +567,7 @@ struct MemoryOps
                 size = sizeof(R) * length;
             }
             newArray = reinterpret_cast<RawR*>(malloc(size));
-            if (!newArray) { rs_assert(false); return nullptr; }
+            if (!newArray) { ARAssert(false); return nullptr; }
             if constexpr (std::is_pod_v<R> || std::is_void_v<R>) {
                 memset(newArray, 0, size);
             }
@@ -320,7 +583,7 @@ struct MemoryOps
     }
 
     template<typename R>
-    RS_FORCEINLINE R* copy(R const* object) {
+    AR_FORCEINLINE R* copy(R const* object) {
         if constexpr (is_char_v<R>) {
             // raw-string
             return object ? strdup(object) : nullptr;
@@ -347,7 +610,7 @@ struct MemoryOps
     void safeDeleteArray(T*& t, u32 length) {
         if (!t || length == 0) return;
         if constexpr (is_raw_string_v<T>) {
-            rs_assert(length > 0);
+            ARAssert(length > 0);
             using NoConstPointerT = std::remove_const_t< std::remove_pointer_t<T>>;
             for (u32 i = 0; i < length; ++i) {
                 NoConstPointerT* addr = const_cast<NoConstPointerT*>(t[i]);
@@ -375,6 +638,16 @@ struct MemoryOps
     }
 };
 
+
+
+#if defined(OLD_MAX)
+#define max OLD_MAX
+#undef OLD_MAX
+#endif
+#if defined(OLD_MIN)
+#define max OLD_MIN
+#undef OLD_MIN
+#endif
 
 PROJECT_NAMESPACE_END
 

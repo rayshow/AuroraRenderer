@@ -855,7 +855,7 @@ inline uint32 GetVkFormatIndex(VkFormat format)
 
 inline VkFormatInfo& GetVkFormatInfo(VkFormat format){
     uint32 index = GetVkFormatIndex(format);
-    rs_check(index < (uint32)EVkFormatIndex::Count);
+    ARCheck(index < (uint32)EVkFormatIndex::Count);
     return GVkFormats[index];
 }
 

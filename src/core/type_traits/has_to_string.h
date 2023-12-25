@@ -7,8 +7,15 @@
 
 PROJECT_NAMESPACE_BEGIN
 
+/*
+* has 
+struct A
+{
+  std::string toString(){...}
+};
+*/
 template<typename T, typename R = std::remove_reference_t<T> >
-struct has_to_string_fn
+struct has_to_string_member
 {
     template<
         typename A,
@@ -21,8 +28,9 @@ struct has_to_string_fn
     constexpr static bool value = sfinae<R>(0);
 };
 template<typename T>
-constexpr bool has_to_string_fn_v = has_to_string_fn<T>::value;
+constexpr bool has_to_string_member_v = has_to_string_member<T>::value;
 
+/* has std::to_string */
 template<typename T, typename R = std::remove_all_extents_t< std::remove_reference_t< std::remove_cv_t<T>>>>
 struct has_std_to_string:public std::bool_constant< std::is_integral_v<R> || std::is_floating_point_v<R> || std::is_enum_v<R> > {};
 template<typename T>
@@ -30,13 +38,13 @@ constexpr bool has_std_to_string_v = has_std_to_string<T>::value;
 
 
 template<typename T>
-struct has_to_string: public std::bool_constant< has_to_string_fn_v<T> || has_std_to_string_v<T> || std::is_pointer_v<T> >{};
+struct has_to_string: public std::bool_constant< has_to_string_member_v<T> || has_std_to_string_v<T> || std::is_pointer_v<T> >{};
 template<typename T>
 constexpr bool has_to_string_v = has_to_string<T>::value;
 
 
-#define RS_ENABLE_IF_HAS_TO_STRING(Type) typename R = std::remove_reference_t<Type>, typename = std::enable_if_t< has_to_string_v<R> >
-#define RS_ENABLE_IF_HAS_TO_STRING_SINGLE_ITEM(Type) typename R = std::remove_reference_t<Type>, typename = std::enable_if_t< has_to_string_v<R> && !std::is_array_v<R> && !is_std_string_v<T> >
+#define AR_ENABLE_IF_HAS_TO_STRING(Type) typename R = std::remove_reference_t<Type>, typename = std::enable_if_t< has_to_string_v<R> >
+#define AR_ENABLE_IF_HAS_TO_STRING_SINGLE_ITEM(Type) typename R = std::remove_reference_t<Type>, typename = std::enable_if_t< has_to_string_v<R> && !std::is_array_v<R> && !is_std_string_v<T> >
 
 
 template<typename T, typename... Args>
@@ -48,7 +56,7 @@ inline const std::string kQuoteString{"\""};
 
 struct ToStringProtocol
 {
-    template<typename T,  RS_ENABLE_IF_HAS_TO_STRING_SINGLE_ITEM(T) >
+    template<typename T,  AR_ENABLE_IF_HAS_TO_STRING_SINGLE_ITEM(T) >
     static std::string toString(T&& t)
     {
         static std::string SEmpty{};
@@ -74,7 +82,7 @@ struct ToStringProtocol
                 return std::string{buffer};
             }
         }
-        else if constexpr(has_to_string_fn_v<R>){
+        else if constexpr(has_to_string_member_v<R>){
             static std::string BracketBegin{"{"};
             static std::string BracketEnd{"}"};
             std::string&& content = t.toString();
@@ -160,18 +168,18 @@ struct ToStringProtocol
     }
 };
 
-#define RS_BEGIN_TO_STRING(ClassName) std::string ret{"class="}; ret.reserve(128); ret+=#ClassName
-#define RS_BEGIN_DERIVED_TO_STRING(Drived, Super) RS_BEGIN_TO_STRING(Drived); ret+=std::string{", super={"}+Super::toString()+"}";
-#define RS_TO_STRING(Name)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Name);
-#define RS_TO_STRING_WITH_NAME(Name,Value)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Value);
-#define RS_ARRAY_TO_STRING(Name, Length)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Name, Length);
-#define RS_ARRAY_TO_STRING_WITH_NAME(Name, Value, Length)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Value, Length);
-#define RS_END_TO_STRING() return ret;
+#define AR_BEGIN_TO_STRING(ClassName) std::string ret{"class="}; ret.reserve(128); ret+=#ClassName
+#define AR_BEGIN_DERIVED_TO_STRING(Drived, Super) AR_BEGIN_TO_STRING(Drived); ret+=std::string{", super={"}+Super::toString()+"}";
+#define AR_TO_STRING(Name)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Name);
+#define AR_TO_STRING_WITH_NAME(Name,Value)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Value);
+#define AR_ARRAY_TO_STRING(Name, Length)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Name, Length);
+#define AR_ARRAY_TO_STRING_WITH_NAME(Name, Value, Length)  ret += kDotString + #Name + " = " + ToStringProtocol::toString(Value, Length);
+#define AR_END_TO_STRING() return ret;
 
 #define GET_OBJECT_RAW_STRING(Obj) rs::ToStringProtocol::toString(Obj).c_str()
 #define GET_OBJECT_ARRAY_RAW_STRING(Obj, Len) rs::ToStringProtocol::toString(Obj, Len).c_str()
 #define GET_OBJECT_STRING(Obj) rs::ToStringProtocol::toString(Obj)
 
-#undef RS_ENABLE_IF_HAS_TO_STRING
+#undef AR_ENABLE_IF_HAS_TO_STRING
 
 PROJECT_NAMESPACE_END

@@ -15,7 +15,7 @@ namespace ptr
 	#pragma clang diagnostic ignored "-Wunused-value"
 #endif
 	template<typename R> 
-	RS_FORCEINLINE R* safe_new_copy_array(R const* array, size_t length =1 ) { 
+	AR_FORCEINLINE R* safe_new_copy_array(R const* array, size_t length =1 ) { 
 		R* newArray = nullptr;
 		ptr::size_t size =0;
 		if(array && length>0){
@@ -25,7 +25,7 @@ namespace ptr
 				size = sizeof(R)*length;
 			}
 			newArray = reinterpret_cast<R*>(malloc(size));
-			rs_assert(newArray!=nullptr);
+			ARAssert(newArray!=nullptr);
 			if constexpr(is_raw_string_v<R>){
 				// raw-string array
 				for(uint32 i=0; i<length; ++i){
@@ -48,7 +48,7 @@ namespace ptr
 	}
 
 	template<typename R, typename RawR = std::remove_const_t<R> > 
-	RS_FORCEINLINE R* safe_new_default_array(size_t length=1) { 
+	AR_FORCEINLINE R* safe_new_default_array(size_t length=1) { 
 		RawR* newArray = nullptr;
 		if(length>0){ 
 			size_t size = 0;
@@ -74,7 +74,7 @@ namespace ptr
 	}
 
 	template<typename R> 
-	RS_FORCEINLINE R* safe_new_copy(R const* object ) { 
+	AR_FORCEINLINE R* safe_new_copy(R const* object ) { 
 		if constexpr(is_char_v<R>){
 			// raw-string
 			return object ? strdup(object) : nullptr;
@@ -99,7 +99,7 @@ namespace ptr
 	void safe_delete_array(T*& t, u32 length ) { 
 		if(!t || length==0 ) return;
 		if constexpr(is_raw_string_v<T>){
-			rs_assert(length>0);
+			ARAssert(length>0);
 			using NoConstPointerT = std::remove_const_t< std::remove_pointer_t<T>>;
 			for(uint32 i=0; i<length; ++i){
 				NoConstPointerT* addr = const_cast<NoConstPointerT*>(t[i]);

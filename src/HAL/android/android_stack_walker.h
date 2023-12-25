@@ -1,6 +1,6 @@
 #pragma once
 
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include"core/type.h"
 
@@ -217,7 +217,7 @@ PROJECT_NAMESPACE_BEGIN
             while( currentDepth < depth ){
                 programCounterToReadableString( currentDepth, stackTrace[currentDepth], readableString, 
                     readableStringLength, reinterpret_cast< GenericCrashContext* >( inContext ) );
-                strncat(readableString,  RS_ANSI_LINE_TERMINATOR, readableStringLength);
+                strncat(readableString,  AR_ANSI_LINE_TERMINATOR, readableStringLength);
                 currentDepth++;
             }
         }

@@ -7,36 +7,55 @@
 #include"../platform_def.h"
 
 enum class ELogLevel{
-    Unkown =0,
-    Default,
-    Verbose,
+    Verbose = 0,
     Debug,
     Info,
     Warning,
     Error,
     Fatal,
-    Silent
+    Count,
 };
 
+inline constexpr const char* GetLogLevelString(ELogLevel level) {
+    constexpr const char* names[(int)ELogLevel::Count] = {
+           "Verbose","Debug","Info","Warning","Error","Fatal"
+    };
+    return names[(int)level];
+}
+
+template<typename Derive>
 class CommonLogger
 {
 protected:
     inline static FILE* GLogFile = nullptr;
+    constexpr static  int kReprintBufferSize = 512;
  
-    static void vprintf_file(ELogLevel level, const char* fmt, ...){
-        if(GLogFile){
-            va_list vargs;
-            va_start(vargs, fmt);
+    static void vprintf_file(const char* fmt, ...){
+        va_list vargs;
+        va_start(vargs, fmt);
+        Derive::output(GLogFile, fmt, vargs);
+        va_end(vargs);
+        Derive::endline(GLogFile);
+    }
+    
+public:
+    static void output(FILE* const  file, const char* fmt, va_list& vargs)
+    {
+        if (GLogFile) {
             std::vfprintf(GLogFile, fmt, vargs);
-            va_end(vargs);
+            fflush(GLogFile);
+        }
+    }
 
-            // write end of line
-            char endline[2]{"\n"};
+    static void endline(FILE* const  file)
+    {
+        constexpr char endline[2]{ "\n" };
+        if (GLogFile) {
             fwrite(endline, 1, 1, GLogFile);
         }
     }
-public:
- 
+
+    
     static bool initialize(const char* filepath){
         if (!GLogFile){
             GLogFile = fopen(filepath,"wt+");
@@ -52,17 +71,9 @@ public:
         }
     }
 
-    template<typename... Args>
-    static void logToFile(ELogLevel level, const char* fmt, Args... args){
-        vprintf_file( level, fmt,  std::forward<Args>(args)...);
-    }
-
-    template<typename... Args>
-    static void logTraceToFile(ELogLevel level, const char* file, int line, const char* fmt,Args... args){
-        if(file){
-            vprintf_file( fmt, file, line, std::forward<Args>(args)...);
-        }
-        vprintf_file( level, fmt,  std::forward<Args>(args)...);
+    template< ELogLevel level, typename... Args>
+    static void logToFile(const char* fmt, Args... args){
+        vprintf_file( fmt,  std::forward<Args>(args)...);
     }
 
     static void flush(){
@@ -71,18 +82,15 @@ public:
         } 
     }
 
-    template<typename... Args>
-    static void reprintfWithLocToFile(ELogLevel level, const char* externMsg, const char* file, int line, const char* fmt, Args... args){
-        char buffer[512]={0};
-        snprintf(buffer, 512, fmt, std::forward<Args>(args)...);
-        vprintf_file(level, "%s %s      file:%s, line: %d", externMsg, buffer, file, line);
+    template<ELogLevel level, bool bWriteLoc, typename... Args>
+    static void relogToFile(const char* fmt1, const char* prefix, const char* suffix,  const char* file, int line, const char* fmt2,  Args... args){
+        char buffer[kReprintBufferSize]={0};
+        snprintf(buffer, kReprintBufferSize, fmt2, std::forward<Args>(args)...);
+        if constexpr (bWriteLoc)
+        {
+            vprintf_file(fmt1, prefix, buffer, suffix, file, line);
+            return;
+        }
+        vprintf_file(fmt1, prefix, buffer, suffix);
     }
-
-      template<typename... Args>
-    static void reprintfToFile(ELogLevel level,const char* externMsg, const char* fmt, Args&&... args){
-        char buffer[512]={0};
-        snprintf(buffer, 512, fmt, std::forward<Args>(args)...);
-        vprintf_file(level, "%s %s", externMsg, buffer);
-    }
-
 };

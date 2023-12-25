@@ -52,12 +52,17 @@ public:
             GWinInstance,
             nullptr
         );
+        GAppConfigs.set(AppConfigs::WinHandle, (i64)_window);
 
         _app = this;
     }
 
     void finalize() {
         _window = nullptr;
+    }
+
+    void tick(f64 time) {
+        pumpMessages();
     }
 
     // surface
@@ -75,9 +80,6 @@ public:
         return _window;
     }
 
-    virtual void tick() {
-        pumpMessages();
-    }
 
     static i32 ProcessMessage(HWND hwnd, u32 msg, WPARAM wParam, LPARAM lParam)
     {

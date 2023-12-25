@@ -1,6 +1,6 @@
 #pragma once
 
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 #include<string>
 #include<type_traits>
 #include<limits>
@@ -504,7 +504,7 @@ public:
                 return true;
             } 
         }
-        rs_check(readLength > 0);
+        ARCheck(readLength > 0);
         R* buffer=nullptr;
         if constexpr(bAllocate){
             // allocate array 
@@ -518,7 +518,7 @@ public:
         else{
             buffer = array;
             // outside should allocate the memory
-            rs_check(buffer!=nullptr);
+            ARCheck(buffer!=nullptr);
         }
         bool succ = true;
 
@@ -592,7 +592,7 @@ public:
             } 
             // need memory
             object = ptr::safe_new_default_array<T>(); 
-            rs_check(object!=nullptr); 
+            ARCheck(object!=nullptr); 
             return read(*object);
         }
     }
@@ -614,7 +614,7 @@ public:
         if(!succ) return false;
         if(length == 0) return true;
         str.resize((ptr::size_t)length);
-        rs_check(str.size() == (ptr::size_t)length);
+        ARCheck(str.size() == (ptr::size_t)length);
         return  length == rawRead( reinterpret_cast<void*>( str.data() ), length);
     }
 
@@ -628,7 +628,7 @@ public:
         if(!success) return false;
         if(length == 0) return true;
         array.resize(length);
-        rs_check(array.size() == (ptr::size_t)length);
+        ARCheck(array.size() == (ptr::size_t)length);
         if constexpr(has_normal_deserialize_v<T,FileType> || has_polymorphism_deserialize_v<T,FileType> || is_std_string_v<T> ){
             FILE_SYSTEM_DEBUG_LOG("==> read std::vector<deserialize | string>");
             for(auto&& item : array){
@@ -662,12 +662,12 @@ struct ReadonlyAndroidFile: private AndroidFile<FileFixAccess::Read>
     using FileType = ReadonlyAndroidFile;
 public:
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(ReadonlyAndroidFile* file, T&& t){
+    friend AR_FORCEINLINE bool operator<<(ReadonlyAndroidFile* file, T&& t){
         return file->read(std::forward<T>(t));
     }   
 
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(ReadonlyAndroidFile& file, T&& t ){
+    friend AR_FORCEINLINE bool operator<<(ReadonlyAndroidFile& file, T&& t ){
         return operator<<(&file, std::forward<T>(t));
     }
 };
@@ -677,12 +677,12 @@ struct WriteonlyAndroidFile: private AndroidFile<FileFixAccess::Write>
     using FileType = ReadonlyAndroidFile;
 public:
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(WriteonlyAndroidFile* file, T&& t){
+    friend AR_FORCEINLINE bool operator<<(WriteonlyAndroidFile* file, T&& t){
         return file->write(std::forward<T>(t));
     }   
 
     template<typename T, typename = std::enable_if_t< is_serializible_v<T,FileType> >>
-    friend RS_FORCEINLINE bool operator<<(WriteonlyAndroidFile& file, T&& t ){
+    friend AR_FORCEINLINE bool operator<<(WriteonlyAndroidFile& file, T&& t ){
         return operator<<(&file, std::forward<T>(t));
     }
 };
@@ -778,7 +778,7 @@ class AndroidFileSystem{
             std::string lastLogFileName= path+"2_"+filename;
             if(isFileExists(lastLogFileName)){
                 std::string filetime = getFileCreateTime(lastLogFileName);
-                rs_check(filetime.length()>0);
+                ARCheck(filetime.length()>0);
                 if(!renameFile(lastLogFileName, path+filetime+filename)) 
                     return false;
             }

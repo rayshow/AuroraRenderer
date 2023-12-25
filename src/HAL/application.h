@@ -1,9 +1,9 @@
 #pragma once
 #include"core/type.h"
 
-#if RS_PLATFORM_WINDOW
+#if AR_PLATFORM_WINDOW
 #include"window/win_application.h"
-#elif RS_PLATFORM_ANDROID
+#elif AR_PLATFORM_ANDROID
 #include"android/android_application.h"
 #include"android/android_window.h"
 #else 

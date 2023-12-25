@@ -1,6 +1,6 @@
 
 #include"../application.h"
-
+#include"../assert.h"
 
 #if 1
 
@@ -26,7 +26,7 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		freopen_s(&fDummy, "CONIN$", "r", stdin);
 		freopen_s(&fDummy, "CONOUT$", "w", stderr);
 		freopen_s(&fDummy, "CONOUT$", "w", stdout);
-		printf("allocate console");
+		AR_LOG(Info, "allocate console");
 	}
 	
 	
@@ -36,7 +36,7 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		wcstombs(buf, argv[i], 2048);
 		StringView param{ buf };
 		if (i == 0) {
-			param.strip().findLastRemove("\\");
+			param.strip().removeLastBefore("\\");
 			GAppConfigs.set(AppConfigs::InnerDataDir, String{ param });
 			GAppConfigs.set(AppConfigs::ExternalDataDir, String{ param });
 			GAppConfigs.set(AppConfigs::TempDir, String{param});

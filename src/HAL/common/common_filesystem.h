@@ -10,8 +10,8 @@
 
 #include"core/type.h"
 #include"core/util/enum_as_flag.h"
-#include"file_protocol.h"
-
+#include"core/type_traits/has_to_string.h"
+#include"HAL/common/file_protocol.h"
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -211,29 +211,29 @@ public:
 
     // should overwrite
     void flush() {
-        rs_assert(false);
+        ARAssert(false);
     }
 
     // should overwrite
     void close() {
-        rs_assert(false);
+        ARAssert(false);
     }
 
     // should overwrite
     FileSize seek(EFileSeek point, FileSize offset) {
-        rs_assert(false);
+        ARAssert(false);
         return -1;
     }
 
     // should overwrite
     FileSize rawWrite(const void* buf, FileSize count) {
-        rs_assert(false);
+        ARAssert(false);
         return 0;
     }
 
     // should overwrite
     FileSize rawRead(void* buf, FileSize bytesCount) {
-        rs_assert(false);
+        ARAssert(false);
         return 0;
     }
 
@@ -451,7 +451,7 @@ public:
                 return true;
             }
         }
-        rs_assert(readLength > 0);
+        ARAssert(readLength > 0);
         R* buffer = nullptr;
         if constexpr (bAllocate) {
             // allocate array 
@@ -466,7 +466,7 @@ public:
         else {
             buffer = array;
             // outside should allocate the memory
-            rs_assert(buffer != nullptr);
+            ARAssert(buffer != nullptr);
         }
         bool succ = true;
 
@@ -541,7 +541,7 @@ public:
             }
             // need memory
             object = MemoryOps::newDefaultArray<T>();
-            rs_assert(object != nullptr);
+            ARAssert(object != nullptr);
             return read(*object);
         }
     }
@@ -563,7 +563,7 @@ public:
         if (!succ) return false;
         if (length == 0) return true;
         str.resize(length);
-        rs_assert(str.size() == length);
+        ARAssert(str.size() == length);
         return  length == deriveRawRead(reinterpret_cast<void*>(str.data()), length);
     }
 
@@ -577,7 +577,7 @@ public:
         if (!success) return false;
         if (length == 0) return true;
         array.resize(length);
-        rs_assert(array.size() == length);
+        ARAssert(array.size() == length);
         if constexpr (has_normal_deserialize_v<T, FileType> || has_polymorphism_deserialize_v<T, FileType> || is_std_string_v<T>) {
             FILE_SYSTEM_DEBUG_LOG("==> read std::vector<deserialize | string>");
             for (auto&& item : array) {

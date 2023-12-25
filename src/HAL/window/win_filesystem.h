@@ -231,7 +231,7 @@ public:
     }
     
     i64 seek(EFileSeek point, i64 offset) {
-        rs_assert(isValid());
+        ARAssert(isValid());
         LONG high = offset >> 32;
         LONG low = offset & 0xffffffff;
         DWORD lowSeekOffset = SetFilePointer(_handle, low, &high, _getWindowSeekOption(point));
@@ -254,7 +254,7 @@ public:
             if (!WriteFile(_handle, buf + wroteBytes, kOnceReadWriteBytes, &onceWroteBytes, nullptr)) {
                 return -1;
             }
-            rs_assert(onceWroteBytes == kOnceReadWriteBytes);
+            ARAssert(onceWroteBytes == kOnceReadWriteBytes);
             wroteBytes += kOnceReadWriteBytes;
         }
         if (remainBytes) {
@@ -262,10 +262,10 @@ public:
             if (!WriteFile(_handle, buf + wroteBytes, remainBytes, &onceWroteBytes, nullptr)) {
                 return -1;
             }
-            rs_assert(remainBytes == onceWroteBytes);
+            ARAssert(remainBytes == onceWroteBytes);
             wroteBytes += remainBytes;
         }
-        rs_assert(wroteBytes == bytesCount);
+        ARAssert(wroteBytes == bytesCount);
         return wroteBytes;
     }
 
@@ -288,7 +288,7 @@ public:
             if (!ReadFile(_handle, buf + readBytes, kOnceReadWriteBytes, &onceReadBytes, nullptr)) {
                 return -1;
             }
-            rs_assert(onceReadBytes == kOnceReadWriteBytes);
+            ARAssert(onceReadBytes == kOnceReadWriteBytes);
             readBytes += kOnceReadWriteBytes;
         }
         if (remainBytes) {
@@ -296,10 +296,10 @@ public:
             if (!WriteFile(_handle, buf + readBytes, remainBytes, &onceReadBytes, nullptr)) {
                 return -1;
             }
-            rs_assert(remainBytes == onceReadBytes);
+            ARAssert(remainBytes == onceReadBytes);
             readBytes += remainBytes;
         }
-        rs_assert(readBytes == bytesCount);
+        ARAssert(readBytes == bytesCount);
         return readBytes;
     }
 };
@@ -409,7 +409,7 @@ public:
             String lastLogFileName = path + "2_" + filename;
             if (isFileExists(lastLogFileName)) {
                 String filetime = getFileCreateTime(lastLogFileName);
-                rs_assert(filetime.length() > 0);
+                ARAssert(filetime.length() > 0);
                 if (!renameFile(lastLogFileName, path + filetime + filename))
                     return false;
             }

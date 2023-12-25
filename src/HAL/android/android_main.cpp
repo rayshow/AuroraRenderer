@@ -1,4 +1,4 @@
-#if RS_PLATFORM_ANDROID
+#if AR_PLATFORM_ANDROID
 
 #include"android_application.h"
 

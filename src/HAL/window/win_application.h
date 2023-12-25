@@ -22,7 +22,7 @@ public:
 
     void tick(f64 time) {
         Super::tick(time);
-        _window->tick();
+        _window->tick(time);
     }
 
     void finalize(EExitCode exitCode) {
