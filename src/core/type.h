@@ -22,6 +22,9 @@
 #include<tuple>
 #include<optional>
 #include"compile.h" 
+#include"type_traits/is_string.h"
+#include"type_traits/is_char.h"
+
 
 
 PROJECT_NAMESPACE_BEGIN

@@ -1,5 +1,6 @@
 #pragma once
 #include<type_traits>
+#include"is_char.h"
 
 /* char* c */
 template<typename T>
