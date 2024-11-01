@@ -78,7 +78,7 @@ private:
     bool started;
 };
 
-struct AppPlugin {
+struct IAppPlugin {
     virtual EExitCode initialize() = 0;
     virtual void tick(double) = 0;
     virtual void finalize() = 0;
@@ -122,7 +122,7 @@ public:
 
         // timer
         timer.start();
-        std::vector<AppPlugin*> initializedPlugins;
+        std::vector<IAppPlugin*> initializedPlugins;
         auto finalizePlugins = [&initializedPlugins]() {
             for (auto&& plugin : initializedPlugins) {
                 plugin->finalize();
@@ -197,6 +197,12 @@ public:
     void setSurfaceReady(){ bSurfaceReady = true; }
     bool isSurfaceReady() const { return bSurfaceReady;}
 	void setFocus(bool bFocusState){ bHasFocus = bFocusState; }
+
+    // plugin
+    void addPlugin(IAppPlugin* plugin)
+    {
+        _plugins.push_back(plugin);
+    }
 private:
     bool bRequestExit{false};
     bool bFatal{false};
@@ -205,7 +211,7 @@ private:
     EFPS fps{EFPS::Unlimit};
     double tickTime{};
     Timer timer{};
-    TArray<AppPlugin*> _plugins{};
+    TArray<IAppPlugin*> _plugins{};
     String externalStorageDir{};
     String tempDir{};
     String internalDataDir{};

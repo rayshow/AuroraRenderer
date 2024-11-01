@@ -312,7 +312,7 @@ public:
 		
 		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 
-		D3D12_CLEAR_VALUE clearValue;
+		D3D12_CLEAR_VALUE clearValue{};
 		TRefCountPtr<ID3D12Resource> Resource;
 		if (!SUCCEEDED(_device->CreateCommittedResource(&heapProp, flag, &resourceDesc, state, &clearValue, DX12_GET_REF_PTR(Resource)))) {
 			AREnsureFormat(false, "CreateCommittedResource failed");

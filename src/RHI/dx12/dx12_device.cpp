@@ -3,7 +3,7 @@
 
 PROJECT_NAMESPACE_BEGIN
 
-bool DX12Device::initialize()
+bool DX12DeviceNode::initialize()
 {
 	bool allowTimeOut = true;
 	for (i32 i = 0; i < kCount; ++i)
@@ -14,7 +14,7 @@ bool DX12Device::initialize()
 		queueDesc.Type = DX12GetCommandListType((EDX12QueueType)i);
 		queueDesc.Flags = allowTimeOut ? D3D12_COMMAND_QUEUE_FLAG_NONE
 			: D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT;
-		_mainQueues[i] = _context.CreateCommandQueue(queueDesc);
+		_mainQueues[i].setHandle(_context.CreateCommandQueue(queueDesc));
 		if (!_mainQueues[i].isValid()) {
 			if (i == 0) {
 				AR_LOG(Info, "DX12 Get Common Command Queue Failed!");
@@ -25,11 +25,12 @@ bool DX12Device::initialize()
 			}
 		}
 	}
+	return true;
 }
 
-void DX12Device::finalize()
+bool DX12DeviceNode::finalize()
 {
-
+	return false;
 }
 
 PROJECT_NAMESPACE_END

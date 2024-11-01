@@ -2,11 +2,11 @@
 #include"../application.h"
 #include"../assert.h"
 
-#if 1
 
-using namespace ar3d;
+//PROJECT_NAMESPACE_BEGIN
 
 HINSTANCE GWinInstance;
+using namespace ar3d;
 
 i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 {
@@ -72,4 +72,4 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 }
 
 
-#endif 
+//PROJECT_NAMESPACE_END

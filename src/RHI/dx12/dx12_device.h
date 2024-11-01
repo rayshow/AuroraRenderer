@@ -33,7 +33,7 @@ enum class EDX12QueueType
 	Count,
 };
 
-D3D12_COMMAND_LIST_TYPE DX12GetCommandListType(EDX12QueueType type)
+inline D3D12_COMMAND_LIST_TYPE DX12GetCommandListType(EDX12QueueType type)
 {
 	switch (type)
 	{
@@ -68,9 +68,11 @@ private:
 	TRefCountPtr<ID3D12CommandQueue> _queue{};
 
 public:
+	void setHandle(TRefCountPtr<ID3D12CommandQueue> queue){_queue = queue;}
+	ID3D12CommandQueue* getHandle() { return _queue.getReference(); }
 
 	bool isValid() const { return _queue.isValid();  }
-	ID3D12CommandQueue* getHandle() { return _queue.getReference(); }
+	
 
 
 	void submit() {
@@ -86,8 +88,9 @@ private:
 	i32 _nodeIndex;
 
 public:
-	DX12DeviceNode(i32 nodeIndex)
+	DX12DeviceNode(i32 nodeIndex =0)
 		: DX12ContextChild{}
+		, _mainQueues{}
 		, _nodeIndex{nodeIndex}
 	{}
 
@@ -103,7 +106,7 @@ public:
 
 enum class EGPUMask: u8
 {
-	All = -1,
+	All = 255,
 	Main = 0,
 	Aux = 1,
 };

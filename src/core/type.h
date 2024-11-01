@@ -26,18 +26,17 @@
 #include<stdlib.h>
 #include<memory>
 #include<functional>
+#include<type_traits>
 #include"compile.h" 
-#include"type_traits/is_string.h"
-#include"type_traits/is_char.h"
 
 
 // avoid system header #define min/max
 #if defined(max)
-#define OLD_MAX max
+#define system_max max
 #undef max
 #endif
 #if defined(min)
-#define OLD_MIN min
+#define system_min min
 #undef min
 #endif
 
@@ -637,17 +636,6 @@ namespace MemoryOps
         }
     }
 };
-
-
-
-#if defined(OLD_MAX)
-#define max OLD_MAX
-#undef OLD_MAX
-#endif
-#if defined(OLD_MIN)
-#define max OLD_MIN
-#undef OLD_MIN
-#endif
 
 PROJECT_NAMESPACE_END
 

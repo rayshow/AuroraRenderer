@@ -1153,25 +1153,26 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, i32 nCmdShow)
     return WinApplication::GuardMain();
 }
 */
-/*
-class DrawRawTriangle : public Plugin
+
+class DrawRawTriangle : public IAppPlugin
 {
 public:
-	DrawRawTriangle()
-	{}
+	DrawRawTriangle(){}
+    virtual ~DrawRawTriangle() {}
 
 	virtual EExitCode initialize()
 	{
+        printf("DrawRawTriangle::initialize");
 		return EExitCode::Success;
 	}
 	virtual void tick()
 	{
-		
+        printf("DrawRawTriangle::tick");
 	}
 	virtual void finalize()
 	{
-
+        printf("DrawRawTriangle::finalize");
 	}
 };
 
-ADD_PLUGIN_TO_GLOBAL(DrawRawTriangle)*/
+AR_REGISTER_PLUGIN(DrawRawTriangle)

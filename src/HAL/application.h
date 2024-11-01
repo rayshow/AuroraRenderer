@@ -23,4 +23,17 @@ inline i32 GuardMain() {
     return (i32)code;
 }
 
+
+template<typename Plugin>
+struct AppPluginRegister
+{
+    Plugin _plugin;
+    AppPluginRegister()
+    {
+        Application::getInstance().addPlugin(_plugin);
+    }
+};
+
+#define AR_REGISTER_PLUGIN(Class) static AppPluginRegister<Class> PluginRegisters ## __LINE__;
+
 PROJECT_NAMESPACE_END

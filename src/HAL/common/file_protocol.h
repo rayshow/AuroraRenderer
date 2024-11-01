@@ -131,7 +131,6 @@ template<typename T,typename File>
 constexpr DispatchPolymorphSerailize<T,File> DispatchPolymorphSerailizeFn{};
 
 PROJECT_NAMESPACE_END
-#include"../common/to_string_protocol.h"
 
 #define DEBUG_FILE_SYSTEM 0
 
@@ -155,7 +154,6 @@ struct FileSystemDebugScope {
 };
 #include"../logger.h"
 #include"../../debug_type.hpp"
-#include"../common/to_string_protocol.h"
 struct ScopeAddTab{
     ScopeAddTab(){ ++GFileSystemDebug::Tab; }
     ~ScopeAddTab(){--GFileSystemDebug::Tab;}
