@@ -5,10 +5,11 @@
 #include"HAL/app_config.h"
 #include"dx12_header.h"
 #include"dx12_device.h"
+#include"assert.h"
+#include"core/util/util.h"
 
 PROJECT_NAMESPACE_BEGIN
-
-#define MAX_GPUS 4
+#define MAX_GPUS 2
 
 class DX12Context : public Singleton< DX12Context>
 {
@@ -142,6 +143,101 @@ public:
 
 	AR_FORCEINLINE i32 nodeCount() const {
 		return _device->GetNodeCount();
+	}
+
+	DX12DeviceNode* getDevice(u32 index)
+	{
+		ARCheck(index < _deviceNodes.size());
+		return _deviceNodes[index];
+	}
+	
+	TRefCountPtr<ID3D12RootSignature> createRootSignature( u32  nodeMask, const void *pBlobWithRootSignature, u64  blobLengthInBytes )
+	{
+		TRefCountPtr<ID3D12RootSignature> rootSignature{};
+		if( !DX12_ENSURE_SUCC( _device->CreateRootSignature(nodeMask, pBlobWithRootSignature, blobLengthInBytes, IID_PPV_ARGS(rootSignature.getInitAddress())))){
+			AR_LOG(Error, "*** Create RootSignature failed with nodeMask %d pBlobWithRootSignature:%p bytes:%lld", nodeMask, pBlobWithRootSignature, blobLengthInBytes );
+		}
+		return rootSignature;
+	}
+
+	TRefCountPtr<ID3D12RootSignature> createRootSignature(u32 nodeMask, D3D12_ROOT_SIGNATURE_DESC const &desc)
+	{
+		TRefCountPtr<ID3DBlob> signature;
+		TRefCountPtr<ID3DBlob> error;
+		if(!DX12_ENSURE_SUCC(D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, signature.getInitAddress(), error.getInitAddress()))){
+			AR_LOG(Error, "*** D3D12SerializeRootSignature create failed");
+			return nullptr;
+		}
+		return createRootSignature(nodeMask, signature->GetBufferPointer(), signature->GetBufferSize() );
+	}
+
+	TRefCountPtr<ID3D12PipelineState> createGraphicsPipeline(D3D12_GRAPHICS_PIPELINE_STATE_DESC const& Desc)
+	{
+		TRefCountPtr<ID3D12PipelineState> pipelineState{};
+		if( !DX12_ENSURE_SUCC(_device->CreateGraphicsPipelineState(&Desc, IID_PPV_ARGS(pipelineState.getInitAddress())))){
+			AR_LOG(Error, "*** Create GraphicsPipeline failed");
+		}
+		return pipelineState;
+	}
+
+	TRefCountPtr<ID3D12DescriptorHeap> createDescriptorHeap(D3D12_DESCRIPTOR_HEAP_DESC const& Desc)
+	{
+		TRefCountPtr<ID3D12DescriptorHeap> heap{};
+		if( !DX12_ENSURE_SUCC(_device->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(heap.getInitAddress()) ))){
+			AR_LOG(Error, "*** Create Descriptor Heap failed");
+		}
+		return heap;
+	}
+
+	u64 getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE type) const
+	{
+		return _device->GetDescriptorHandleIncrementSize(type);
+	}
+
+	void createRenderTargetView(ID3D12Resource* resource, D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE handle )
+	{
+		_device->CreateRenderTargetView(resource, desc, handle);
+	}
+
+	TRefCountPtr<ID3D12CommandAllocator> createCommandAllocator(D3D12_COMMAND_LIST_TYPE type)
+	{
+		TRefCountPtr<ID3D12CommandAllocator> commandAllocator{};
+		if( !DX12_ENSURE_SUCC(_device->CreateCommandAllocator(type, IID_PPV_ARGS(commandAllocator.getInitAddress())))){
+			AR_LOG(Error, "*** failed Create Command allocator failed");
+		}
+		return commandAllocator;
+	}
+
+	TRefCountPtr<ID3D12GraphicsCommandList> createCommandList(u32 nodeMask, D3D12_COMMAND_LIST_TYPE type,
+		TRefCountPtr<ID3D12CommandAllocator>const & allocator, TRefCountPtr<ID3D12PipelineState> const& pipelineState)
+	{
+		TRefCountPtr<ID3D12GraphicsCommandList> Commandlist{};
+		if( !DX12_ENSURE_SUCC(_device->CreateCommandList(nodeMask,  type, allocator.getReference(),
+			pipelineState.getReference(), IID_PPV_ARGS(Commandlist.getInitAddress()) ))) {
+			AR_LOG(Error, "*** Create CommandList failed");
+		}
+		return Commandlist;
+	}
+
+	TRefCountPtr<ID3D12Resource> createCommittedResource(D3D12_HEAP_PROPERTIES const& properties, D3D12_HEAP_FLAGS flag,
+		D3D12_RESOURCE_DESC const& desc, D3D12_RESOURCE_STATES initialState, D3D12_CLEAR_VALUE* clearValue )
+	{
+		TRefCountPtr<ID3D12Resource> resource{};
+		if( !DX12_ENSURE_SUCC(_device->CreateCommittedResource(&properties, flag, &desc, initialState,
+			clearValue, IID_PPV_ARGS(resource.getInitAddress())  )))
+		{
+			AR_LOG(Error, "*** Create Committed Resource failed");
+		}
+		return resource;
+	}
+
+	TRefCountPtr<ID3D12Fence> createFence(u64 initialValue, D3D12_FENCE_FLAGS flag )
+	{
+		TRefCountPtr<ID3D12Fence> fence{};
+		if( !DX12_ENSURE_SUCC(_device->CreateFence(initialValue, flag, IID_PPV_ARGS(fence.getInitAddress())))){
+			AR_LOG(Error, "*** Create Fence failed");
+		}
+		return fence;
 	}
 
 	bool initialize() {

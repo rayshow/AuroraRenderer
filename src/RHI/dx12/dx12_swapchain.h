@@ -41,7 +41,7 @@ public:
         }
         DX12_GET_INTERFACE(_swapChain, _swapChain2);
         if (DX12_SUCC_GET_INTERFACE(_swapChain, _swapChain3)) {
-            _currentPresentIndex = swapchain3->GetCurrentBackBufferIndex();
+            _currentPresentIndex = _swapChain3->GetCurrentBackBufferIndex();
             DX12_GET_INTERFACE(_swapChain, _swapChain4);
         }
         _syncInterval = syncInterval;
@@ -56,12 +56,21 @@ public:
         return _currentPresentIndex;
     }
 
+    TRefCountPtr<ID3D12Resource> getBuffer(u32 index)
+    {
+       TRefCountPtr<ID3D12Resource> buffer{};
+       if( !DX12_ENSURE_SUCC( _swapChain->GetBuffer(index, IID_PPV_ARGS(buffer.getInitAddress())))){
+           AR_LOG(Error, "Failed to get buffer from swapchain");
+       }
+        return buffer;
+    }
+
     void present()
     {
         ARCheck(_swapChain.isValid());
-        _swapChain->Present1(_syncInterval, 0);
+        _swapChain->Present1(_syncInterval, 0, nullptr);
         if (_swapChain3.isValid()) {
-            _currentPresentIndex = swapchain3->GetCurrentBackBufferIndex();
+            _currentPresentIndex = _swapChain3->GetCurrentBackBufferIndex();
         }
         else {
             _currentPresentIndex = (_currentPresentIndex + 1) % _backBufferCount;

@@ -27,10 +27,16 @@ inline i32 GuardMain() {
 template<typename Plugin>
 struct AppPluginRegister
 {
-    Plugin _plugin;
+    Plugin* _plugin{ nullptr };
     AppPluginRegister()
     {
+        _plugin = new Plugin{};
         Application::getInstance().addPlugin(_plugin);
+    }
+
+    ~AppPluginRegister()
+    {
+        if (_plugin) delete _plugin;
     }
 };
 

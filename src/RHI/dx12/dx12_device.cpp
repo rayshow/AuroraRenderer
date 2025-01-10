@@ -6,7 +6,7 @@ PROJECT_NAMESPACE_BEGIN
 bool DX12DeviceNode::initialize()
 {
 	bool allowTimeOut = true;
-	for (i32 i = 0; i < kCount; ++i)
+	for (u32 i = 0; i < kCount; ++i)
 	{
 		D3D12_COMMAND_QUEUE_DESC queueDesc{};
 		queueDesc.NodeMask = _context.nodeMask(_nodeIndex);

@@ -81,6 +81,7 @@ private:
 struct IAppPlugin {
     virtual EExitCode initialize() = 0;
     virtual void tick(double) = 0;
+    virtual void render(double) =0;
     virtual void finalize() = 0;
 };
 
@@ -149,6 +150,7 @@ public:
             static_cast<Derive*>(this)->tick(realTickTime);
             for(auto&& plugin: _plugins){
                 plugin->tick(realTickTime);
+                plugin->render(realTickTime);
             }
             derive->tick(tickTime);
             if(bFatal){
