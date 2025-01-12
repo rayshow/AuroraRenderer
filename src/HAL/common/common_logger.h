@@ -63,6 +63,15 @@ public:
         return GLogFile!=nullptr;
     }
 
+    static bool initialize(wchar_t const* filepath)
+    {
+        if (!GLogFile)
+        {
+            GLogFile = _wfopen(filepath, L"wt+");
+        }
+        return GLogFile!=nullptr;
+    }
+
     static void finalize(){
         if(GLogFile){
             fflush(GLogFile);

@@ -21,6 +21,13 @@ enum FileReadMemoryStrategy {
     Allocate
 };
 
+enum class EGetFileTimeType:u8
+{
+    Create,
+    LastAccess,
+    LastWrite,
+};
+
 template<bool ReadWriteLength = true, bool ReadAllocate = true>
 struct FileStrategy
 {
@@ -603,8 +610,6 @@ public:
         }
     }
 };
-
-
 PROJECT_NAMESPACE_END
 
 #endif

@@ -2,9 +2,6 @@
 #include"../application.h"
 #include"../assert.h"
 
-
-//PROJECT_NAMESPACE_BEGIN
-
 HINSTANCE GWinInstance;
 using namespace ar3d;
 
@@ -29,30 +26,29 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 		AR_LOG(Info, "allocate console");
 	}
 	
-	
 	for (i32 i = 0; i < argc; ++i)
 	{
-		char buf[2048];
-		wcstombs(buf, argv[i], 2048);
-		StringView param{ buf };
+		WStringView param{ argv[i] };
 		if (i == 0) {
-			param.strip().removeLastBefore("\\");
-			GAppConfigs.set(AppConfigs::InnerDataDir, String{ param });
-			GAppConfigs.set(AppConfigs::ExternalDataDir, String{ param });
-			GAppConfigs.set(AppConfigs::TempDir, String{param});
+			param.strip().removeAfter(L'\\');
+			WString binDir{ param };
+			GAppConfigs.set(AppConfigs::BinDir, binDir);
+			GAppConfigs.set(AppConfigs::InnerDataDir, binDir);
+			GAppConfigs.set(AppConfigs::ExternalDataDir, binDir);
+			GAppConfigs.set(AppConfigs::TempDir, binDir);
 		}
 		else {
 			param.stripLeft().startsThenRemove('-');
 			if (!param.empty()) {
 				auto pair = param.splitToTwo('=');
-				if (pair.second.size())
+				if (!pair.second.empty())
 				{
-					String key{ pair.first.strip() };
-					String second{ pair.second.strip() };
+					WString key{ pair.first.strip() };
+					WString second{ pair.second.strip() };
 					GAppConfigs.set(std::move(key), std::move(second));
 				}
 				else {
-					String key{ param.strip() };
+					WString key{ param.strip() };
 					GAppConfigs.addSwitch(key);
 				}
 			}
@@ -60,16 +56,13 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 	}
 
 	GAppConfigs.set(AppConfigs::AppHandle, (i64)hInstance);
-	GAppConfigs.set(AppConfigs::Commandline, std::string(Cmd));
+	GAppConfigs.set(AppConfigs::Commandline, String(Cmd));
 	GAppConfigs.set(AppConfigs::WinWidth, 1000);
 	GAppConfigs.set(AppConfigs::WinHeight, 800);
 	GAppConfigs.set(AppConfigs::WinResizable, true);
 	GAppConfigs.set(AppConfigs::VSync, false);
-
+	
 	bool code = GuardMain();
 	if(bAllocateConsole) FreeConsole();
 	return code;
 }
-
-
-//PROJECT_NAMESPACE_END

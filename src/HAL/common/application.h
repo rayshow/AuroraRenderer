@@ -98,12 +98,12 @@ public:
         derive = static_cast<Derive*>(this);
 
         // dir and log system
-        internalDataDir = GAppConfigs.get(AppConfigs::InnerDataDir, internalDataDir);
+        internalDataDir = GAppConfigs.get<WString>(AppConfigs::InnerDataDir);
         externalStorageDir = GAppConfigs.get(AppConfigs::ExternalDataDir, externalStorageDir);
         tempDir = GAppConfigs.get(AppConfigs::TempDir, externalStorageDir);
 
         // setup logger system
-        std::string loggerFileName = externalStorageDir + "log.txt";
+        WString loggerFileName = externalStorageDir + L"log.txt";
         FileSystem::renameExistsFile(loggerFileName);
         Logger::initialize(loggerFileName.c_str());
 
@@ -147,12 +147,11 @@ public:
         while(!bRequestExit && !GRequestExit){
             f64 realTickTime = timer.tick(tickTime);
             processEvents();
-            static_cast<Derive*>(this)->tick(realTickTime);
+            derive->tick(realTickTime);
             for(auto&& plugin: _plugins){
                 plugin->tick(realTickTime);
                 plugin->render(realTickTime);
             }
-            derive->tick(tickTime);
             if(bFatal){
                 return EExitCode::Fatal;
             }
@@ -190,9 +189,9 @@ public:
     }
 
     // platform
-    virtual String const& getExternalStorageDirectory() { return externalStorageDir; }
-    virtual String const& getTempDirectory() { return tempDir; }
-    virtual String const& getPlatformName(){ return None; }
+    virtual WString const& getExternalStorageDirectory() { return externalStorageDir; }
+    virtual WString const& getTempDirectory() { return tempDir; }
+    virtual WString const& getPlatformName(){ return None; }
     virtual void* getNativeWindow(){return nullptr;}
     virtual void* getNativeApp(){return nullptr;}
 
@@ -214,13 +213,13 @@ private:
     double tickTime{};
     Timer timer{};
     TArray<IAppPlugin*> _plugins{};
-    String externalStorageDir{};
-    String tempDir{};
-    String internalDataDir{};
+    WString externalStorageDir{};
+    WString tempDir{};
+    WString internalDataDir{};
     //CRTP
     Derive* derive{};
 
-    inline static String None{"[None]"};
+    inline static WString None{L"[None]"};
 };
 
 PROJECT_NAMESPACE_END

@@ -1,12 +1,12 @@
 #pragma once
+#include "HAL/assert.h"
 
 #if 1
 
 #include<string>
 #include<type_traits>
 #include<limits>
-#include<Windows.h>
-#include<fileapi.h>
+#include"win_system_call.h"
 #include"../common/common_filesystem.h"
 
 PROJECT_NAMESPACE_BEGIN
@@ -16,7 +16,9 @@ struct WindowFileStat {
     bool _bInitialized{ false };
 
     WindowFileStat() = default;
-    WindowFileStat(String const& path)
+
+    template<typename Str, ArCheckType(Str, is_string) >
+    WindowFileStat(Str const& path)
     {
         setup(path);
     }
@@ -33,8 +35,15 @@ struct WindowFileStat {
         return isValid() && !(_attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
 
-    bool setup(String const& path) {
-        return _bInitialized = GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &_attrib);
+    template<typename Str, ArCheckType(Str, is_string)>
+    bool setup(Str const& filepath) {
+        if constexpr(std::is_same_v<Str, WString>)
+        {
+            return _bInitialized = GetFileAttributesExW(filepath.c_str(), GetFileExInfoStandard, &_attrib);
+        }else
+        {
+            return _bInitialized = GetFileAttributesExA(filepath.c_str(), GetFileExInfoStandard, &_attrib);
+        }
     }
 
     bool isReadOnly() {
@@ -61,8 +70,27 @@ struct WindowFileStat {
         return (i64)_attrib.nFileSizeHigh << 32 | (i64)_attrib.nFileSizeLow;
     }
 
-    String getCreateTime() const {
-        return String{};
+    ReadableTime getTime(EGetFileTimeType type) const {
+        FILETIME tm{};
+        switch (type)
+        {
+            case EGetFileTimeType::Create: tm = _attrib.ftCreationTime;break;
+            case EGetFileTimeType::LastAccess: tm = _attrib.ftLastAccessTime;break;
+            case EGetFileTimeType::LastWrite: tm = _attrib.ftLastWriteTime;break;
+            default: ARCheck(false); break;
+        }
+        
+        SYSTEMTIME systemTime;
+        FileTimeToSystemTime(&tm,&systemTime);
+        ReadableTime readableTime{};
+        readableTime.year = systemTime.wYear;
+        readableTime.month = systemTime.wMonth;
+        readableTime.day = systemTime.wDay;
+        readableTime.hour = systemTime.wHour;
+        readableTime.minute = systemTime.wMinute;
+        readableTime.second = systemTime.wSecond;
+        readableTime.millisecond = systemTime.wMilliseconds;
+        return readableTime;
     }
 };
 
@@ -164,8 +192,8 @@ public:
         }
     }
 
-
-    bool open(String const& filepath, EFileOption option) {
+    template<typename Str, ArCheckType(Str, is_string)>
+    bool open(Str const& filepath, EFileOption option) {
         DWORD access = 0;
         bool hasRead = EnumHasAnyFlags(option, EFileOption::Read);
         bool hasWrite = EnumHasAnyFlags(option, EFileOption::Write);
@@ -204,8 +232,12 @@ public:
                 createMode = OPEN_ALWAYS;
             }
         }
-
-        _handle = CreateFileA(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+        
+        if constexpr(std::is_same_v<Str, WString>) {
+            _handle = CreateFileW(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+        }else {
+            _handle = CreateFileA(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+        }
 
         if (!isValid())
         {
@@ -308,7 +340,9 @@ using File = WindowFile<>;
 
 class WindowFileSystem {
 public:
-    static File* openFile(String const& path, EFileOption option) {
+
+    template<typename Str, ArCheckType(Str, is_string)>
+    static File* openFile(Str const& path, EFileOption option) {
         if (isValidPath(path)) {
             File file{};
             if (file.open(path, option)) {
@@ -316,6 +350,11 @@ public:
             }
         }
         return nullptr;
+    }
+
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool isValidPath(Str const& path) {
+        return path.size() > 0;
     }
 
     static File* createFile(String path) {
@@ -326,89 +365,112 @@ public:
         return openFile(path, EFileOption::Read);
     }
 
-    static bool isValidPath(String const& path) {
-        return path.size() > 0;
-    }
-
-    static bool isFileExists(String const& path) {
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool isFileExists(Str const& path) {
         WindowFileStat stat(path);
         return stat.isFile();
     }
 
-    static bool renameFile(String const& oldfile, String const& newfile) {
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool renameFile(Str const& oldfile, Str const& newfile) {
         if (isFileExists(oldfile) && !isFileExists(newfile)) {
-            return MoveFile(oldfile.c_str(), newfile.c_str());
+            if constexpr( std::is_same_v<Str, WString> ) {
+                return ::MoveFileW(oldfile.c_str(), newfile.c_str());    
+            }else {
+                return ::MoveFileA(oldfile.c_str(), newfile.c_str());
+            }
         }
         return false;
     }
-
-    static bool isDirExists(String const& path) {
+    
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool isDirExists(Str const& path) {
         WindowFileStat stat(path);
         return stat.isValid() && stat.isDir();
     }
 
-    static bool deleteDir(String const& path) {
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool deleteDir(Str const& path) {
         if (isValidPath(path)) {
-            return ::RemoveDirectoryA(path.c_str());
+            if constexpr( std::is_same_v<Str, WString> ) {
+                return ::RemoveDirectoryW(path.c_str());    
+            }else{
+                return ::RemoveDirectoryA(path.c_str());
+            }
         }
         return false;
     }
 
-    static bool createDir(String const& path) {
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool createDir(Str const& path) {
         if (isValidPath(path)) {
-            return CreateDirectoryA(path.c_str(), nullptr);
+            if constexpr( std::is_same_v<Str, WString> ) {
+                return ::CreateDirectoryW(path.c_str(), nullptr);    
+            }else {
+                return ::CreateDirectoryA(path.c_str(), nullptr);    
+            }
         }
         return false;
     }
 
-    static String getLastError() {
-        DWORD errorCode = GetLastError();
-        char   wszMsgBuff[512];  // Buffer for text.
-        DWORD   dwChars;  // Number of chars returned.
-        // Try to get the message from the system errors.
-        dwChars = FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            errorCode,
-            0,
-            wszMsgBuff,
-            512,
-            NULL);
-
-        if (dwChars == 0) {
-            return kEmptyString;
-        }
-        return String{ wszMsgBuff };
-    }
-
-    static bool deleteFile(String filepath) {
-        if (isValidPath(filepath)) {
-            return ::DeleteFileA(filepath.c_str()) == 0;
+    template<typename Str, ArCheckType(Str, is_string) >
+   static bool deleteFile(Str const& path) {
+        if (isValidPath(path)) {
+            if constexpr( std::is_same_v<Str, WString> ) {
+                return ::DeleteFileW(path.c_str(), nullptr);    
+            }else {
+                return ::DeleteFileA(path.c_str(), nullptr);    
+            }
         }
         return false;
     }
+    
+    template<typename Str, ArCheckType(Str, is_string) >
+    static Str getLastError() {
+        return WinSystemCall::getLastErrorString<Str>();
+    }
 
-
-    static String getFileCreateTime(String const& filepath) {
+    template< typename FormatStr, typename FileStr, ArCheckType(FileStr, is_string), ArCheckType(FormatStr, is_string) >
+    static FormatStr getFileCreateTime(FileStr const& filepath) {
         WindowFileStat stat(filepath);
         if (stat.isValid() && stat.isFile()) {
-            return stat.getCreateTime();
+            ReadableTime time = stat.getTime(EGetFileTimeType::Create);
+            if constexpr ( std::is_same_v<FormatStr, WString> )
+            {
+                WString str;
+                str.resize(128);
+                WStringView view{str}; 
+                RawStrOps<wchar>::format(str, L"%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
+                return str;
+            }else
+            {
+                String str;
+                str.resize(128);
+                StringView view{str}; 
+                RawStrOps<char>::format(str, "%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
+                return str;
+            }
         }
-        return String{};
+        return FormatStr{};
     }
 
-    static bool renameExistsFile(String const& file)
+    template<typename Str, ArCheckType(Str, is_string) >
+    static bool renameExistsFile(Str const& file)
     {
-        usize pos = file.find_last_of("/");
-        String path = file.substr(0, pos + 1);
-        String filename = file.substr(pos + 1, file.size());
+        usize pos = file.find_last_of(L"/");
+        Str path = file.substr(0, pos + 1);
+        Str filename = file.substr(pos + 1, file.size());
 
-        String fullFilename = path + filename;
+        Str fullFilename = path + filename;
         if (isFileExists(fullFilename)) {
-            String lastLogFileName = path + "2_" + filename;
+            Str lastLogFileName = path;
+            if constexpr ( std::is_same_v<Str, WString> ) {
+                lastLogFileName += L"_2"+ filename;
+            }else {
+                lastLogFileName += "_2"+ filename;
+            }
             if (isFileExists(lastLogFileName)) {
-                String filetime = getFileCreateTime(lastLogFileName);
+                Str filetime = getFileCreateTime<Str>(lastLogFileName);
                 ARAssert(filetime.length() > 0);
                 if (!renameFile(lastLogFileName, path + filetime + filename))
                     return false;

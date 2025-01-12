@@ -21,6 +21,7 @@ public:
     enum
     {
         Commandline,
+        BinDir,
         AppHandle,
         AppName,
         WinHandle,
@@ -33,9 +34,9 @@ public:
         TempDir,
         Max = 32,
     };
-    using AppConfigVarient = std::variant<i64, f64, i32, f32, bool, void*, String>;
+    using variant_t = std::variant<i64, f64, i32, f32, bool, void*, String, WString>;
     template<typename T>
-    using right_type = is_one_of<T, i64, f64, i32, f32, bool, void*, String>;
+    using right_type = is_one_of<T, i64, f64, i32, f32, bool, void*, String, WString>;
     template<typename T>
     static constexpr bool right_type_v = right_type<T>::value;
     template<typename T>
@@ -48,12 +49,12 @@ public:
     }
 
     template<typename T, typename = check_t<T> >
-    T const& get(i32 index, T const& inDefault) {
-        return widthDefault<T>( std::get_if<T>(&definedConfigs[index]), inDefault);
+    T const& get(i32 index, T const& inDefault = {}) {
+        return widthDefault<T>( std::get_if<T>(&predefinedConfigs[index]), inDefault);
     }
 
     template<typename T, typename = check_t<T> >
-    T const& get(String const& name, T const& inDefault) {
+    T const& get(WString const& name, T const& inDefault) {
         auto& found = configs.find(name);
         if (found == configs.end()) {
             return nullptr;
@@ -64,31 +65,31 @@ public:
     template<typename T, typename = check_t<T>  >
     void set(i32 index, T const& t) {
         ARAssert(index >= 0 && index < Max);
-        definedConfigs[index] = t;
+        predefinedConfigs[index] = t;
     }
 
     template<typename T, typename = check_t<T>  >
-    void set(String const& name, T const& t) {
+    void set(WString const& name, T const& t) {
         configs.insert_or_assign(name, t);
     }
 
     template<typename T, typename = check_t<T>  >
-    void set(String && name, T&& t) {
+    void set(WString && name, T&& t) {
         configs.insert_or_assign(std::move(name), std::move(t));
     }
 
-    void addSwitch(String const& name) {
+    void addSwitch(WString const& name) {
         switches.emplace(name);
     }
 
-    bool hasSwitch(String const& name) {
+    bool hasSwitch(WString const& name) {
         return switches.contains(name);
     }
 
 private:
-    std::unordered_set<String>                   switches{};
-    std::array< AppConfigVarient, AppConfigs::Max>    definedConfigs{};
-    std::unordered_map<String, AppConfigVarient> configs{};
+    std::unordered_set<WString>              switches{};
+    std::array< variant_t, AppConfigs::Max> predefinedConfigs{};
+    std::unordered_map<WString, variant_t>   configs{};
 };
 inline AppConfigs GAppConfigs;
 

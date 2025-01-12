@@ -18,6 +18,7 @@
 #include<vector>
 #include<algorithm>
 #include<array>
+#include <cstdarg>
 #include<unordered_map>
 #include<unordered_set>
 #include<tuple>
@@ -55,13 +56,8 @@ using i64 =  signed long long;
 using f64 =  long double;
 using f32 =  float;
 using wchar   = wchar_t;
-using achar   = char;
 using char16  = char16_t;
 using char32  = char32_t;
-using RawCStr = char*;
-using RawWStr = wchar_t*;
-using CRawCStr = char const*;
-using CRawWStr = wchar_t const*;
 
 template<typename T>
 struct is_char :public std::false_type {};
@@ -93,6 +89,18 @@ using TStaticArray = std::array<T, N>;
 using String = std::string;
 inline static String kEmptyString{""};
 
+using WString = std::wstring;
+
+template<typename T>
+struct is_string :public std::false_type {};
+template<> struct is_string<String>: std::true_type {};
+template<> struct is_string<WString>: std::true_type {};
+
+//template<typename T, typename Validator>
+//using check_t = std::enable_if_t< Validator<T> >;
+#define ArCheckType(T, Validator) typename = std::enable_if_t<Validator<T>::value>
+
+
 template<typename Key, typename Value>
 using TPair = std::pair<Key, Value>;
 
@@ -113,6 +121,17 @@ using TUniquePtr = std::unique_ptr<T>;
 
 template<typename T>
 using TFunction = std::function<T>;
+
+struct ReadableTime
+{
+    u32 year;
+    u32 month;
+    u32 day;
+    u32 hour;
+    u32 minute;
+    u32 second;
+    u32 millisecond;
+};
 
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte.");
@@ -155,6 +174,17 @@ struct TRect
 using I32Rect = TRect<i32>;
 using f32Rect = TRect<f32>;
 
+template<typename Char>
+struct TString
+{
+    using This = TString;
+    
+private:
+    std::basic_string<Char> _str; 
+public:
+    
+};
+
 
 template<typename Char>
 struct TStringView : public std::basic_string_view<Char>
@@ -167,8 +197,8 @@ struct TStringView : public std::basic_string_view<Char>
     constexpr TStringView(TStringView const& Other) noexcept :Super{ Other } {}
     constexpr TStringView(Char const* str) :Super{ str } {}
     constexpr TStringView(Char const* str, size_t count) : Super{ str, count } {}
-    template<typename T>
-    constexpr explicit TStringView(T&& Other) :Super{ Other } {}
+    template<typename T, ArCheckType(T, is_string)>
+    constexpr TStringView(T const& Other) :Super{ Other } {}
     template< class It, class End >
     constexpr TStringView(It first, End end) : Super{ first, end } {}
 
@@ -242,9 +272,8 @@ struct TStringView : public std::basic_string_view<Char>
         }
         return TPair{ TStringView{ data,i}, TStringView{ data + i + 1, Super::size() - i - 1 } };
     }
-
-    template<typename T>
-    This& removeLastBefore(T const& c) {
+    
+    This& removeAfter(Char c) {
         SizeType i = Super::rfind(c);
         if (i == this->npos) {
             return emptyStringView();
@@ -252,52 +281,104 @@ struct TStringView : public std::basic_string_view<Char>
         Super::remove_suffix(Super::size() - i-1);
         return *this;
     }
-
 };
 
 using StringView = TStringView<char>;
 using StringViewPair = TPair<StringView, StringView>;
 
+using WStringView = TStringView<wchar>;
+
+
 template<typename Char>
 struct RawStrOps;
+
+enum class EStringCmp: i8
+{
+    Less = -1,
+    Equal =0,
+    Greater =1,
+};
+
+static EStringCmp cmpResult(i32 result)
+{
+    if(result == 0) {
+        return EStringCmp::Equal;
+    }else if(result <0 )
+    {
+        return EStringCmp::Less;
+    }else
+    {
+        return EStringCmp::Greater;
+    }
+}
 
 template<>
 struct RawStrOps<char>
 {
-    static usize length(char const* str, usize length = 0) {
-        return length == 0 ? strlen(str) : strnlen_s(str, length);
+    static usize length(char const* str)
+    {
+        return strlen(str);
+    }
+    
+    static usize length(char const* str, usize length) {
+        return strnlen_s(str, length);
     }
 
     static char* copy(char const* str) {
-        return strdup(str);
+        return _strdup(str);
+    }
+    
+    static EStringCmp compare(char const* str1, char const* str2){
+        return cmpResult(strcmp(str1, str2));
     }
 
-    static i32 compare(char const* str1, char const* str2, usize n = 0 ) {
-        return n == 0 ? strcmp(str1, str2) : strncmp(str1, str2, n);
+    static EStringCmp compare(char const* str1, char const* str2, usize n) {
+        return cmpResult(strncmp(str1, str2, n));
     }
 
-    static String format() {
-        return kEmptyString;
+    static void format(StringView buffer, char const* format, ...) {
+        va_list vargs;
+        va_start(vargs, format);
+        _vsnprintf_s( const_cast<char*>( buffer.data()), buffer.length(), buffer.length(), format, vargs);
+        va_end(vargs);
     }
 };
 
 template<>
-struct RawStrOps<wchar_t>
+struct RawStrOps<wchar>
 {
-    static isize length(wchar_t const* str, isize length = 0) {
-        return length == 0 ? wcslen(str) : wcsnlen_s(str, length);
+    static usize length(wchar const* str)
+    {
+        return wcslen(str);
+    }
+        
+    static usize length(wchar const* str, isize length) {
+        return wcsnlen_s(str, length);
     }
 
-    static wchar_t* copy(wchar_t const* str) {
-        return wcsdup(str);
+    static wchar const* findLast(wchar const* wstr, wchar ch)
+    {
+        return wcsrchr(wstr, ch);
     }
 
-    static i32 compare(wchar_t const* str1, wchar_t const* str2, isize n = 0) {
-        return n == 0 ? wcscmp(str1, str2) : wcsncmp(str1, str2, n);
+    static wchar* copy(wchar const* str) {
+        return _wcsdup(str);
     }
 
-    static String format() {
-        return kEmptyString;
+    static EStringCmp compare(wchar const* str1, wchar const* str2)
+    {
+        return cmpResult(wcscmp(str1, str2));
+    }
+
+    static EStringCmp compare(wchar const* str1, wchar const* str2, isize n = 0) {
+        return cmpResult( wcsncmp(str1, str2, n));
+    }
+
+    static void format(WStringView buffer, wchar const* format, ...) {
+        va_list vargs;
+        va_start(vargs, format);
+        _vsnwprintf_s( const_cast<wchar_t*>( buffer.data()), buffer.length(), buffer.length(), format, vargs);
+        va_end(vargs);
     }
 };
 
@@ -307,13 +388,13 @@ struct RawStrConvert {};
 template<>
 struct RawStrConvert<wchar_t, char>
 {
-    static isize toBuffer(wchar_t const* source, char* buf, isize buflen) {
+    static usize toBuffer(wchar_t const* source, char* buf, usize buflen) {
         return wcstombs(buf, source, buflen);
     }
 
-    static TUniquePtr<char[]> to(wchar_t const* source)
+    static TUniquePtr<char[]> to(wchar const* source)
     {
-        isize length = RawStrOps<wchar_t>::length(source) * 2;
+        usize length = RawStrOps<wchar>::length(source) * 2;
         TUniquePtr<char[]> buf = std::make_unique<char[]>(length + 1);
         if (nullptr == buf) return nullptr;
         buf[length] = 0;

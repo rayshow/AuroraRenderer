@@ -279,12 +279,12 @@ inline static VulkanOneLayerExtensions kGloablLayerProperties{ };
 
 inline bool LayerPropertiesEqual(VkLayerProperties const& p1, VkLayerProperties const& p2)
 {
-    return 0 == RawStrOps<char>::compare(p1.layerName, p2.layerName);
+    return EStringCmp::Equal == RawStrOps<char>::compare(p1.layerName, p2.layerName);
 }
 
 inline bool LayerPropertiesLess(VkLayerProperties const& p1, VkLayerProperties const& p2)
 {
-    return RawStrOps<char>::compare(p1.layerName, p2.layerName) < 0;
+    return EStringCmp::Less == RawStrOps<char>::compare(p1.layerName, p2.layerName);
 }
 
 struct VulkanLayersAndExtensions {
@@ -325,7 +325,7 @@ struct VulkanInstance: public WInstance {
 #define ENABLE_DEVICE_ID_PROPERTIES_KHR ENABLE_VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES || ENABLE_VK_KHR_EXTERNAL_FENCE_CAPABILITIES || ENABLE_VK_KHR_EXTERNAL_MEMORY_CAPABILITIES
 
 
-enum EVkQueueType:uint8{
+enum class EVkQueueType:uint8{
     Graphics,
     Compute,
     Transfer,
