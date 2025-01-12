@@ -103,7 +103,7 @@ public:
         tempDir = GAppConfigs.get(AppConfigs::TempDir, externalStorageDir);
 
         // setup logger system
-        WString loggerFileName = externalStorageDir + L"log.txt";
+        WString loggerFileName{ externalStorageDir + L"log.txt"};
         FileSystem::renameExistsFile(loggerFileName);
         Logger::initialize(loggerFileName.c_str());
 

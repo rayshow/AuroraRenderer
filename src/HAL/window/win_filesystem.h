@@ -437,18 +437,10 @@ public:
             ReadableTime time = stat.getTime(EGetFileTimeType::Create);
             if constexpr ( std::is_same_v<FormatStr, WString> )
             {
-                WString str;
-                str.resize(128);
-                WStringView view{str}; 
-                RawStrOps<wchar>::format(str, L"%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
-                return str;
+                return WString::format(128, L"%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
             }else
             {
-                String str;
-                str.resize(128);
-                StringView view{str}; 
-                RawStrOps<char>::format(str, "%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
-                return str;
+                return String::format(128, "%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
             }
         }
         return FormatStr{};
@@ -457,11 +449,16 @@ public:
     template<typename Str, ArCheckType(Str, is_string) >
     static bool renameExistsFile(Str const& file)
     {
-        usize pos = file.find_last_of(L"/");
-        Str path = file.substr(0, pos + 1);
-        Str filename = file.substr(pos + 1, file.size());
+        usize pos = 0;
+        if constexpr ( std::is_same_v<Str, WString> ) {
+            pos =  file.findLastOf(L'/');
+        }else {
+            pos = file.findLastOf('/');
+        }
+        Str path{ file.substr(0, pos + 1) };
+        Str filename{ file.substr(pos + 1, file.size())};
 
-        Str fullFilename = path + filename;
+        Str fullFilename{ path + filename};
         if (isFileExists(fullFilename)) {
             Str lastLogFileName = path;
             if constexpr ( std::is_same_v<Str, WString> ) {
@@ -472,7 +469,8 @@ public:
             if (isFileExists(lastLogFileName)) {
                 Str filetime = getFileCreateTime<Str>(lastLogFileName);
                 ARAssert(filetime.length() > 0);
-                if (!renameFile(lastLogFileName, path + filetime + filename))
+                Str fullpath{ path + filetime + filename};
+                if (!renameFile(lastLogFileName, fullpath))
                     return false;
             }
             if (!renameFile(fullFilename, lastLogFileName)) {

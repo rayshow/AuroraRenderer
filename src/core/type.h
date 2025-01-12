@@ -86,21 +86,6 @@ template<typename T, i32 N>
 using TStaticArray = std::array<T, N>;
 
 
-using String = std::string;
-inline static String kEmptyString{""};
-
-using WString = std::wstring;
-
-template<typename T>
-struct is_string :public std::false_type {};
-template<> struct is_string<String>: std::true_type {};
-template<> struct is_string<WString>: std::true_type {};
-
-//template<typename T, typename Validator>
-//using check_t = std::enable_if_t< Validator<T> >;
-#define ArCheckType(T, Validator) typename = std::enable_if_t<Validator<T>::value>
-
-
 template<typename Key, typename Value>
 using TPair = std::pair<Key, Value>;
 
@@ -132,7 +117,6 @@ struct ReadableTime
     u32 second;
     u32 millisecond;
 };
-
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte.");
 static_assert(sizeof(i8) == 1, "i8 is not 1 byte.");
@@ -174,124 +158,21 @@ struct TRect
 using I32Rect = TRect<i32>;
 using f32Rect = TRect<f32>;
 
-template<typename Char>
-struct TString
+template<typename T>
+struct TRange
 {
-    using This = TString;
+    T begin{};
+    T length{};
     
-private:
-    std::basic_string<Char> _str; 
-public:
-    
+    T end(){ return begin + length; }
+    bool isValid(){ return length > 0; }
 };
+using Range     = TRange<i32>;
+using SizeRange = TRange<usize>;
 
 
-template<typename Char>
-struct TStringView : public std::basic_string_view<Char>
-{
-    using Super = std::basic_string_view<Char>;
-    using SizeType = typename Super::size_type;
-    using This = TStringView;
-
-    constexpr TStringView() noexcept :Super{} {}
-    constexpr TStringView(TStringView const& Other) noexcept :Super{ Other } {}
-    constexpr TStringView(Char const* str) :Super{ str } {}
-    constexpr TStringView(Char const* str, size_t count) : Super{ str, count } {}
-    template<typename T, ArCheckType(T, is_string)>
-    constexpr TStringView(T const& Other) :Super{ Other } {}
-    template< class It, class End >
-    constexpr TStringView(It first, End end) : Super{ first, end } {}
-
-    This& emptyStringView() {
-        static This sEmptyStringView{};
-        return sEmptyStringView;
-    }
-
-    This& startsThenRemove(char ch) {
-        if (Super::starts_with(ch)) {
-            Super::remove_prefix(1);
-        }
-        return emptyStringView();
-    }
-
-    This startsThenRemove(char ch) const {
-        if (Super::starts_with(ch)) {
-            return This{ Super::data(), Super::size() - 1 };
-        }
-        return This{};
-    }
-
-    This& stripLeft() {
-        for (SizeType i = 0; i < Super::size(); ++i) {
-            if (!isspace(Super::at(i))) {
-                Super::remove_prefix(i);
-                break;
-            }
-        }
-        return *this;
-    }
-
-    This stripLeft() const {
-        This copy(*this);
-        return copy.stripLeft();
-    }
-
-    This& stripRight() {
-        for (auto c : *this) {
-            if (isspace(c)) {
-                Super::remove_suffix(1);
-            }
-        }
-        return *this;
-    }
-    This stripRight() const {
-        This copy(*this);
-        return copy.stripRight();
-    }
-
-    This& strip() {
-        return stripLeft().stripRight();
-    }
-
-    This strip() const {
-        This copy(*this);
-        return copy.strip();
-    }
-
-    TPair<This, This> splitToTwo(char ch) const
-    {
-        SizeType i = 0;
-        Char const* data = Super::data();
-        for (; i < Super::size(); ++i) {
-            if (data[i] == ch) {
-                break;
-            }
-        }
-        if (i == Super::size()) {
-            return TPair{ *this, TStringView{} };
-        }
-        return TPair{ TStringView{ data,i}, TStringView{ data + i + 1, Super::size() - i - 1 } };
-    }
-    
-    This& removeAfter(Char c) {
-        SizeType i = Super::rfind(c);
-        if (i == this->npos) {
-            return emptyStringView();
-        }
-        Super::remove_suffix(Super::size() - i-1);
-        return *this;
-    }
-};
-
-using StringView = TStringView<char>;
-using StringViewPair = TPair<StringView, StringView>;
-
-using WStringView = TStringView<wchar>;
-
-
-template<typename Char>
-struct RawStrOps;
-
+///////////////////////////////////////////////////////////////
+/// string type 
 enum class EStringCmp: i8
 {
     Less = -1,
@@ -312,9 +193,15 @@ static EStringCmp cmpResult(i32 result)
     }
 }
 
+template<typename Char> struct RawStrOps;
+
 template<>
 struct RawStrOps<char>
 {
+    static char const* empty(){
+        return "";
+    }
+    
     static usize length(char const* str)
     {
         return strlen(str);
@@ -336,17 +223,18 @@ struct RawStrOps<char>
         return cmpResult(strncmp(str1, str2, n));
     }
 
-    static void format(StringView buffer, char const* format, ...) {
-        va_list vargs;
-        va_start(vargs, format);
-        _vsnprintf_s( const_cast<char*>( buffer.data()), buffer.length(), buffer.length(), format, vargs);
-        va_end(vargs);
+    static void format(char* buffer, usize length, char const* format, va_list vargs) {
+        _vsnprintf_s( buffer, length, length, format, vargs);
     }
 };
 
 template<>
 struct RawStrOps<wchar>
 {
+    static wchar const* empty(){
+        return L"";
+    } 
+    
     static usize length(wchar const* str)
     {
         return wcslen(str);
@@ -374,11 +262,8 @@ struct RawStrOps<wchar>
         return cmpResult( wcsncmp(str1, str2, n));
     }
 
-    static void format(WStringView buffer, wchar const* format, ...) {
-        va_list vargs;
-        va_start(vargs, format);
-        _vsnwprintf_s( const_cast<wchar_t*>( buffer.data()), buffer.length(), buffer.length(), format, vargs);
-        va_end(vargs);
+    static void format(wchar* buffer, usize length,  wchar const* format, va_list vargs) {
+        _vsnwprintf_s( buffer, length, length, format, vargs);
     }
 };
 
@@ -411,7 +296,229 @@ struct RawStrConvert<char, wchar_t>
     }
 };
 
+template<typename Char> struct TStringView;
 
+template<typename Char, typename Allocator = typename std::basic_string<Char>::allocator_type >
+struct TString: public std::basic_string<Char>
+{
+    using Super = std::basic_string<Char>;
+    using ViewType = TStringView<Char>;
+    using ThisType = TString;
+    using CharType = Char;
+    using AllocatorType = Allocator;
+    using TraitsType = typename std::basic_string<Char>::traits_type;
+public:
+ 
+    using Super::operator+=;
+    using Super::operator[];
+    using Super::at;
+    using Super::front;
+    using Super::back;
+    using Super::begin;
+    using Super::end;
+    using Super::rbegin;
+    using Super::rend;
+    using Super::crbegin;
+    using Super::crend;
+    using Super::find_last_of;
+    using Super::substr;
+
+    TString(): Super() {}
+    TString(Char const* rawStr): Super(rawStr) {}
+    TString(Char const* rawStr, usize length): Super(rawStr, length) {}
+    TString(Char const* rawStr, usize pos, usize length): Super(rawStr, pos, length) {}
+    TString(Super const& str): Super(str) {}
+    TString(Super&& str): Super(std::move(str)) {}
+    TString(usize length, Char ch ): Super(length, ch) {}
+    
+    static TString& emptyString()
+    {
+        static TString sEmptyString{ RawStrOps<Char>::empty() };
+        return sEmptyString;
+    }
+    
+    bool  isEmpty() const{ return Super::empty(); }
+    usize findLastOf(Char ch, usize pos = Super::npos) const{ return Super::find_last_of(ch, pos); }
+    usize findLastOf(Char const* rawStr, usize pos = Super::npos) const{ return Super::find_last_of(rawStr, pos); }
+    usize findLastOf(Super const& str, usize pos = Super::npos) const{ return Super::find_last_of(str); }
+    usize findLastOf(TStringView<Char> const& view, usize pos = Super::npos) const;
+    
+    
+    ThisType& substr(usize pos, usize length) {
+        return ThisType{*this, pos, length};
+    }
+
+    void localFormat(Char const* format, ...) {
+        va_list vargs;
+        va_start(vargs, format);
+        RawStrOps<Char>::format( Super::data(), Super::length(), format, vargs);
+        va_end(vargs);
+    }
+
+    template<typename ... Args>
+    static TString format(usize reserveLength, Char const* format, Args&& ...args)
+    {
+        TString string{reserveLength, 0};
+        string.localFormat(format, std::forward<Args>(args)...);
+        return string;
+    }
+
+    // delay implements
+    operator ViewType();
+    TString(TStringView<Char> const& View);
+};
+
+using String = TString<char>;
+using WString = TString<wchar>;
+template<typename T>    struct is_string :public std::false_type {};
+template<typename Char> struct is_string< TString<Char> >: std::true_type {};
+#define ArCheckType(T, Validator) typename = std::enable_if_t<Validator<T>::value>
+
+template<typename Char>
+struct TStringView : public std::basic_string_view<Char>
+{
+    using Super = std::basic_string_view<Char>;
+    using SizeType = typename Super::size_type;
+    using This = TStringView;
+
+    constexpr TStringView() noexcept :Super{} {}
+    constexpr TStringView(TStringView const& Other) noexcept :Super{ Other } {}
+    constexpr TStringView(Char const* str) :Super{ str } {}
+    constexpr TStringView(Char const* str, size_t count) : Super{ str, count } {}
+    template<typename T, ArCheckType(T, is_string)>
+    constexpr TStringView(T const& Other) :Super{ Other } {}
+    template< class It, class End >
+    constexpr TStringView(It first, End end) : Super{ first, end } {}
+
+    using Super::remove_prefix;
+    using Super::remove_suffix;
+    using Super::starts_with;
+
+    // redirect
+    void removePrefix(usize n) { Super::remove_prefix(n); }
+    void removeSuffix(usize n) { Super::remove_suffix(n); }
+    bool startWiths(Char ch){ return Super::starts_with(ch); }
+    
+
+    This& emptyStringView() {
+        static This sEmptyStringView{RawStrOps<Char>::empty()};
+        return sEmptyStringView;
+    }
+
+    This& startsThenRemove(char ch) {
+        if (startWiths(ch)) {
+            removePrefix(1);
+        }
+        return emptyStringView();
+    }
+
+    This startsThenRemove(char ch) const {
+        if (Super::starts_with(ch)) {
+            return This{ Super::data(), Super::size() - 1 };
+        }
+        return This{};
+    }
+
+    This& stripLeft() {
+        for (SizeType i = 0; i < Super::size(); ++i) {
+            if (!isspace(Super::at(i))) {
+                removePrefix(i);
+                break;
+            }
+        }
+        return *this;
+    }
+
+    This stripLeft() const {
+        This copy(*this);
+        return copy.stripLeft();
+    }
+
+    This& stripRight() {
+        for (auto c : *this) {
+            if (isspace(c)) {
+                removeSuffix(1);
+            }
+        }
+        return *this;
+    }
+    This stripRight() const {
+        This copy(*this);
+        return copy.stripRight();
+    }
+
+    This& strip() {
+        return stripLeft().stripRight();
+    }
+
+    This strip() const {
+        This copy(*this);
+        return copy.strip();
+    }
+
+    TPair<This, This> splitToTwo(Char ch) const
+    {
+        SizeType i = 0;
+        Char const* data = Super::data();
+        for (; i < Super::size(); ++i) {
+            if (data[i] == ch) {
+                break;
+            }
+        }
+        if (i == Super::size()) {
+            return TPair{ *this, TStringView{} };
+        }
+        return TPair{ TStringView{ data,i}, TStringView{ data + i + 1, Super::size() - i - 1 } };
+    }
+    
+    This& removeAfter(Char c) {
+        SizeType i = Super::rfind(c);
+        if (i == this->npos) {
+            return emptyStringView();
+        }
+        removeSuffix(Super::size() - i-1);
+        return *this;
+    }
+
+    void localFormat(Char const* format, ...)
+    {
+        va_list vargs;
+        va_start(vargs, format);
+        RawStrOps<Char>::format(Super::data(), Super::length(), vargs, format);
+        va_end(vargs);
+    }
+};
+
+// delay
+template<typename Char, typename Allocator>
+TString<Char, Allocator>::operator TStringView<Char>()
+{
+    return TStringView<Char>{ Super::data(), Super::length()  };
+}
+
+template<typename Char, typename Allocator>
+usize TString<Char, Allocator>::findLastOf(TStringView<Char> const& view, usize pos ) const
+{
+    return Super::find_last_of(view, pos);
+}
+
+template <typename Char, typename Allocator>
+TString<Char, Allocator>::TString(TStringView<Char> const& View) : Super{View.data(), View.length()} {}
+
+template <typename Char, typename Allocator, typename T, typename Super = typename TString<Char, Allocator>::Super >
+Super operator+(TString<Char, Allocator>& str, T const& t)
+{
+    return static_cast< Super const& >(str) + t;
+}
+
+
+using StringView = TStringView<char>;
+using StringViewPair = TPair<StringView, StringView>;
+using WStringView = TStringView<wchar>;
+
+
+////////////////////////////////////////////////////////
+/// general container
 template<typename T>
 struct TArrayView
 {
@@ -720,5 +827,20 @@ namespace MemoryOps
 
 PROJECT_NAMESPACE_END
 
+template<typename Char>
+struct std::hash< ar3d::TString<Char> >
+{
+    std::size_t operator()(ar3d::TString<Char> const& str) const
+    {
+        return std::hash< typename ar3d::TString<Char>::Super>{}(str);
+    }
+};
 
-
+template<typename Char>
+struct std::hash< ar3d::TStringView<Char> >
+{
+    std::size_t operator()(ar3d::TString<Char> const& str) const
+    {
+        return std::hash< typename ar3d::TStringView<Char>::Super>{}(str);
+    }
+};
