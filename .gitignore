@@ -10,6 +10,8 @@
 *.tlog*
 *.VC.db*
 */CmakeFiles/**
+build/*
+Build/*
 vs2017
 vs2019
 vs2022
