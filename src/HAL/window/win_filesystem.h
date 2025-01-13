@@ -6,7 +6,7 @@
 #include<string>
 #include<type_traits>
 #include<limits>
-#include"win_system_call.h"
+//#include"win_system_call.h"
 #include"../common/common_filesystem.h"
 
 PROJECT_NAMESPACE_BEGIN
@@ -427,7 +427,8 @@ public:
     
     template<typename Str, ArCheckType(Str, is_string) >
     static Str getLastError() {
-        return WinSystemCall::getLastErrorString<Str>();
+        return Str{};
+        //return WinSystemCall::getLastErrorString<Str>();
     }
 
     template< typename FormatStr, typename FileStr, ArCheckType(FileStr, is_string), ArCheckType(FormatStr, is_string) >

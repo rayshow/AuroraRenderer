@@ -43,8 +43,9 @@
 
 
 PROJECT_NAMESPACE_BEGIN
-
-// base type
+//////////////////////////////////////////////////
+///
+/// base type
 using u8  =  unsigned char;
 using u16 =  unsigned short int;
 using u32 =  unsigned int;
@@ -59,15 +60,6 @@ using wchar   = wchar_t;
 using char16  = char16_t;
 using char32  = char32_t;
 
-template<typename T>
-struct is_char :public std::false_type {};
-template<> struct is_char<char> : public std::true_type {};
-template<> struct is_char<char const> : public std::true_type {};
-template<> struct is_char<char volatile> : public std::true_type {};
-template<> struct is_char<char const volatile> : public std::true_type {};
-template<typename T> constexpr bool is_char_v = is_char<T>::value;
-
-
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
 template<>         struct size_traits<8> { using size_t = u64 ; using diff_t = i64; };
@@ -78,45 +70,6 @@ using intptr = isize;
 using nullptr_t = decltype(nullptr);
 using nothrow_t = std::nothrow_t;
 constexpr nothrow_t nothrow;
-
-template<typename T, typename Allocator= typename std::vector<T>::allocator_type>
-using TArray = std::vector<T>;
-
-template<typename T, i32 N>
-using TStaticArray = std::array<T, N>;
-
-
-template<typename Key, typename Value>
-using TPair = std::pair<Key, Value>;
-
-template<typename Key, typename Value>
-using TMap = std::unordered_map<Key,Value>;
-
-template<typename Key>
-using TSet = std::unordered_set<Key>;
-
-template<typename... Args>
-using TTuple = std::tuple<Args...>;
-
-template<typename T>
-using TOptional = std::optional<T>;
-
-template<typename T>
-using TUniquePtr = std::unique_ptr<T>;
-
-template<typename T>
-using TFunction = std::function<T>;
-
-struct ReadableTime
-{
-    u32 year;
-    u32 month;
-    u32 day;
-    u32 hour;
-    u32 minute;
-    u32 second;
-    u32 millisecond;
-};
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte.");
 static_assert(sizeof(i8) == 1, "i8 is not 1 byte.");
@@ -132,6 +85,25 @@ template<typename Int> constexpr Int kInvalidInteger = (Int)(-1);
 template<typename Int>
 constexpr Int kIntMax = std::numeric_limits<Int>::max();
 
+/////////////////////////////////////////////////////
+/// some basic struct
+template<typename T, i32 N>
+using TStaticArray = std::array<T, N>;
+
+template<typename Key, typename Value>
+using TPair = std::pair<Key, Value>;
+
+template<typename... Args>
+using TTuple = std::tuple<Args...>;
+
+template<typename T>
+using TOptional = std::optional<T>;
+
+template<typename T>
+using TUniquePtr = std::unique_ptr<T>;
+
+template<typename T>
+using TFunction = std::function<T>;
 
 template<typename T>
 struct TVector2
@@ -170,9 +142,37 @@ struct TRange
 using Range     = TRange<i32>;
 using SizeRange = TRange<usize>;
 
+struct ReadableTime
+{
+    u32 year;
+    u32 month;
+    u32 day;
+    u32 hour;
+    u32 minute;
+    u32 second;
+    u32 millisecond;
+};
+
 
 ///////////////////////////////////////////////////////////////
-/// string type 
+/// string type
+
+// is char
+template<typename T>
+struct is_char :public std::false_type {};
+template<> struct is_char<char> : public std::true_type {};
+template<> struct is_char<char const> : public std::true_type {};
+template<> struct is_char<char volatile> : public std::true_type {};
+template<> struct is_char<char const volatile> : public std::true_type {};
+template<typename T> constexpr bool is_char_v = is_char<T>::value;
+
+
+// is char*
+template<typename T>
+struct is_raw_string :public std::bool_constant< std::is_pointer_v<T> && is_char_v< std::remove_pointer_t<T> > > {};
+template<typename T>
+constexpr bool is_raw_string_v = is_raw_string<T>::value;
+
 enum class EStringCmp: i8
 {
     Less = -1,
@@ -518,7 +518,56 @@ using WStringView = TStringView<wchar>;
 
 
 ////////////////////////////////////////////////////////
-/// general container
+/// general container: add some handy function
+
+
+template<typename Key, typename Value>
+using TMap = std::unordered_map<Key,Value>;
+
+template<typename Key>
+using TSet = std::unordered_set<Key>;
+
+
+template<typename T, typename Allocator= typename std::vector<T>::allocator_type>
+class TArray: public std::vector<T, Allocator>
+{
+public:
+    using Super = std::vector<T, Allocator>;
+    using ThisType = TArray<T, Allocator>;
+    using ElementType = T;
+
+    
+    using Super::operator[];
+    using Super::data;
+    using Super::at;
+    using Super::front;
+    using Super::back;
+    
+    using Super::begin;
+    using Super::end;
+    using Super::rbegin;
+    using Super::rend;
+    using Super::crbegin;
+    using Super::crend;
+    using Super::cbegin;
+    using Super::cend;
+    
+    using Super::clear;
+    using Super::size;
+    using Super::empty;
+    using Super::reserve;
+    using Super::resize;
+    using Super::assign;
+    using Super::capacity;
+    using Super::push_back;
+    using Super::pop_back;
+    using Super::swap;
+    
+    usize length() const{ return Super::size(); }
+    void pushBack(T const& elem){ Super::push_back(elem); }
+    void popBack(){ Super::pop_back(); }
+};
+
 template<typename T>
 struct TArrayView
 {
@@ -687,14 +736,6 @@ namespace AlgOps {
         return bytes * DIVGB;
     }
 };
-
-
-/* char* c */
-template<typename T>
-struct is_raw_string :public std::bool_constant< std::is_pointer_v<T> && is_char_v< std::remove_pointer_t<T> > > {};
-template<typename T>
-constexpr bool is_raw_string_v = is_raw_string<T>::value;
-
 
 namespace MemoryOps
 {
