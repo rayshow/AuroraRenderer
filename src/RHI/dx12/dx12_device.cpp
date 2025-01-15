@@ -14,7 +14,7 @@ bool DX12DeviceNode::initialize()
 		queueDesc.Type = DX12GetCommandListType((EDX12QueueType)i);
 		queueDesc.Flags = allowTimeOut ? D3D12_COMMAND_QUEUE_FLAG_NONE
 			: D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT;
-		_mainQueues[i].setHandle(_context.CreateCommandQueue(queueDesc));
+		_mainQueues[i].setHandle(_context.createCommandQueue(queueDesc));
 		if (!_mainQueues[i].isValid()) {
 			if (i == 0) {
 				AR_LOG(Info, "DX12 Get Common Command Queue Failed!");

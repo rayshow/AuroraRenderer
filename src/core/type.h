@@ -489,6 +489,8 @@ struct TStringView : public std::basic_string_view<Char>
     }
 };
 
+
+
 // delay
 template<typename Char, typename Allocator>
 TString<Char, Allocator>::operator TStringView<Char>()
@@ -515,7 +517,44 @@ Super operator+(TString<Char, Allocator>& str, T const& t)
 using StringView = TStringView<char>;
 using StringViewPair = TPair<StringView, StringView>;
 using WStringView = TStringView<wchar>;
+template<typename T>    struct is_string_view :public std::false_type {};
+template<typename Char> struct is_string_view< TStringView<Char> >: std::true_type {};
 
+
+struct TStringStream
+{
+private:
+    String str;
+    usize  pos;
+public:
+    using CharType = typename String::value_type;
+
+    void addSpace(usize length)
+    {
+        str.append(length, 0);
+    }
+
+    void add(CharType ch)
+    {
+        str[pos++] = ch;
+    }
+};
+
+class Path : public WString
+{
+private:
+    bool _bAbsolution{false};
+    
+public:
+    Path operator/(Path const& path)
+    {
+        Path copy{*this};
+        copy += path;
+        return copy;
+    }
+
+    
+};
 
 ////////////////////////////////////////////////////////
 /// general container: add some handy function
@@ -747,6 +786,17 @@ namespace MemoryOps
     template<typename T>
     AR_FORCEINLINE void clearToByte(T& t, u8 value) {
         memset(&t, value, sizeof(T));
+    }
+
+    AR_FORCEINLINE i32 compare(void* source, void* dest, usize length)
+    {
+        return memcmp(source, dest, length);
+    }
+
+    template<typename T, usize Len>
+    AR_FORCEINLINE i32 compare(T const (&source)[Len], T const (& dest)[Len])
+    {
+        return memcmp(source, dest, sizeof(T)*Len);
     }
 
     template<typename R>
