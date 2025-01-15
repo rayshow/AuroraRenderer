@@ -1,0 +1,5 @@
+project(HashLibrary)
+file(GLOB_RECURSE HEADERS "*.h")
+file(GLOB_RECURSE CPPS "*.cpp")
+add_library(${PROJECT_NAME} STATIC ${CPPS} ${HEADERS})
+add_library(3rd::hash_library ALIAS ${PROJECT_NAME})
