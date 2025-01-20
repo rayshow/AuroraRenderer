@@ -23,11 +23,12 @@
 #include<unordered_set>
 #include<tuple>
 #include<optional>
-#include<wchar.h>
 #include<stdlib.h>
 #include<memory>
 #include<functional>
 #include<type_traits>
+#include<filesystem>
+
 #include"compile.h" 
 
 
@@ -41,8 +42,8 @@
 #undef min
 #endif
 
-
 PROJECT_NAMESPACE_BEGIN
+
 //////////////////////////////////////////////////
 ///
 /// base type
@@ -84,6 +85,14 @@ template<typename Int> constexpr Int kInvalidInteger = (Int)(-1);
 
 template<typename Int>
 constexpr Int kIntMax = std::numeric_limits<Int>::max();
+
+template<typename T, typename... Args>
+struct is_one_of : public std::disjunction< std::is_same<T, Args>...>{};
+
+template<typename T, typename... Args>
+constexpr bool is_one_of_v = is_one_of<T, Args...>::value;
+
+// std::derived_from<>
 
 /////////////////////////////////////////////////////
 /// some basic struct
@@ -165,6 +174,15 @@ template<> struct is_char<char const> : public std::true_type {};
 template<> struct is_char<char volatile> : public std::true_type {};
 template<> struct is_char<char const volatile> : public std::true_type {};
 template<typename T> constexpr bool is_char_v = is_char<T>::value;
+
+// wchar
+template<typename T>
+struct is_wchar : std::false_type {};
+template<> struct is_wchar<wchar> : public std::true_type {};
+template<> struct is_wchar<wchar const> : public std::true_type {};
+template<> struct is_wchar<wchar volatile> : public std::true_type {};
+template<> struct is_wchar<wchar const volatile> : public std::true_type {};
+template<typename T> constexpr bool is_wchar_v = is_wchar<T>::value;
 
 
 // is char*
@@ -362,17 +380,39 @@ public:
         string.localFormat(format, std::forward<Args>(args)...);
         return string;
     }
-
+    
     // delay implements
     operator ViewType();
     TString(TStringView<Char> const& View);
 };
 
-using String = TString<char>;
-using WString = TString<wchar>;
+// ansi string
+using AString = TString<char>;
+// most use string
+using String = TString<wchar>;
+using Name = String;
+
+using Path = std::filesystem::path;
+
+
 template<typename T>    struct is_string :public std::false_type {};
 template<typename Char> struct is_string< TString<Char> >: std::true_type {};
+template<> struct is_string< Path >: std::true_type {};
 #define ArCheckType(T, Validator) typename = std::enable_if_t<Validator<T>::value>
+
+
+template <class T>
+concept has_member_value_type_v = requires { typename T::value_type; };
+
+template <class T>
+struct has_member_value_type : std::bool_constant<has_member_value_type_v<T>> {};
+
+template <class T>
+struct is_wide_string : std::conjunction<has_member_value_type<T>,  is_wchar< typename T::value_type>> {};
+
+template <class T>
+constexpr bool is_wide_string_v = is_wide_string<T>::value;
+
 
 template<typename Char>
 struct TStringView : public std::basic_string_view<Char>
@@ -514,12 +554,11 @@ Super operator+(TString<Char, Allocator>& str, T const& t)
 }
 
 
-using StringView = TStringView<char>;
-using StringViewPair = TPair<StringView, StringView>;
-using WStringView = TStringView<wchar>;
+using AStringView = TStringView<char>;
+using AStringViewPair = TPair<AStringView, AStringView>;
+using StringView = TStringView<wchar>;
 template<typename T>    struct is_string_view :public std::false_type {};
 template<typename Char> struct is_string_view< TStringView<Char> >: std::true_type {};
-
 
 struct TStringStream
 {
@@ -540,21 +579,6 @@ public:
     }
 };
 
-class Path : public WString
-{
-private:
-    bool _bAbsolution{false};
-    
-public:
-    Path operator/(Path const& path)
-    {
-        Path copy{*this};
-        copy += path;
-        return copy;
-    }
-
-    
-};
 
 ////////////////////////////////////////////////////////
 /// general container: add some handy function
@@ -642,7 +666,7 @@ public:
         , _length{ std::min(inOther._length, inLength) }
     {}
 
-
+ 
     template<i32 N>
     TArrayView(T const (&fixArray)[N])
         : _dataRef{ const_cast<T*>(static_cast<T const*>(fixArray)) }

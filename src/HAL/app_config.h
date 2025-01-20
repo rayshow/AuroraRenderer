@@ -12,8 +12,11 @@
 
 PROJECT_NAMESPACE_BEGIN
 
-template<typename T, typename... Args>
-struct is_one_of : std::disjunction< std::is_same<T, Args>...> {};
+#define AR_APP_CONFIG_TYPE i64, f64, i32, f32, bool, void*, AString, String, Path
+    using AppConfigsVeriant = std::variant<AR_APP_CONFIG_TYPE>;
+template<typename T>
+concept AppConfigsType = is_one_of_v<T, AR_APP_CONFIG_TYPE>;
+#undef AR_ALLOW_TYPE
 
 class AppConfigs
 {
@@ -34,13 +37,7 @@ public:
         TempDir,
         Max = 32,
     };
-    using variant_t = std::variant<i64, f64, i32, f32, bool, void*, String, WString>;
-    template<typename T>
-    using right_type = is_one_of<T, i64, f64, i32, f32, bool, void*, String, WString>;
-    template<typename T>
-    static constexpr bool right_type_v = right_type<T>::value;
-    template<typename T>
-    using check_t = std::enable_if_t< right_type_v<T>>;
+
 
     template<typename T>
     T const& widthDefault(T* pt, T const& inDefault)
@@ -48,48 +45,48 @@ public:
         return pt ? *pt : inDefault;
     }
 
-    template<typename T, typename = check_t<T> >
+    template<AppConfigsType T>
     T const& get(i32 index, T const& inDefault = {}) {
         return widthDefault<T>( std::get_if<T>(&predefinedConfigs[index]), inDefault);
     }
 
-    template<typename T, typename = check_t<T> >
-    T const& get(WString const& name, T const& inDefault) {
-        auto& found = configs.find(name);
+    template<AppConfigsType T>
+    T const& get(String const& name, T const& inDefault) {
+        auto found = configs.find(name);
         if (found == configs.end()) {
             return nullptr;
         }
         return widthDefault<T>(std::get_if<T>(*found), inDefault) ;
     }
-
-    template<typename T, typename = check_t<T>  >
+    
+    template<AppConfigsType T >
     void set(i32 index, T const& t) {
         ARAssert(index >= 0 && index < Max);
         predefinedConfigs[index] = t;
     }
 
-    template<typename T, typename = check_t<T>  >
-    void set(WString const& name, T const& t) {
+    template<AppConfigsType T>
+    void set(String const& name, T const& t) {
         configs.insert_or_assign(name, t);
     }
 
-    template<typename T, typename = check_t<T>  >
-    void set(WString && name, T&& t) {
+    template<AppConfigsType T>
+    void set(String && name, T&& t) {
         configs.insert_or_assign(std::move(name), std::move(t));
     }
 
-    void addSwitch(WString const& name) {
+    void addSwitch(String const& name) {
         switches.emplace(name);
     }
 
-    bool hasSwitch(WString const& name) {
+    bool hasSwitch(String const& name) {
         return switches.contains(name);
     }
 
 private:
-    std::unordered_set<WString>              switches{};
-    std::array< variant_t, AppConfigs::Max> predefinedConfigs{};
-    std::unordered_map<WString, variant_t>   configs{};
+    TSet<String>                                      switches{};
+    TStaticArray< AppConfigsVeriant, AppConfigs::Max> predefinedConfigs{};
+    TMap<String, AppConfigsVeriant>                   configs{};
 };
 inline AppConfigs GAppConfigs;
 

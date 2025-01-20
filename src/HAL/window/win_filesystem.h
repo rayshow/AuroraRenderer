@@ -37,7 +37,7 @@ struct WindowFileStat {
 
     template<typename Str, ArCheckType(Str, is_string)>
     bool setup(Str const& filepath) {
-        if constexpr(std::is_same_v<Str, WString>)
+        if constexpr(std::is_same_v<Str, String>)
         {
             return _bInitialized = GetFileAttributesExW(filepath.c_str(), GetFileExInfoStandard, &_attrib);
         }else
@@ -233,7 +233,7 @@ public:
             }
         }
         
-        if constexpr(std::is_same_v<Str, WString>) {
+        if constexpr(is_wide_string_v<Str>) {
             _handle = CreateFileW(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
         }else {
             _handle = CreateFileA(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -374,7 +374,7 @@ public:
     template<typename Str, ArCheckType(Str, is_string) >
     static bool renameFile(Str const& oldfile, Str const& newfile) {
         if (isFileExists(oldfile) && !isFileExists(newfile)) {
-            if constexpr( std::is_same_v<Str, WString> ) {
+            if constexpr( std::is_same_v<Str, String> ) {
                 return ::MoveFileW(oldfile.c_str(), newfile.c_str());    
             }else {
                 return ::MoveFileA(oldfile.c_str(), newfile.c_str());
@@ -392,7 +392,7 @@ public:
     template<typename Str, ArCheckType(Str, is_string) >
     static bool deleteDir(Str const& path) {
         if (isValidPath(path)) {
-            if constexpr( std::is_same_v<Str, WString> ) {
+            if constexpr( std::is_same_v<Str, String> ) {
                 return ::RemoveDirectoryW(path.c_str());    
             }else{
                 return ::RemoveDirectoryA(path.c_str());
@@ -404,7 +404,7 @@ public:
     template<typename Str, ArCheckType(Str, is_string) >
     static bool createDir(Str const& path) {
         if (isValidPath(path)) {
-            if constexpr( std::is_same_v<Str, WString> ) {
+            if constexpr( std::is_same_v<Str, String> ) {
                 return ::CreateDirectoryW(path.c_str(), nullptr);    
             }else {
                 return ::CreateDirectoryA(path.c_str(), nullptr);    
@@ -416,7 +416,7 @@ public:
     template<typename Str, ArCheckType(Str, is_string) >
    static bool deleteFile(Str const& path) {
         if (isValidPath(path)) {
-            if constexpr( std::is_same_v<Str, WString> ) {
+            if constexpr( std::is_same_v<Str, String> ) {
                 return ::DeleteFileW(path.c_str(), nullptr);    
             }else {
                 return ::DeleteFileA(path.c_str(), nullptr);    
@@ -436,9 +436,9 @@ public:
         WindowFileStat stat(filepath);
         if (stat.isValid() && stat.isFile()) {
             ReadableTime time = stat.getTime(EGetFileTimeType::Create);
-            if constexpr ( std::is_same_v<FormatStr, WString> )
+            if constexpr ( std::is_same_v<FormatStr, String> )
             {
-                return WString::format(128, L"%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
+                return String::format(128, L"%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
             }else
             {
                 return String::format(128, "%d%d%d-%d%d%d", time.year, time.month, time.day, time.hour, time.minute, time.second);
@@ -451,7 +451,7 @@ public:
     static bool renameExistsFile(Str const& file)
     {
         usize pos = 0;
-        if constexpr ( std::is_same_v<Str, WString> ) {
+        if constexpr ( std::is_same_v<Str, String> ) {
             pos =  file.findLastOf(L'/');
         }else {
             pos = file.findLastOf('/');
@@ -462,8 +462,8 @@ public:
         Str fullFilename{ path + filename};
         if (isFileExists(fullFilename)) {
             Str lastLogFileName = path;
-            if constexpr ( std::is_same_v<Str, WString> ) {
-                lastLogFileName += L"_2"+ filename;
+            if constexpr ( std::is_same_v<Str, String> ) {
+                lastLogFileName += _LIT("_2")+ filename;
             }else {
                 lastLogFileName += "_2"+ filename;
             }
@@ -481,15 +481,15 @@ public:
         return true;
     }
 
-    static TOptional<StringView> getTempPath() {
+    static TOptional<AStringView> getTempPath() {
         static char lpTempPathBuffer[MAX_PATH];
         //  Gets the temp path env string (no guarantee it's a valid path).
         DWORD dwRetVal = GetTempPathA(MAX_PATH, lpTempPathBuffer);
         if (dwRetVal > MAX_PATH || (dwRetVal == 0))
         {
-            return TOptional<StringView>{};
+            return TOptional<AStringView>{};
         }
-        return TOptional<StringView>{lpTempPathBuffer};
+        return TOptional<AStringView>{lpTempPathBuffer};
     }
 
 };

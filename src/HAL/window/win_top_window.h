@@ -39,9 +39,9 @@ public:
         RECT windowRect = { 0, 0, rect.get_width(), rect.get_height() };
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-        _window = CreateWindowA(
-            "WinMainWindow",
-            "WinMainWindow",
+        _window = CreateWindowW(
+            _LIT("WinMainWindow"),
+            _LIT("WinMainWindow"),
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -52,7 +52,7 @@ public:
             GWinInstance,
             nullptr
         );
-        GAppConfigs.set(AppConfigs::WinHandle, (i64)_window);
+        GAppConfigs.set((i32)AppConfigs::WinHandle, (i64)_window);
 
         _app = this;
     }

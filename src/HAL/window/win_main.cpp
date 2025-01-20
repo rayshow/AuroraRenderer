@@ -28,10 +28,10 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 	
 	for (i32 i = 0; i < argc; ++i)
 	{
-		WStringView param{ argv[i] };
+		StringView param{ argv[i] };
 		if (i == 0) {
 			param.strip().removeAfter(L'\\');
-			WString binDir{ param };
+			String binDir{ param };
 			GAppConfigs.set(AppConfigs::BinDir, binDir);
 			GAppConfigs.set(AppConfigs::InnerDataDir, binDir);
 			GAppConfigs.set(AppConfigs::ExternalDataDir, binDir);
@@ -43,12 +43,12 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 				auto pair = param.splitToTwo('=');
 				if (!pair.second.empty())
 				{
-					WString key{ pair.first.strip() };
-					WString second{ pair.second.strip() };
+					String key{ pair.first.strip() };
+					String second{ pair.second.strip() };
 					GAppConfigs.set(std::move(key), std::move(second));
 				}
 				else {
-					WString key{ param.strip() };
+					String key{ param.strip() };
 					GAppConfigs.addSwitch(key);
 				}
 			}
@@ -56,7 +56,7 @@ i32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR Cmd, i32 nCmdShow)
 	}
 
 	GAppConfigs.set(AppConfigs::AppHandle, (i64)hInstance);
-	GAppConfigs.set(AppConfigs::Commandline, String(Cmd));
+	GAppConfigs.set(AppConfigs::Commandline, AString(Cmd));
 	GAppConfigs.set(AppConfigs::WinWidth, 1000);
 	GAppConfigs.set(AppConfigs::WinHeight, 800);
 	GAppConfigs.set(AppConfigs::WinResizable, true);

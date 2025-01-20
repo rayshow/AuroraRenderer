@@ -4,7 +4,7 @@
 
 PROJECT_NAMESPACE_BEGIN
 
-bool DX12Shader::loadFromFile(WString const& path)
+bool DX12Shader::loadFromFile(Path const& path)
 {
     File file;
     if(file.open(path, EFileOption::Read))

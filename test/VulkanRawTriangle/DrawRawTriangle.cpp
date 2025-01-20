@@ -5,10 +5,12 @@
 
 #include"HAL/application.h"
 #include"core/type.h"
+#include "RHI/shader.h"
 using namespace _AR;
 std::vector<std::string> GCmdLines;
 
 #include"RHI/dx12/dx12_swapchain.h"
+#include"RHI/ShaderCompiler.h"
 #include"d3dx12.h"
 #include<d3dcompiler.h>
 #include<DirectXMath.h>
@@ -16,6 +18,15 @@ using namespace ar3d;
 
 
 static const u32 FrameCount = 2;
+
+class FTriangleShader: public Shader
+{
+	
+};
+
+
+AR_GLOBAL_SHADER(FTriangleShader, _LIT("shaders.hlsl"), _LIT("VSMain"), _LIT("vs_5_0"), D3DCOMPILE_DEBUG);
+
 
 struct Vertex
 {
@@ -68,10 +79,12 @@ public:
 			TRefCountPtr<ID3DBlob> vertexShader;
 			TRefCountPtr<ID3DBlob> pixelShader;
 
-			auto& workspacePath = GAppConfigs.get<WString>(AppConfigs::BinDir);
+			auto& workspacePath = GAppConfigs.get<String>(AppConfigs::BinDir);
+
+			 
 			
-			std::wstring vspath{workspacePath + L"shaders.hlsl"};
-			std::wstring pspath{workspacePath + L"shaders.hlsl"};
+			String vspath{workspacePath + L"shaders.hlsl"};
+			String pspath{workspacePath + L"shaders.hlsl"};
 
 	#if defined(_DEBUG)
 			// Enable better shader debugging with the graphics debugging tools.

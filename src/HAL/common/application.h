@@ -98,12 +98,12 @@ public:
         derive = static_cast<Derive*>(this);
 
         // dir and log system
-        internalDataDir = GAppConfigs.get<WString>(AppConfigs::InnerDataDir);
+        internalDataDir = GAppConfigs.get<String>(AppConfigs::InnerDataDir);
         externalStorageDir = GAppConfigs.get(AppConfigs::ExternalDataDir, externalStorageDir);
         tempDir = GAppConfigs.get(AppConfigs::TempDir, externalStorageDir);
 
         // setup logger system
-        WString loggerFileName{ externalStorageDir + L"log.txt"};
+        String loggerFileName{ externalStorageDir + L"log.txt"};
         FileSystem::renameExistsFile(loggerFileName);
         Logger::initialize(loggerFileName.c_str());
 
@@ -189,9 +189,9 @@ public:
     }
 
     // platform
-    virtual WString const& getExternalStorageDirectory() { return externalStorageDir; }
-    virtual WString const& getTempDirectory() { return tempDir; }
-    virtual WString const& getPlatformName(){ return None; }
+    virtual String const& getExternalStorageDirectory() { return externalStorageDir; }
+    virtual String const& getTempDirectory() { return tempDir; }
+    virtual String const& getPlatformName(){ return None; }
     virtual void* getNativeWindow(){return nullptr;}
     virtual void* getNativeApp(){return nullptr;}
 
@@ -213,13 +213,13 @@ private:
     double tickTime{};
     Timer timer{};
     TArray<IAppPlugin*> _plugins{};
-    WString externalStorageDir{};
-    WString tempDir{};
-    WString internalDataDir{};
+    String externalStorageDir{};
+    String tempDir{};
+    String internalDataDir{};
     //CRTP
     Derive* derive{};
 
-    inline static WString None{L"[None]"};
+    inline static String None{L"[None]"};
 };
 
 PROJECT_NAMESPACE_END

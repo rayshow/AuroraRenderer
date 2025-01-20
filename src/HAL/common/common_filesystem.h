@@ -246,12 +246,12 @@ public:
 
     //On success, the number of bytes written is returned.  On error, -1 is returned, and errno is set to indicate the error
     FileSize deriveRawWrite(const void* buf, FileSize bytesCount) {
-        return Derive::deriveRawWrite(buf, bytesCount);
+        return static_cast<Derive*>(this)->deriveRawWrite(buf, bytesCount);
     }
 
     //On success, the number of bytes read is returned.  On error, -1 is returned, and errno is set to indicate the error
      FileSize deriveRawRead(void* buf, FileSize bytesCount) {
-        return Derive::deriveRawRead(buf, bytesCount);
+        return static_cast<Derive*>(this)->deriveRawRead(buf, bytesCount);
     }
 
     bool newWriteFile(std::string path) {

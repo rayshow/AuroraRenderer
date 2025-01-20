@@ -10,8 +10,8 @@ class SHAHasher
 {
 protected:
     SHAHasher()=default;
-    virtual ~SHAHasher()=default;
 public:
+    virtual ~SHAHasher()=default;
     virtual void add(u8 const* buffer, usize size )=0;
     virtual void get(u8 (&bytes)[20])=0;
     static TUniquePtr<SHAHasher> create(); 

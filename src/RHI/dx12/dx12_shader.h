@@ -12,7 +12,7 @@ private:
     TRefCountPtr<ID3DBlob> _object;
 public:
 
-    bool loadFromFile(WString const& path);
+    bool loadFromFile(Path const& path);
 
     void initialize();
     

@@ -286,12 +286,18 @@ C++20: 202002L
 	#define ARAssert(expr)
 #endif // end AR_DEBUG
 
-#define PP_CONNECT2(x,y) PP_CONNECT2_HELPER1(x, y)
-#define PP_CONNECT2_HELPER1(x, y ) PP_CONNECT2_HELPER2(x##y)
-#define PP_CONNECT2_HELPER2(result ) result
+#define AR_CONNECT2(x,y) AR_CONNECT2_HELPER1(x, y)
+#define AR_CONNECT2_HELPER1(x, y ) AR_CONNECT2_HELPER2(x##y)
+#define AR_CONNECT2_HELPER2(result ) result
 
 #define AR_STRINGIZE(...) AR_STRINGIZE_FAST(__VA_ARGS__)
 #define AR_STRINGIZE_FAST(...) #__VA_ARGS__
+
+#define AR_WIDE2(x) L##x
+#define AR_WIDE(x) AR_WIDE2(x)
+#define AR_WIDE_FILE AR_WIDE(__FILE__)
+#define AR_WIDE_LINE AR_WIDE(#__LINE__)
+
 
 #define _AR ar3d
 #define PROJECT_NAMESPACE_BEGIN namespace _AR{
@@ -306,6 +312,8 @@ AR_FORCEINLINE bool IsLittleEndian()
 	int t = 1;
 	return *((char*)&t) == 1;
 }
+
+#define _LIT(Text)  L##Text
 
 #define AR_THIS_CLASS(ClassName)  using this_type = ClassName;
 #define	AR_ATTRIBUTE(Type, Member)  \
