@@ -19,13 +19,14 @@ using namespace ar3d;
 
 static const u32 FrameCount = 2;
 
-class FTriangleShader: public Shader
-{
-	
-};
+#ifndef PROJECT_SOURCE_DIR
+#define PROJECT_SOURCE_DIR "."
+#endif
+
+class FTriangleShader: public Shader{};
 
 
-AR_GLOBAL_SHADER(FTriangleShader, _LIT("shaders.hlsl"), _LIT("VSMain"), _LIT("vs_5_0"), D3DCOMPILE_DEBUG);
+AR_GLOBAL_SHADER(FTriangleShader, _WIDE("shaders.hlsl"), _WIDE("VSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
 
 
 struct Vertex
@@ -80,9 +81,9 @@ public:
 			TRefCountPtr<ID3DBlob> pixelShader;
 
 			auto& workspacePath = GAppConfigs.get<String>(AppConfigs::BinDir);
+			std::string shaderPath{PROJECT_SOURCE_DIR};
+			AR_LOG(Info, "project source path: %s", shaderPath.c_str());
 
-			 
-			
 			String vspath{workspacePath + L"shaders.hlsl"};
 			String pspath{workspacePath + L"shaders.hlsl"};
 

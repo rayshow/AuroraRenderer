@@ -49,7 +49,7 @@ public:
 
 
 #define AR_GLOBAL_SHADER(Class, FileName, EntryPoint, Target, Flag ) \
-    static ShaderTypeInitializer<Class> TEst( L ## #Class, AR_WIDE_FILE ,  FileName, EntryPoint, Target, Flag)
+    static ShaderTypeInitializer<Class> Test( L ## #Class, AR_WIDE_FILE ,  FileName, EntryPoint, Target, Flag)
 
 
 PROJECT_NAMESPACE_END

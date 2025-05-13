@@ -313,7 +313,7 @@ AR_FORCEINLINE bool IsLittleEndian()
 	return *((char*)&t) == 1;
 }
 
-#define _LIT(Text)  L##Text
+#define _WIDE(Text)  L##Text
 
 #define AR_THIS_CLASS(ClassName)  using this_type = ClassName;
 #define	AR_ATTRIBUTE(Type, Member)  \

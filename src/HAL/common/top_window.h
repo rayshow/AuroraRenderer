@@ -42,7 +42,7 @@ public:
     {
         i32 width = GAppConfigs.get<i32>(AppConfigs::WinWidth, 1);
         i32 height = GAppConfigs.get<i32>(AppConfigs::WinHeight, 1);
-        static String defaultName{ _LIT("Aurora3d") };
+        static String defaultName{ AR_WIDE("Aurora3d") };
         String const& name = GAppConfigs.get<String>(AppConfigs::AppName, defaultName);
         properties.set_rect(I32Rect{ 0,0,width, height })
             .set_title(name)

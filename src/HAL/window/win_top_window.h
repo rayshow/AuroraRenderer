@@ -40,8 +40,8 @@ public:
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
         _window = CreateWindowW(
-            _LIT("WinMainWindow"),
-            _LIT("WinMainWindow"),
+            AR_WIDE("WinMainWindow"),
+            AR_WIDE("WinMainWindow"),
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
             CW_USEDEFAULT,
             CW_USEDEFAULT,

@@ -463,7 +463,7 @@ public:
         if (isFileExists(fullFilename)) {
             Str lastLogFileName = path;
             if constexpr ( std::is_same_v<Str, String> ) {
-                lastLogFileName += _LIT("_2")+ filename;
+                lastLogFileName += AR_WIDE("_2")+ filename;
             }else {
                 lastLogFileName += "_2"+ filename;
             }
