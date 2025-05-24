@@ -15,9 +15,10 @@ public:
         _window->initialize();
 
         EExitCode code = Super::initialize();
-        
-        _window->show();
-        return EExitCode::Success;
+        if (code == EExitCode::Success) {
+            _window->show();
+        }
+        return code;
     }
 
     void tick(f64 time) {

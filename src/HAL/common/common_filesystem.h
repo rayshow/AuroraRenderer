@@ -180,8 +180,8 @@ public:
         return "NotImplements";
     }
     
-    const char* getError(const char* buf, i32 size) const {
-        return _lastErrorCode == EError::Platform ? getPlatformError(buf, size) : kErrorMsg[_lastErrorCode];
+    const char* getError(char* buf, i32 size) const {
+        return _lastErrorCode == EError::Platform ? static_cast<const Derive*>(this)->getPlatformError(buf, size) : kErrorMsg[_lastErrorCode];
     }
 
     u32 getPlatformErrorCode() const {
@@ -234,24 +234,24 @@ public:
 
     // should overwrite
     FileSize rawWrite(const void* buf, FileSize count) {
-        ARAssert(false);
-        return 0;
+        return static_cast<Derive*>(this)->deriveRawWrite(buf, count);
     }
 
     // should overwrite
-    FileSize rawRead(void* buf, FileSize bytesCount) {
+    FileSize rawRead(void* buf, FileSize count) {
+        return static_cast<Derive*>(this)->deriveRawRead(buf, count);
+    }
+
+    //On success, the number of bytes written is returned.  On error, -1 is returned, and errno is set to indicate the error
+    FileSize deriveRawWrite(const void* buf, FileSize count) {
         ARAssert(false);
         return 0;
     }
 
-    //On success, the number of bytes written is returned.  On error, -1 is returned, and errno is set to indicate the error
-    FileSize deriveRawWrite(const void* buf, FileSize bytesCount) {
-        return static_cast<Derive*>(this)->deriveRawWrite(buf, bytesCount);
-    }
-
     //On success, the number of bytes read is returned.  On error, -1 is returned, and errno is set to indicate the error
-     FileSize deriveRawRead(void* buf, FileSize bytesCount) {
-        return static_cast<Derive*>(this)->deriveRawRead(buf, bytesCount);
+     FileSize deriveRawRead(void* buf, FileSize count) {
+        ARAssert(false);
+        return 0;
     }
 
     bool newWriteFile(std::string path) {
@@ -294,7 +294,7 @@ public:
         else if constexpr (is_serializible_base_type_v<R>) {
             FILE_SYSTEM_DEBUG_LOG("==> write pod");
             FileSize size = sizeof(T);
-            succ = deriveRawWrite(std::addressof(t), size) == size;
+            succ = rawWrite(std::addressof(t), size) == size;
 
         }
         FILE_SYSTEM_DEBUG_LOG("==> write succ:%d", (int)succ);
@@ -330,7 +330,7 @@ public:
         }
         else if constexpr (std::is_void_v<T>) {
             // raw bytes
-            return length == deriveRawWrite(array, length);
+            return length == rawWrite(array, length);
         }
         else if constexpr (is_raw_string_v<T>) {
             // raw-string array
@@ -347,7 +347,7 @@ public:
             FILE_SYSTEM_DEBUG_LOG("==> writeArray<pod>");
             constexpr i32 kTypeSize = sizeof(T);
             FileSize byteSize = kTypeSize * length;
-            return byteSize == deriveRawWrite(reinterpret_cast<void const*>(array), byteSize);
+            return byteSize == rawWrite(reinterpret_cast<void const*>(array), byteSize);
         }
         return false;
     }
@@ -421,7 +421,7 @@ public:
         else if constexpr (is_serializible_base_type_v<T>) {
             FILE_SYSTEM_DEBUG_LOG("==> read pod");
             constexpr usize size = sizeof(T);
-            succ = this->deriveRawRead(const_cast<std::remove_const_t<R>*>(std::addressof(t)), size) == size;
+            succ = this->rawRead(const_cast<std::remove_const_t<R>*>(std::addressof(t)), size) == size;
         }
         if constexpr (has_to_string_v<R>) {
             FILE_SYSTEM_DEBUG_LOG("==> read T:%d, value:%s ", (int)succ, GET_OBJECT_RAW_STRING(t));
@@ -490,12 +490,12 @@ public:
         else if constexpr (std::is_void_v<T>) {
             //raw bytes
             FILE_SYSTEM_DEBUG_LOG("==> readArray<rawBytes>");
-            succ = deriveRawRead(buffer, readLength);
+            succ = rawRead(buffer, readLength);
         }
         else if constexpr (is_char_v<T>) {
             //raw-string
             FILE_SYSTEM_DEBUG_LOG("==> readArray<char>");
-            if (!deriveRawRead(buffer, readLength)) {
+            if (!rawRead(buffer, readLength)) {
                 return false;
             }
             buffer[readLength] = 0;
@@ -516,7 +516,7 @@ public:
             FILE_SYSTEM_DEBUG_LOG("==> readArray<pod>");
             constexpr i32 kTypeSize = sizeof(T);
             FileSize byteSize = kTypeSize * readLength;
-            succ = (byteSize == deriveRawRead(buffer, byteSize));
+            succ = (byteSize == rawRead(buffer, byteSize));
         }
         array = buffer;
         return succ;
@@ -571,7 +571,7 @@ public:
         if (length == 0) return true;
         str.resize(length);
         ARAssert(str.size() == length);
-        return  length == deriveRawRead(reinterpret_cast<void*>(str.data()), length);
+        return  length == rawRead(reinterpret_cast<void*>(str.data()), length);
     }
 
     template<typename T, typename Allocator, typename = std::enable_if_t< is_deserializible_v<T, FileType> || is_std_string_v<T> >>
@@ -597,7 +597,7 @@ public:
         else if constexpr (is_serializible_base_type_v<T>) {
             FILE_SYSTEM_DEBUG_LOG("==> read std::vector<pod>");
             FileSize byteSize = kTypeSize * length;
-            return byteSize == deriveRawRead(reinterpret_cast<void*>(array.data()), byteSize);
+            return byteSize == rawRead(reinterpret_cast<void*>(array.data()), byteSize);
         }
         return false;
     }

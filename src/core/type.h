@@ -211,6 +211,126 @@ static EStringCmp cmpResult(i32 result)
     }
 }
 
+template<typename Char>
+constexpr Char kEndline;
+
+
+template<typename Char> 
+struct RawStrOps
+{
+    constexpr static bool kIsWide = is_wchar_v<Char>;
+
+    static Char const* empty() {
+        if constexpr (kIsWide) {
+            return L"";
+        }
+        else {
+            return "";
+        }
+    }
+
+    static Char const* endline() {
+        if constexpr (kIsWide) {
+            return L"\n";
+        }
+        else {
+            return "\n";
+        }
+    }
+
+
+    static usize length(Char const* str) {
+        if constexpr (kIsWide) {
+            return wcslen(str);
+        }
+        else {
+            return strlen(str);
+        }
+    }
+
+    static usize length(Char const* str, usize length) {
+        if constexpr (kIsWide) {
+            return wcsnlen_s(str, length);
+        }
+        else {
+            return strnlen_s(str, length);
+        }
+    }
+
+    static Char* copy(Char const* str) {
+        if constexpr (kIsWide) {
+            return _wcsdup(str);
+        }
+        else {
+            return _strdup(str);
+        }
+    }
+
+    static EStringCmp compare(Char const* str1, Char const* str2) {
+        if constexpr (kIsWide) {
+            return cmpResult(wcscmp(str1, str2));
+        }
+        else {
+            return cmpResult(strcmp(str1, str2));
+        }
+    }
+
+    static EStringCmp compare(Char const* str1, Char const* str2, usize n) {
+        if constexpr (kIsWide) {
+            return cmpResult(wcsncmp(str1, str2));
+        }
+        else {
+            return cmpResult(strncmp(str1, str2));
+        }
+    }
+
+    static i32 vprintf(Char* buffer, usize length, Char const* format, va_list vargs) {
+        if constexpr (kIsWide) {
+            return _vsnwprintf_s(buffer, length, length, format, vargs);
+        }
+        else {
+            return _vsnprintf_s(buffer, length, length, format, vargs);
+        }
+    }
+
+    static i32 vprintf_vargs(Char* buffer, usize length, Char const* format, ...) {
+        va_list vargs;
+        va_start(vargs, format);
+        i32 len = vprintf(buffer, length, format, vargs);
+        va_end(vargs);
+        return len;
+    }
+
+    template<typename... Args>
+    static i32 printf(Char* buffer, usize length, Char const* format, Args&&... args) {
+        return vprintf_vargs(buffer, length, format, std::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    static i32 vfprintf(FILE* file, Char const* format, va_list vargs) {
+        if constexpr (kIsWide) {
+            return std::vfwprintf(file, format, vargs);
+        }
+        else {
+            return std::vfprintf(file, format, vargs);
+        }
+    }
+
+    static i32 fprintf_vargs(FILE* file, Char const* format, ...) {
+        va_list vargs;
+        va_start(vargs, format);
+        i32 len = vfprintf(file, format, vargs);
+        va_end(vargs);
+        return len;
+    }
+
+    template<typename... Args>
+    static i32 fprintf(FILE* file, Char const* format, Args&&... args) {
+        return fprintf_vargs(file, format, std::forward<Args>(args)...);
+    }
+};
+
+/*
 template<typename Char> struct RawStrOps;
 
 template<>
@@ -252,6 +372,10 @@ struct RawStrOps<wchar>
     static wchar const* empty(){
         return L"";
     } 
+
+    static wchar const* endline() {
+        return L"\n";
+    }
     
     static usize length(wchar const* str)
     {
@@ -280,10 +404,18 @@ struct RawStrOps<wchar>
         return cmpResult( wcsncmp(str1, str2, n));
     }
 
-    static void format(wchar* buffer, usize length,  wchar const* format, va_list vargs) {
+    static void vformat(wchar* buffer, usize length,  wchar const* format, va_list vargs) {
         _vsnwprintf_s( buffer, length, length, format, vargs);
     }
+
+    template<typename... Args>
+    static void format(const char* fmt, Args... args)
+    {
+        
+    }
 };
+*/
+
 
 template<typename From, typename To>
 struct RawStrConvert {};
@@ -366,11 +498,9 @@ public:
         return ThisType{*this, pos, length};
     }
 
-    void localFormat(Char const* format, ...) {
-        va_list vargs;
-        va_start(vargs, format);
-        RawStrOps<Char>::format( Super::data(), Super::length(), format, vargs);
-        va_end(vargs);
+    template<typename ... Args>
+    void localFormat(Char const* format, Args&&... args) {
+        RawStrOps<Char>::printf(Super::data(), Super::length(), format, std::forward<Args>(args)...);
     }
 
     template<typename ... Args>

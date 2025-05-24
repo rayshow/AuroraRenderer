@@ -8,6 +8,7 @@
 #include<limits>
 //#include"win_system_call.h"
 #include"../common/common_filesystem.h"
+#include"win_system_call.h"
 
 PROJECT_NAMESPACE_BEGIN
 
@@ -110,37 +111,6 @@ private:
     static constexpr HANDLE kInvalidHandle = INVALID_HANDLE_VALUE;
     static constexpr i32 kOnceReadWriteBytes = kIntMax<i32>;
 
-    template<typename Char>
-    Char const* GetLastErrorAsString(DWORD messageID, Char* buffer, size_t bufferSize) {
-        if (bufferSize == 0) { return ""; }
-        DWORD cchMsg = 0;
-        if constexpr (is_wchar_v<Char>) {
-            cchMsg = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                     NULL,  /* (not used with FORMAT_MESSAGE_FROM_SYSTEM) */
-                                     messageID,
-                                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                                     buffer,
-                                     bufferSize,
-                                     NULL);
-            if (cchMsg == 0) {
-                return _WIDE("No Message Found");
-            }
-        }else {
-            cchMsg = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                     NULL,  /* (not used with FORMAT_MESSAGE_FROM_SYSTEM) */
-                                     messageID,
-                                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                                     buffer,
-                                     bufferSize,
-                                     NULL);
-            if (cchMsg == 0) {
-                return "No Message Found";
-            }
-        }
-        return buffer;
-    }
-
-    
     bool _setLastError(EError code) {
         return Super::_setLastError(code, code == EError::Platform ? GetLastError() : 0);
     }
@@ -212,14 +182,14 @@ public:
     }
 
     template<typename Char>
-    const Char* getPlatformError(const Char* buf, u32 bufSize)
+    const Char* getPlatformError(Char* buf, u32 bufSize) const
     {
-        return GetLastErrorAsString(GetLastError(), buf, bufSize);
+        u32 size = WinSystemCall::GetSystemMessage(GetLastError(), buf, bufSize);
+        return size == 0 ? "System Message Not Found" : buf;
     }
 
     template<typename Str, ArCheckType(Str, is_string)>
     bool open(Str const& filepath, EFileOption option) {
-        DWORD access = 0;
         bool hasRead = EnumHasAnyFlags(option, EFileOption::Read);
         bool hasWrite = EnumHasAnyFlags(option, EFileOption::Write);
 
@@ -259,9 +229,9 @@ public:
         }
         
         if constexpr(is_wide_string_v<Str>) {
-            _handle = CreateFileW(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+            _handle = CreateFileW(filepath.c_str(), accessMode, shareMode, nullptr, createMode, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
         }else {
-            _handle = CreateFileA(filepath.c_str(), access, shareMode, nullptr, createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+            _handle = CreateFileA(filepath.c_str(), accessMode, shareMode, nullptr, createMode, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
         }
 
         if (!isValid())

@@ -8,44 +8,34 @@ PROJECT_NAMESPACE_BEGIN
 
 struct WinSystemCall
 {
-    u32 getLastErrorCode()
+    static u32 getLastErrorCode()
     {
         return GetLastError();
     }
 
-    template<class Str, ArCheckType(Str, is_string)>
-    Str getLastErrorString() {
-        DWORD errorCode = GetLastError();
-        DWORD dwChars;
-        constexpr u32 kBufferSize = 512;
-
-        if constexpr(std::is_same_v<Str, WString>) {
-            wchar   wszMsgBuff[kBufferSize]; 
-            dwChars = FormatMessageW(
-                FORMAT_MESSAGE_FROM_SYSTEM |
-                FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL,
-                errorCode,
-                0,
-                wszMsgBuff,
-                kBufferSize,
+    template<typename Char>
+    static DWORD GetSystemMessage(DWORD messageID, Char* buffer, u32 bufferSize) {
+        DWORD cchMsg = 0;
+        if constexpr (is_wchar_v<Char>) {
+            cchMsg = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,  /* (not used with FORMAT_MESSAGE_FROM_SYSTEM) */
+                messageID,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                buffer,
+                bufferSize,
                 NULL);
-            return WString{ wszMsgBuff, dwChars };    
-        }else {
-            char   wszMsgBuff[kBufferSize];  // Buffer for text.
-            dwChars = FormatMessageA(
-                FORMAT_MESSAGE_FROM_SYSTEM |
-                FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL,
-                errorCode,
-                0,
-                wszMsgBuff,
-                kBufferSize,
-                NULL);
-            return String{ wszMsgBuff, dwChars };    
         }
+        else {
+            cchMsg = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL,  /* (not used with FORMAT_MESSAGE_FROM_SYSTEM) */
+                messageID,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                buffer,
+                bufferSize,
+                NULL);
+        }
+        return cchMsg;
     }
-  
 };
 
 PROJECT_NAMESPACE_END

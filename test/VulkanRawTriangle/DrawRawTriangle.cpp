@@ -108,8 +108,8 @@ public:
 			
 			if(file.rawRead(buffer.data(), buffer.size()) < 0)
 			{
-				AR_LOG(Fatal, "failed to read file %s error:%s", vspath.c_str(), file.getError(ErrorMessage, 256));
-				return EExitCode::Fatal;
+				AR_LOG(Fatal, _WIDE("failed to read file %s error:%s"), vspath.c_str(), file.getError(ErrorMessage, 256));
+				//return EExitCode::Fatal;
 			}
 
 			

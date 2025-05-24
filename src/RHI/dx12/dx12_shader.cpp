@@ -21,6 +21,7 @@ bool DX12Shader::loadFromFile(Path const& path)
     {
         AR_LOG(Error, "error open file %ls because: %s", path.c_str(), file.getError(ErrorMessage, 256));
     }
+    return true;
 }
 
 
