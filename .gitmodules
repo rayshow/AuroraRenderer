@@ -1,0 +1,3 @@
+[submodule "third-party/ShaderConductor"]
+	path = third-party/ShaderConductor
+	url = https://github.com/microsoft/ShaderConductor.git

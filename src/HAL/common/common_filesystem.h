@@ -104,7 +104,7 @@ public:
         InvalidSeek,
         NegtiveSeek,
         Unkown,
-        Custom,
+        Platform,
         Count
     };
 
@@ -125,7 +125,6 @@ protected:
     i64         _size{};
     i64         _current{};
     EFileOption _option{};
-    const char* _lastErrorMsg{};
     EError      _lastErrorCode{};
     u32         _platformErrorCode{};
 
@@ -139,7 +138,6 @@ protected:
     bool _setLastError(EError error, u32 platformCode = 0 ) {
         if (error < EError::Count) {
             _lastErrorCode = error;
-            _lastErrorMsg = kErrorMsg[error];
             _platformErrorCode = platformCode;
         }
         return false;
@@ -155,7 +153,6 @@ public:
         : _size{ Other._size }
         , _current{Other._current}
         , _option{Other._option}
-        , _lastErrorMsg{Other._lastErrorMsg}
         , _lastErrorCode{Other._lastErrorCode}
         , _platformErrorCode{ Other._platformErrorCode }
     {
@@ -166,7 +163,6 @@ public:
         _size = Other._size;
         _current = Other._current;
         _option = Other._option;
-        _lastErrorMsg = Other._lastErrorMsg;
         _lastErrorCode = Other._lastErrorCode;
         _platformErrorCode = Other._platformErrorCode;
         Other._reset();
@@ -180,8 +176,12 @@ public:
         return _current;
     }
 
-    const char* getError() const {
-        return _lastErrorMsg ? _lastErrorMsg : "(None Error)";
+    const char* getPlatformError() const {
+        return "NotImplements";
+    }
+    
+    const char* getError(const char* buf, i32 size) const {
+        return _lastErrorCode == EError::Platform ? getPlatformError(buf, size) : kErrorMsg[_lastErrorCode];
     }
 
     u32 getPlatformErrorCode() const {

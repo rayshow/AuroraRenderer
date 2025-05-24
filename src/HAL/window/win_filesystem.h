@@ -110,20 +110,39 @@ private:
     static constexpr HANDLE kInvalidHandle = INVALID_HANDLE_VALUE;
     static constexpr i32 kOnceReadWriteBytes = kIntMax<i32>;
 
-    bool _setWindowErrorCode()
-    {
-        DWORD errorCode = GetLastError();
-        switch (errorCode) {
-        case ERROR_NEGATIVE_SEEK:
-            Super::_setLastError(EError::NegtiveSeek);
-        default:
-            Super::_setLastError(EError::Custom, errorCode);
+    template<typename Char>
+    Char const* GetLastErrorAsString(DWORD messageID, Char* buffer, size_t bufferSize) {
+        if (bufferSize == 0) { return ""; }
+        DWORD cchMsg = 0;
+        if constexpr (is_wchar_v<Char>) {
+            cchMsg = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                     NULL,  /* (not used with FORMAT_MESSAGE_FROM_SYSTEM) */
+                                     messageID,
+                                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                     buffer,
+                                     bufferSize,
+                                     NULL);
+            if (cchMsg == 0) {
+                return _WIDE("No Message Found");
+            }
+        }else {
+            cchMsg = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                     NULL,  /* (not used with FORMAT_MESSAGE_FROM_SYSTEM) */
+                                     messageID,
+                                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                     buffer,
+                                     bufferSize,
+                                     NULL);
+            if (cchMsg == 0) {
+                return "No Message Found";
+            }
         }
-        return false;
+        return buffer;
     }
 
+    
     bool _setLastError(EError code) {
-        return Super::_setLastError(code);
+        return Super::_setLastError(code, code == EError::Platform ? GetLastError() : 0);
     }
 
     DWORD _getWindowSeekOption(EFileSeek seekOption) {
@@ -192,6 +211,12 @@ public:
         }
     }
 
+    template<typename Char>
+    const Char* getPlatformError(const Char* buf, u32 bufSize)
+    {
+        return GetLastErrorAsString(GetLastError(), buf, bufSize);
+    }
+
     template<typename Str, ArCheckType(Str, is_string)>
     bool open(Str const& filepath, EFileOption option) {
         DWORD access = 0;
@@ -219,7 +244,7 @@ public:
         }
         else{ 
             bool bCreateNotExists = EnumHasAnyFlags(option, EFileOption::CreateIfNoExists);
-            bool bTrunc = EnumHasAnyFlags(option, EFileOption::Read);
+            bool bTrunc = EnumHasAnyFlags(option, EFileOption::Trunc);
             if (!bCreateNotExists) {
                 if (bTrunc) {
                     createMode = TRUNCATE_EXISTING;
@@ -241,10 +266,12 @@ public:
 
         if (!isValid())
         {
-            return _setWindowErrorCode();
+            _setLastError(EError::Platform);
+            return false;
         }
         if (!_fileStat.setup(_handle)) {
-            return _setWindowErrorCode();
+            _setLastError(EError::Platform);
+            return false;
         }
 
         bool bAppend = EnumHasAnyFlags(option, EFileOption::Append);
@@ -311,25 +338,11 @@ public:
      * are actually available right now (maybe because we were close to
      * end-of-file,
      */
-    FILE_SYSTEM_INLINE u64 rawRead(void* buf, FileSize bytesCount) {
-        FileSize remainBytes = bytesCount;
-        FileSize readBytes = 0;
-        for (; remainBytes > kOnceReadWriteBytes; remainBytes -= kOnceReadWriteBytes)
-        {
-            i32 onceReadBytes = 0;
-            if (!ReadFile(_handle, buf + readBytes, kOnceReadWriteBytes, &onceReadBytes, nullptr)) {
-                return -1;
-            }
-            ARAssert(onceReadBytes == kOnceReadWriteBytes);
-            readBytes += kOnceReadWriteBytes;
-        }
-        if (remainBytes) {
-            i32 onceReadBytes = 0;
-            if (!WriteFile(_handle, buf + readBytes, remainBytes, &onceReadBytes, nullptr)) {
-                return -1;
-            }
-            ARAssert(remainBytes == onceReadBytes);
-            readBytes += remainBytes;
+    FILE_SYSTEM_INLINE i64 rawRead(void* buf, FileSize bytesCount) {
+        DWORD readBytes = 0;
+        if (!ReadFile(_handle, buf, bytesCount, &readBytes, nullptr)) {
+            _setLastError(EError::Platform);
+            return -1;
         }
         ARAssert(readBytes == bytesCount);
         return readBytes;

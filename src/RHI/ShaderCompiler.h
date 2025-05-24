@@ -11,7 +11,7 @@ struct ShaderMetaData
     String _sourcePath{};
     String _path{};
     String _entryPoint{};
-    String _target{};
+    String _targetPath{};
     u32 flag{};
 };
 
@@ -20,6 +20,8 @@ class ShaderTypeMap
     using iterator = typename TMap< String, ShaderMetaData>::iterator;
 private:
     TMap< String, ShaderMetaData> _shaderMetaDatas;
+    std::string sourceDir{};
+    std::string destDir{};
 public:
     void add(String const& name,ShaderMetaData&& metaData);
     static ShaderTypeMap& instance();
@@ -49,7 +51,7 @@ public:
 
 
 #define AR_GLOBAL_SHADER(Class, FileName, EntryPoint, Target, Flag ) \
-    static ShaderTypeInitializer<Class> Test( L ## #Class, AR_WIDE_FILE ,  FileName, EntryPoint, Target, Flag)
+    static ShaderTypeInitializer<Class> Test( L ## #Class, AR_WIDE_FILE, FileName, EntryPoint, Target, Flag)
 
 
 PROJECT_NAMESPACE_END
@@ -62,7 +64,7 @@ struct std::hash<_AR::ShaderMetaData>
     {
         return std::hash<_AR::String>{}(metaData._path) ^
             std::hash<_AR::String>{}(metaData._entryPoint) ^
-                std::hash<_AR::String>{}(metaData._target) ^
+                std::hash<_AR::String>{}(metaData._targetPath) ^
                     std::hash<_AR::u32>{}(metaData.flag);
     }
 };

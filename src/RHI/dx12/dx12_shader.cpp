@@ -7,18 +7,19 @@ PROJECT_NAMESPACE_BEGIN
 bool DX12Shader::loadFromFile(Path const& path)
 {
     File file;
+    char ErrorMessage[256] = {0};
     if(file.open(path, EFileOption::Read))
     {
         u64 size = file.size();
         std::vector<u8> data(size);
         if( !AREnsure( file.read(data)))
         {
-            AR_LOG(Error, "error load data from file %ls because: %s", path.c_str(), file.getError());
+            AR_LOG(Error, "error load data from file %ls because: %s", path.c_str(), file.getError(ErrorMessage, 256));
             return false;
         }
     }else
     {
-        AR_LOG(Error, "error open file %ls because: %s", path.c_str(), file.getError());
+        AR_LOG(Error, "error open file %ls because: %s", path.c_str(), file.getError(ErrorMessage, 256));
     }
 }
 

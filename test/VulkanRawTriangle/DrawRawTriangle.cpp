@@ -14,6 +14,7 @@ std::vector<std::string> GCmdLines;
 #include"d3dx12.h"
 #include<d3dcompiler.h>
 #include<DirectXMath.h>
+#include<ShaderConductor.hpp>
 using namespace ar3d;
 
 
@@ -23,7 +24,10 @@ static const u32 FrameCount = 2;
 #define PROJECT_SOURCE_DIR "."
 #endif
 
-class FTriangleShader: public Shader{};
+class FTriangleShader: public Shader
+{
+	
+};
 
 
 AR_GLOBAL_SHADER(FTriangleShader, _WIDE("shaders.hlsl"), _WIDE("VSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
@@ -81,11 +85,57 @@ public:
 			TRefCountPtr<ID3DBlob> pixelShader;
 
 			auto& workspacePath = GAppConfigs.get<String>(AppConfigs::BinDir);
-			std::string shaderPath{PROJECT_SOURCE_DIR};
-			AR_LOG(Info, "project source path: %s", shaderPath.c_str());
+			String projectPath{WIDE_PROJECT_SOURCE_DIR};
+			AR_LOG(Info, "project source path: %s", projectPath.c_str());
 
-			String vspath{workspacePath + L"shaders.hlsl"};
-			String pspath{workspacePath + L"shaders.hlsl"};
+			
+			String vspath{projectPath + L"/shaders.hlsl"};
+			String pspath{projectPath + L"/shaders.hlsl"};
+ 
+			ShaderConductor::Compiler::SourceDesc sourceDesc{};
+
+			File file{};
+			char ErrorMessage[256]={0};
+			
+			if(!file.open(vspath, EFileOption::Read))
+			{
+				AR_LOG(Fatal, "failed to open file %s with error", vspath.c_str(), file.getError(ErrorMessage, 256));
+				return EExitCode::Fatal;
+			}
+
+			TArray<char> buffer{};
+			buffer.resize(file.size());
+			
+			if(file.rawRead(buffer.data(), buffer.size()) < 0)
+			{
+				AR_LOG(Fatal, "failed to read file %s error:%s", vspath.c_str(), file.getError(ErrorMessage, 256));
+				return EExitCode::Fatal;
+			}
+
+			
+			
+			AString ansiPath{PROJECT_SOURCE_DIR};
+			ansiPath = ansiPath + + "/shaders.hlsl";
+			sourceDesc.stage = ShaderConductor::ShaderStage::VertexShader;
+			sourceDesc.entryPoint = "VSMain";
+			sourceDesc.fileName = ansiPath.c_str();
+			sourceDesc.source = buffer.data();
+			
+
+			
+			ShaderConductor::Compiler::Options options{};
+			options.disableOptimizations = true;
+			options.enable16bitTypes = true;
+			options.optimizationLevel = 0;
+			options.enableDebugInfo = true;
+			options.shaderModel = {6,0};
+
+			ShaderConductor::Compiler::TargetDesc targetDesc{};
+			targetDesc.language = ShaderConductor::ShadingLanguage::Dxil;
+			targetDesc.version = "vs_6_0";
+			
+			ShaderConductor::Compiler::ResultDesc result = ShaderConductor::Compiler::Compile(sourceDesc, options, targetDesc);
+			
 
 	#if defined(_DEBUG)
 			// Enable better shader debugging with the graphics debugging tools.
