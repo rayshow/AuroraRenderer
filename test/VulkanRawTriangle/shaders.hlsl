@@ -23,7 +23,7 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
     result.color = color;
 
     return result;
-}
+}//你好
 
 float4 PSMain(PSInput input) : SV_TARGET
 {

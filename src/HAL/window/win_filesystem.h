@@ -274,7 +274,7 @@ public:
 
 
     //On success, the number of bytes written is returned.  On error, -1 is returned, and errno is set to indicate the error
-    FileSize rawWrite(const void* buf, FileSize bytesCount) {
+    FileSize deriveRawWrite(const void* buf, FileSize bytesCount) {
         FileSize remainBytes = bytesCount;
         FileSize wroteBytes = 0;
         for (; remainBytes > kOnceReadWriteBytes; remainBytes -= kOnceReadWriteBytes)
@@ -308,7 +308,7 @@ public:
      * are actually available right now (maybe because we were close to
      * end-of-file,
      */
-    FILE_SYSTEM_INLINE i64 rawRead(void* buf, FileSize bytesCount) {
+    FILE_SYSTEM_INLINE i64 deriveRawRead(void* buf, FileSize bytesCount) {
         DWORD readBytes = 0;
         if (!ReadFile(_handle, buf, bytesCount, &readBytes, nullptr)) {
             _setLastError(EError::Platform);

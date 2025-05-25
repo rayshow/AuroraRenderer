@@ -86,13 +86,16 @@ public:
 
 			auto& workspacePath = GAppConfigs.get<String>(AppConfigs::BinDir);
 			String projectPath{WIDE_PROJECT_SOURCE_DIR};
-			AR_LOG(Info, "project source path: %s", projectPath.c_str());
+			const char* local = setlocale(LC_ALL, nullptr);
+			AR_LOG(Info, L"project source path: %s local:%s", projectPath.c_str(),  local);
+
+			
 
 			
 			String vspath{projectPath + L"/shaders.hlsl"};
 			String pspath{projectPath + L"/shaders.hlsl"};
  
-			ShaderConductor::Compiler::SourceDesc sourceDesc{};
+		
 
 			File file{};
 			char ErrorMessage[256]={0};
@@ -106,21 +109,39 @@ public:
 			TArray<char> buffer{};
 			buffer.resize(file.size());
 			
-			if(file.rawRead(buffer.data(), buffer.size()) < 0)
+			if(file.readIntoArray(buffer) < 0)
 			{
 				AR_LOG(Fatal, _WIDE("failed to read file %s error:%s"), vspath.c_str(), file.getError(ErrorMessage, 256));
-				//return EExitCode::Fatal;
+				return EExitCode::Fatal;
 			}
+
+			wchar transfer[1024]{ 0 };
+			u32 size = MultiByteToWideChar(CP_UTF8, 0, buffer.data(), buffer.size(), transfer, 1024);
+
+			char transfer2[4096]{ 0 };
+			u32 size2 = WideCharToMultiByte(CP_UTF8, 0, transfer, size, transfer2, 4096, nullptr, nullptr);
+			
+			wchar transfer3[1024]{ 0 };
+			//setlocale(LC_ALL, "en_US.UTF-8");
+			RawStrConvert<char, wchar>::convertTo(buffer.data(), transfer3, 1024);
 
 			
 			
 			AString ansiPath{PROJECT_SOURCE_DIR};
 			ansiPath = ansiPath + + "/shaders.hlsl";
-			sourceDesc.stage = ShaderConductor::ShaderStage::VertexShader;
-			sourceDesc.entryPoint = "VSMain";
-			sourceDesc.fileName = ansiPath.c_str();
-			sourceDesc.source = buffer.data();
+
+			ShaderConductor::Compiler::SourceDesc vsSourceDesc{};
+			vsSourceDesc.stage = ShaderConductor::ShaderStage::VertexShader;
+			vsSourceDesc.entryPoint = "VSMain";
+			vsSourceDesc.fileName = ansiPath.c_str();
+			vsSourceDesc.source = transfer2;
 			
+			ShaderConductor::Compiler::SourceDesc psSourceDesc{};
+			psSourceDesc.stage = ShaderConductor::ShaderStage::PixelShader;
+			psSourceDesc.entryPoint = "PSMain";
+			psSourceDesc.fileName = ansiPath.c_str();
+			psSourceDesc.source = transfer2;
+
 
 			
 			ShaderConductor::Compiler::Options options{};
@@ -128,24 +149,45 @@ public:
 			options.enable16bitTypes = true;
 			options.optimizationLevel = 0;
 			options.enableDebugInfo = true;
-			options.shaderModel = {6,0};
+			options.shaderModel = {6,2};
 
 			ShaderConductor::Compiler::TargetDesc targetDesc{};
 			targetDesc.language = ShaderConductor::ShadingLanguage::Dxil;
-			targetDesc.version = "vs_6_0";
+			targetDesc.version = "vs_6_2";
 			
-			ShaderConductor::Compiler::ResultDesc result = ShaderConductor::Compiler::Compile(sourceDesc, options, targetDesc);
+			ShaderConductor::Compiler::ResultDesc vsResult;
+			ShaderConductor::Compiler::ResultDesc psResult;
+			try {
+				vsResult = ShaderConductor::Compiler::Compile(vsSourceDesc, options, targetDesc);
+				psResult = ShaderConductor::Compiler::Compile(psSourceDesc, options, targetDesc);
+			}
+			catch (const std::runtime_error e) {
+				AR_LOG(Error, "shader conductor compile failed:%s", e.what());
+			}
+
+
+			if (vsResult.hasError) {
+				AR_LOG(Error, "shader conductor compile failed:%s", vsResult.errorWarningMsg.Data());
+			}
 			
 
 	#if defined(_DEBUG)
+
 			// Enable better shader debugging with the graphics debugging tools.
 			UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 	#else
 			UINT compileFlags = 0;
 	#endif
 
-			D3DCompileFromFile(vspath.c_str(), nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, vertexShader.getInitAddress(), nullptr);
-			D3DCompileFromFile(pspath.c_str(), nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, pixelShader.getInitAddress(), nullptr);
+			HRESULT hr = D3DCreateBlob(vsResult.target.Size(), vertexShader.getInitAddress());
+			HRESULT hr2 = D3DCreateBlob(psResult.target.Size(), pixelShader.getInitAddress());
+
+			if (SUCCEEDED(hr)) {
+				memcpy(vertexShader->GetBufferPointer(), vsResult.target.Data(), vsResult.target.Size());
+			}
+			if (SUCCEEDED(hr2)) {
+				memcpy(pixelShader->GetBufferPointer(), psResult.target.Data(), psResult.target.Size());
+			}
 			
 			// Describe and create the graphics pipeline state object (PSO).
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};

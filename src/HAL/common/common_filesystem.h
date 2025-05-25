@@ -249,9 +249,14 @@ public:
     }
 
     //On success, the number of bytes read is returned.  On error, -1 is returned, and errno is set to indicate the error
-     FileSize deriveRawRead(void* buf, FileSize count) {
+    FileSize deriveRawRead(void* buf, FileSize count) {
         ARAssert(false);
         return 0;
+    }
+
+    template<typename T>
+    FileSize readIntoArray(TArray<T>& arr) {
+        return rawRead(arr.data(), sizeof(T) * arr.size());
     }
 
     bool newWriteFile(std::string path) {
