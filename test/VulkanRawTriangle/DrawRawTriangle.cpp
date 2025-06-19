@@ -5,18 +5,15 @@
 
 #include"HAL/application.h"
 #include"core/type.h"
-#include "RHI/shader.h"
-using namespace _AR;
-std::vector<std::string> GCmdLines;
-
+#include"render_core/shader.h"
 #include"RHI/dx12/dx12_swapchain.h"
-#include"RHI/ShaderCompiler.h"
+#include"shader_compiler/shader_compiler.h"
 #include"d3dx12.h"
 #include<d3dcompiler.h>
 #include<DirectXMath.h>
 #include<ShaderConductor.hpp>
 using namespace ar3d;
-
+std::vector<std::string> GCmdLines;
 
 static const u32 FrameCount = 2;
 
@@ -24,13 +21,14 @@ static const u32 FrameCount = 2;
 #define PROJECT_SOURCE_DIR "."
 #endif
 
-class FTriangleShader: public Shader
+class FTriangleVSShader: public Shader
 {
-	
 };
-
-
-AR_GLOBAL_SHADER(FTriangleShader, _WIDE("shaders.hlsl"), _WIDE("VSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
+class FTrianglePSShader : public Shader
+{
+};
+AR_GLOBAL_SHADER(FTriangleVSShader, _WIDE("shaders.hlsl"), _WIDE("VSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
+AR_GLOBAL_SHADER(FTrianglePSShader, _WIDE("shaders.hlsl"), _WIDE("PSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
 
 
 struct Vertex
@@ -47,6 +45,10 @@ public:
  
 	virtual EExitCode initialize() override
 	{
+		bool ret = ShaderTypeMap::Instance().compile();
+		ARCheck(ret);
+
+
 		DX12Context& Context = DX12Context::getInstance();
 		_swapchain.create(FrameCount, 800, 600, true);
 
@@ -73,7 +75,7 @@ public:
 		{
 			CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 			rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-			_rootSignature = Context.createRootSignature(0, rootSignatureDesc );
+			_rootSignature = Context.createRootSignature(0, rootSignatureDesc);
 
 			D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 			{
@@ -85,48 +87,35 @@ public:
 			TRefCountPtr<ID3DBlob> pixelShader;
 
 			auto& workspacePath = GAppConfigs.get<String>(AppConfigs::BinDir);
-			String projectPath{WIDE_PROJECT_SOURCE_DIR};
-			const char* local = setlocale(LC_ALL, nullptr);
-			AR_LOG(Info, L"project source path: %s local:%s", projectPath.c_str(),  local);
+			String projectPath{ WIDE_PROJECT_SOURCE_DIR };
+			const char* local = setlocale(LC_ALL, NULL);
+			AR_LOG(Info, L"project source path: %s default local:%s, user space local:%s ", projectPath.c_str(), local);
 
-			
 
-			
-			String vspath{projectPath + L"/shaders.hlsl"};
-			String pspath{projectPath + L"/shaders.hlsl"};
- 
-		
+
+
+			String vspath{ projectPath + L"/shaders.hlsl" };
+			String pspath{ projectPath + L"/shaders.hlsl" };
+
+
 
 			File file{};
-			char ErrorMessage[256]={0};
-			
-			if(!file.open(vspath, EFileOption::Read))
+			char ErrorMessage[256] = { 0 };
+
+			if (!file.open(vspath, EFileOption::Read))
 			{
 				AR_LOG(Fatal, "failed to open file %s with error", vspath.c_str(), file.getError(ErrorMessage, 256));
 				return EExitCode::Fatal;
 			}
-
-			TArray<char> buffer{};
+ 
+			AString buffer{};
 			buffer.resize(file.size());
-			
-			if(file.readIntoArray(buffer) < 0)
+			if(file.readIntoString(buffer) < 0)
 			{
 				AR_LOG(Fatal, _WIDE("failed to read file %s error:%s"), vspath.c_str(), file.getError(ErrorMessage, 256));
 				return EExitCode::Fatal;
 			}
 
-			wchar transfer[1024]{ 0 };
-			u32 size = MultiByteToWideChar(CP_UTF8, 0, buffer.data(), buffer.size(), transfer, 1024);
-
-			char transfer2[4096]{ 0 };
-			u32 size2 = WideCharToMultiByte(CP_UTF8, 0, transfer, size, transfer2, 4096, nullptr, nullptr);
-			
-			wchar transfer3[1024]{ 0 };
-			//setlocale(LC_ALL, "en_US.UTF-8");
-			RawStrConvert<char, wchar>::convertTo(buffer.data(), transfer3, 1024);
-
-			
-			
 			AString ansiPath{PROJECT_SOURCE_DIR};
 			ansiPath = ansiPath + + "/shaders.hlsl";
 
@@ -134,15 +123,13 @@ public:
 			vsSourceDesc.stage = ShaderConductor::ShaderStage::VertexShader;
 			vsSourceDesc.entryPoint = "VSMain";
 			vsSourceDesc.fileName = ansiPath.c_str();
-			vsSourceDesc.source = transfer2;
+			vsSourceDesc.source = buffer.c_str();
 			
 			ShaderConductor::Compiler::SourceDesc psSourceDesc{};
 			psSourceDesc.stage = ShaderConductor::ShaderStage::PixelShader;
 			psSourceDesc.entryPoint = "PSMain";
 			psSourceDesc.fileName = ansiPath.c_str();
-			psSourceDesc.source = transfer2;
-
-
+			psSourceDesc.source = buffer.c_str();
 			
 			ShaderConductor::Compiler::Options options{};
 			options.disableOptimizations = true;
@@ -169,32 +156,23 @@ public:
 			if (vsResult.hasError) {
 				AR_LOG(Error, "shader conductor compile failed:%s", vsResult.errorWarningMsg.Data());
 			}
-			
-
-	#if defined(_DEBUG)
-
-			// Enable better shader debugging with the graphics debugging tools.
-			UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-	#else
-			UINT compileFlags = 0;
-	#endif
-
-			HRESULT hr = D3DCreateBlob(vsResult.target.Size(), vertexShader.getInitAddress());
-			HRESULT hr2 = D3DCreateBlob(psResult.target.Size(), pixelShader.getInitAddress());
-
-			if (SUCCEEDED(hr)) {
-				memcpy(vertexShader->GetBufferPointer(), vsResult.target.Data(), vsResult.target.Size());
+			if (psResult.hasError) {
+				AR_LOG(Error, "shader conductor compile failed:%s", vsResult.errorWarningMsg.Data());
 			}
-			if (SUCCEEDED(hr2)) {
-				memcpy(pixelShader->GetBufferPointer(), psResult.target.Data(), psResult.target.Size());
-			}
+
+			AR_LOG(Info, "vs size:%d ps size:%d", vsResult.target.Size(), psResult.target.Size());
+
+			Shader& vsshader = ShaderMap::GetGlobalShader<FTriangleVSShader>();
+			Shader& psshader = ShaderMap::GetGlobalShader<FTrianglePSShader>();
 			
 			// Describe and create the graphics pipeline state object (PSO).
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 			psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 			psoDesc.pRootSignature = _rootSignature.getReference();
-			psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.getReference());
-			psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.getReference());
+			psoDesc.VS.pShaderBytecode = vsshader.getCode();
+			psoDesc.VS.BytecodeLength = vsshader.getSize();
+			psoDesc.PS.pShaderBytecode = psshader.getCode();
+			psoDesc.PS.BytecodeLength = psshader.getSize();
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 			psoDesc.DepthStencilState.DepthEnable = FALSE;
