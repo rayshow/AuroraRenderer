@@ -29,7 +29,7 @@ target_compile_definitions(${ModuleName} PRIVATE
     "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR_ESCAPED}\""
 )
 
-target_link_libraries(${ModuleName} LINK_PUBLIC SRC ShaderConductorDyn shader_compiler)
+target_link_libraries(${ModuleName} LINK_PUBLIC SRC ShaderConductorDyn shader_compiler digest)
 
 add_custom_command ( TARGET ${ModuleName} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

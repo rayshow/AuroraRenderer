@@ -5,20 +5,20 @@
 
 PROJECT_NAMESPACE_BEGIN
 
-void ShaderTypeMap::add(String const& name, ShaderMetaData&& metaData) {
+void ShaderTypeMap::add(String&& name, ShaderMetaData&& metaData) {
 	auto iter = _shaderMetaDatas.find(name);
 	// exists
 	if (iter != _shaderMetaDatas.end()) {
-		AR_LOG(Fatal, "Shader type %ls already exists!", iter->second._path.c_str());
+		AR_LOG(Fatal, "Shader type %ls already exists!", iter->second.classPath.c_str());
 		return;
 	}
 	else {
-		_shaderMetaDatas[metaData._path] = std::move(metaData);
+		_shaderMetaDatas.emplace(std::move(name), std::move(metaData));
 	}
 }
 
 void ShaderMap::add(String&& name, Shader&& shader){
-	_mapData.emplace(name, shader);
+	_mapData.emplace(std::move(name), std::move(shader));
 }
 
 ShaderTypeMap& ShaderTypeMap::Instance(){
@@ -26,19 +26,49 @@ ShaderTypeMap& ShaderTypeMap::Instance(){
     return GShaderTypeMap;
 }
 
+ShaderConductor::ShaderStage GetShaderConductorStage(EShaderStage stage) {
+	switch (stage)
+	{
+	case ar3d::EShaderStage::VertexShader:
+		return ShaderConductor::ShaderStage::VertexShader;
+		break;
+	case ar3d::EShaderStage::PixelShader:
+		return ShaderConductor::ShaderStage::PixelShader;
+		break;
+	case ar3d::EShaderStage::GeometryShader:
+		return ShaderConductor::ShaderStage::GeometryShader;
+		break;
+	case ar3d::EShaderStage::HullShader:
+		return ShaderConductor::ShaderStage::HullShader;
+		break;
+	case ar3d::EShaderStage::DomainShader:
+		return ShaderConductor::ShaderStage::DomainShader;
+		break;
+	case ar3d::EShaderStage::ComputeShader:
+		return ShaderConductor::ShaderStage::ComputeShader;
+		break;
+	case ar3d::EShaderStage::MeshShader:
+		break;
+	default:
+		break;
+	}
+	// should not go here
+	ARCheck(false);
+}
+
 bool ShaderTypeMap::compile() {
     for (auto& pair : _shaderMetaDatas) {
         auto& item = pair.second;
-		AR_LOG(Info, "item :%s path:%s", pair.first.c_str(), pair.second._sourcePath.c_str());
+		AR_LOG(Info, "item :%s path:%s", pair.first.c_str(), pair.second.sourcePath.c_str());
 
-		wchar const* sourcePath = item._sourcePath.c_str();
-		AString entryPoint{ item._entryPoint };
+		AString entryPoint{ item.entryPoint };
+		AString sourcePath{ item.sourcePath };
 
 		char errorMessages[256];
 		errorMessages[255] = 0;
 
 		File file{};
-		if (!file.open(item._sourcePath, EFileOption::Read)) {
+		if (!file.open(item.sourcePath, EFileOption::Read)) {
 			AR_LOG(Fatal, "failed to open file %s with error", sourcePath, file.getError(errorMessages, 256));
 			return false;
 		}
@@ -51,9 +81,9 @@ bool ShaderTypeMap::compile() {
 		}
 
 		ShaderConductor::Compiler::SourceDesc sourceDesc{};
-		sourceDesc.stage = ShaderConductor::ShaderStage::VertexShader;
-		sourceDesc.entryPoint = "VSMain";
-		sourceDesc.fileName = entryPoint.c_str();
+		sourceDesc.stage = GetShaderConductorStage(item.stage);
+		sourceDesc.entryPoint = entryPoint.c_str();
+		sourceDesc.fileName = sourcePath.c_str();
 		sourceDesc.source = buffer.c_str();
 
 		ShaderConductor::Compiler::Options options{};
@@ -63,13 +93,19 @@ bool ShaderTypeMap::compile() {
 		options.enableDebugInfo = true;
 		options.shaderModel = {6,2};
 
+		ACharBuffer<12> versionBuffer{};
+		AConstRawStr kShaderPrefix[(i32)EShaderStage::NumShaderStages] = { "vs", "ps", "gs", "hs", "cs" };
+
+		versionBuffer.format("%s_%d_%d", kShaderPrefix[(i32)item.stage], 6, 2);
 		ShaderConductor::Compiler::TargetDesc targetDesc{};
 		targetDesc.language = ShaderConductor::ShadingLanguage::Dxil;
-		targetDesc.version = "vs_6_2";
+		targetDesc.version = versionBuffer.data;
+ 
 			
 		ShaderConductor::Compiler::ResultDesc result;
 		try {
 			result = ShaderConductor::Compiler::Compile(sourceDesc, options, targetDesc);
+			
 			if (result.hasError) {
 				AString errorMsg{ static_cast<const char*>(result.errorWarningMsg.Data()), result.errorWarningMsg.Size() };
 				AR_LOG(Error, "shader conductor compile failed:%s", errorMsg.c_str() );
@@ -80,7 +116,7 @@ bool ShaderTypeMap::compile() {
 			AR_LOG(Error, "shader conductor compile failed:%s", e.what());
 			return false;
 		}
-		ARCheck(result.target.Size() & 0b11 == 0);
+		ARCheckFormat((result.target.Size() & 3) == 0, "result.target.Size:%d should be multiple of 4", result.target.Size());
 
 		SHAHash hash = SHAHash::hash(result.target.Data(), result.target.Size());
 		TArray<u32> bytes{};

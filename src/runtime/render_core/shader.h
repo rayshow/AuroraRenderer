@@ -7,6 +7,19 @@ PROJECT_NAMESPACE_BEGIN
 
 using ByteCodes = TArray<u32>;
 
+enum class EShaderStage {
+    VertexShader,
+    PixelShader,
+    GeometryShader,
+    HullShader,
+    DomainShader,
+    ComputeShader,
+    MeshShader,
+    NumShaderStages,
+};
+
+
+
 class Shader
 {
 private:

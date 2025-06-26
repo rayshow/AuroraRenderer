@@ -23,12 +23,14 @@ static const u32 FrameCount = 2;
 
 class FTriangleVSShader: public Shader
 {
+	AR_DECLARE_GLOBAL_SHADER(FTriangleVSShader)
 };
 class FTrianglePSShader : public Shader
 {
+	AR_DECLARE_GLOBAL_SHADER(FTrianglePSShader)
 };
-AR_GLOBAL_SHADER(FTriangleVSShader, _WIDE("shaders.hlsl"), _WIDE("VSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
-AR_GLOBAL_SHADER(FTrianglePSShader, _WIDE("shaders.hlsl"), _WIDE("PSMain"), _WIDE("vs_5_0"), D3DCOMPILE_DEBUG);
+AR_IMPLEMENTS_GLOBAL_SHADER(FTriangleVSShader, _WIDE("shaders.hlsl"), _WIDE("VSMain"), EShaderStage::VertexShader, EShaderCompileFlag::Debug);
+AR_IMPLEMENTS_GLOBAL_SHADER(FTrianglePSShader, _WIDE("shaders.hlsl"), _WIDE("PSMain"), EShaderStage::PixelShader,  EShaderCompileFlag::Debug);
 
 
 struct Vertex
@@ -45,6 +47,12 @@ public:
  
 	virtual EExitCode initialize() override
 	{
+		setlocale(LC_ALL, kDefaultLocal);
+		const char* defaultLocale = kDefaultLocal;
+		const char* defaultLocale2 = kDefaultLocal;
+		AR_LOG(Info, "k:%p ref1:%p ref2:%p", kDefaultLocal, defaultLocale, defaultLocale2);
+
+
 		bool ret = ShaderTypeMap::Instance().compile();
 		ARCheck(ret);
 
@@ -83,85 +91,11 @@ public:
 				{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 			};
 
-			TRefCountPtr<ID3DBlob> vertexShader;
-			TRefCountPtr<ID3DBlob> pixelShader;
-
 			auto& workspacePath = GAppConfigs.get<String>(AppConfigs::BinDir);
 			String projectPath{ WIDE_PROJECT_SOURCE_DIR };
 			const char* local = setlocale(LC_ALL, NULL);
 			AR_LOG(Info, L"project source path: %s default local:%s, user space local:%s ", projectPath.c_str(), local);
-
-
-
-
-			String vspath{ projectPath + L"/shaders.hlsl" };
-			String pspath{ projectPath + L"/shaders.hlsl" };
-
-
-
-			File file{};
-			char ErrorMessage[256] = { 0 };
-
-			if (!file.open(vspath, EFileOption::Read))
-			{
-				AR_LOG(Fatal, "failed to open file %s with error", vspath.c_str(), file.getError(ErrorMessage, 256));
-				return EExitCode::Fatal;
-			}
  
-			AString buffer{};
-			buffer.resize(file.size());
-			if(file.readIntoString(buffer) < 0)
-			{
-				AR_LOG(Fatal, _WIDE("failed to read file %s error:%s"), vspath.c_str(), file.getError(ErrorMessage, 256));
-				return EExitCode::Fatal;
-			}
-
-			AString ansiPath{PROJECT_SOURCE_DIR};
-			ansiPath = ansiPath + + "/shaders.hlsl";
-
-			ShaderConductor::Compiler::SourceDesc vsSourceDesc{};
-			vsSourceDesc.stage = ShaderConductor::ShaderStage::VertexShader;
-			vsSourceDesc.entryPoint = "VSMain";
-			vsSourceDesc.fileName = ansiPath.c_str();
-			vsSourceDesc.source = buffer.c_str();
-			
-			ShaderConductor::Compiler::SourceDesc psSourceDesc{};
-			psSourceDesc.stage = ShaderConductor::ShaderStage::PixelShader;
-			psSourceDesc.entryPoint = "PSMain";
-			psSourceDesc.fileName = ansiPath.c_str();
-			psSourceDesc.source = buffer.c_str();
-			
-			ShaderConductor::Compiler::Options options{};
-			options.disableOptimizations = true;
-			options.enable16bitTypes = true;
-			options.optimizationLevel = 0;
-			options.enableDebugInfo = true;
-			options.shaderModel = {6,2};
-
-			ShaderConductor::Compiler::TargetDesc targetDesc{};
-			targetDesc.language = ShaderConductor::ShadingLanguage::Dxil;
-			targetDesc.version = "vs_6_2";
-			
-			ShaderConductor::Compiler::ResultDesc vsResult;
-			ShaderConductor::Compiler::ResultDesc psResult;
-			try {
-				vsResult = ShaderConductor::Compiler::Compile(vsSourceDesc, options, targetDesc);
-				psResult = ShaderConductor::Compiler::Compile(psSourceDesc, options, targetDesc);
-			}
-			catch (const std::runtime_error e) {
-				AR_LOG(Error, "shader conductor compile failed:%s", e.what());
-			}
-
-
-			if (vsResult.hasError) {
-				AR_LOG(Error, "shader conductor compile failed:%s", vsResult.errorWarningMsg.Data());
-			}
-			if (psResult.hasError) {
-				AR_LOG(Error, "shader conductor compile failed:%s", vsResult.errorWarningMsg.Data());
-			}
-
-			AR_LOG(Info, "vs size:%d ps size:%d", vsResult.target.Size(), psResult.target.Size());
-
 			Shader& vsshader = ShaderMap::GetGlobalShader<FTriangleVSShader>();
 			Shader& psshader = ShaderMap::GetGlobalShader<FTrianglePSShader>();
 			
@@ -170,9 +104,9 @@ public:
 			psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 			psoDesc.pRootSignature = _rootSignature.getReference();
 			psoDesc.VS.pShaderBytecode = vsshader.getCode();
-			psoDesc.VS.BytecodeLength = vsshader.getSize();
+			psoDesc.VS.BytecodeLength = vsshader.getSize() * 4;
 			psoDesc.PS.pShaderBytecode = psshader.getCode();
-			psoDesc.PS.BytecodeLength = psshader.getSize();
+			psoDesc.PS.BytecodeLength = psshader.getSize() * 4;
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 			psoDesc.DepthStencilState.DepthEnable = FALSE;

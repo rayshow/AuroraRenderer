@@ -13,7 +13,7 @@ set_target_properties(ShaderConductorDyn PROPERTIES IMPORTED_IMPLIB_RELEASE ${Sh
 file(GLOB_RECURSE HEADERS LIST_DIRECTORIES TRUE  "*.h")
 file(GLOB_RECURSE CPP_FILES LIST_DIRECTORIES TRUE "*.cpp")
 add_library(${ModuleName} STATIC ${CPP_FILES} ${HEADERS})
-target_link_libraries(${ModuleName} LINK_PUBLIC SRC ShaderConductorDyn)
+target_link_libraries(${ModuleName} LINK_PUBLIC SRC ShaderConductorDyn digest)
 target_include_directories(${ModuleName} PUBLIC ${PROJECT_SOURCE_DIR}/src/runtime)
 target_include_directories(${ModuleName} PUBLIC ${CMAKE_SOURCE_DIR}/third-party/binaries/ShaderConductor/Include)
 set_cpp_options(${ModuleName} 20 TRUE)

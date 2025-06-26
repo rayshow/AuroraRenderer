@@ -1,4 +1,4 @@
-project(HashLibrary)
+project(hash_library)
 file(GLOB_RECURSE HEADERS "*.h")
 file(GLOB_RECURSE CPPS "*.cpp")
 add_library(${PROJECT_NAME} STATIC ${CPPS} ${HEADERS})

@@ -63,6 +63,11 @@ using f32 =  float;
 using wchar   = wchar_t;
 using char16  = char16_t;
 using char32  = char32_t;
+using ARawStr = char*;
+using AConstRawStr = char const*;
+using WRawStr = wchar*;
+using WConstRawStr = wchar const*;
+
 
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
@@ -346,21 +351,13 @@ struct RawStrConvert<wchar_t, char>
         return std::wcsrtombs(nullptr, &source, 0, &state);
     }
 
-    static usize convert(wchar_t const* source, char* dest, usize destSize, const char* locale = kDefaultLocal) {
+    static usize convert(wchar_t const* source, char* dest, usize destSize) {
         std::mbstate_t state{};
-        return This::convert(source, dest, destSize, state, locale);
+        return This::convert(source, dest, destSize, state);
     }
 
-    static usize convert(wchar_t const* source, char* dest, usize destSize, std::mbstate_t& state, const char* locale = kDefaultLocal) {
-        const char* current = nullptr;
-        if (locale != kDefaultLocal) {
-            current = setlocale(LC_CTYPE, nullptr);
-            setlocale(LC_CTYPE, locale);
-        }
+    static usize convert(wchar_t const* source, char* dest, usize destSize, std::mbstate_t& state) {
         usize actualSize = std::wcsrtombs(dest, &source, destSize, &state);
-        if (locale != kDefaultLocal) {
-            setlocale(LC_CTYPE, current);
-        }
         return actualSize;
     }
 
@@ -375,8 +372,6 @@ struct RawStrConvert<wchar_t, char>
         convert(source, buffer.get(), length, state);
         return buffer;
     }
-
-
 };
 
 // multibyte to wchar
@@ -389,23 +384,13 @@ struct RawStrConvert<char, wchar>
         return std::mbsrtowcs(nullptr, &source, 0, &state);
     }
 
-    static usize convert(char const* source, wchar* dest, usize destSize, const char* locale = kDefaultLocal)
-    {
+    static usize convert(char const* source, wchar* dest, usize destSize) {
         std::mbstate_t state{};
-        return This::convert(source, dest, destSize, state, locale);
+        return This::convert(source, dest, destSize, state);
     }
 
-    static usize convert(char const* source, wchar* buf, isize buflen, std::mbstate_t& state, const char* locale = kDefaultLocal) {
-        const char* current = nullptr;
-        if (locale != kDefaultLocal) {
-            current = setlocale(LC_CTYPE, nullptr);
-            setlocale(LC_CTYPE, locale);
-        }
-        usize size = std::mbsrtowcs(buf, &source, buflen, &state);
-        if (locale != kDefaultLocal) {
-            setlocale(LC_CTYPE, current);
-        }
-        return size;
+    static usize convert(char const* source, wchar* buf, isize buflen, std::mbstate_t& state) {
+        return std::mbsrtowcs(buf, &source, buflen, &state);
     }
 
     static TUniquePtr<wchar[]> allocateConvert(char const* source)
@@ -459,13 +444,13 @@ public:
     TString(usize length, Char ch ): Super(length, ch) {}
 
     template<typename OtherChar>
-    TString(TString<OtherChar> const& other, char const* locale = kDefaultLocal) : Super{}
+    TString(TString<OtherChar> const& other) : Super{}
     {
         using Converter = RawStrConvert<OtherChar, Char>;
         std::mbstate_t state{};
         usize newSize = Converter::size(other.data(), state);
         resize(newSize);
-        Converter::convert(other.data(), data(), newSize, state, locale);
+        Converter::convert(other.data(), data(), newSize, state);
     }
     
     static TString& emptyString()
@@ -1058,6 +1043,44 @@ namespace MemoryOps
 };
 
 
+template<typename T, i32 Size>
+struct TLocalBuffer
+{
+    T data[Size];
+    TLocalBuffer() {
+        memset(&data, 0, sizeof(T) * Size);
+    }
+
+    operator T* () {
+        return data;
+    }
+
+    T* getBuffer() {
+        return data;
+    }
+};
+
+template<typename T, i32 Size>
+struct TCharBuffer : public TLocalBuffer<T, Size+1>
+{
+    using Super = TLocalBuffer<T, Size+1>;
+
+    i32 pos{ 0 };
+    using Super::getBuffer;
+
+    template<typename... Args>
+    AR_FORCEINLINE i32 format(T const* format, Args&&... args) {
+        if (pos < Size) {
+            i32 count = RawStrOps<T>::printf(getBuffer() + pos, Size - pos, format, std::forward<Args>(args)...);
+            pos += count;
+            return count;
+        }
+        return 0;
+    }
+};
+
+template<i32 Size> using ACharBuffer = TCharBuffer<char, Size>;
+template<i32 Size> using CharBuffer = TCharBuffer<wchar, Size>;
 
 
 PROJECT_NAMESPACE_END
