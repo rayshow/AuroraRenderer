@@ -2,5 +2,12 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor/External/DirectXShaderCompiler" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor/External/SPIRV-Cross" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor/External/SPIRV-Headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor/External/SPIRV-Tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor/External/cxxopts" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/ShaderConductor/External/googletest" vcs="Git" />
   </component>
 </project>

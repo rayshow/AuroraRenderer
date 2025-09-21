@@ -112,7 +112,7 @@ bool ShaderTypeMap::compile() {
 				return false;
 			}
 		}
-		catch (const std::runtime_error e) {
+		catch (const std::runtime_error& e) {
 			AR_LOG(Error, "shader conductor compile failed:%s", e.what());
 			return false;
 		}

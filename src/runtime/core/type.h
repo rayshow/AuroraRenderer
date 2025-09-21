@@ -1,7 +1,7 @@
 /**
  * @file type.h
  * @author xiongya
- * @brief uniform type define
+ * @brief base type definition
  * @version 0.1
  * @date 2022-06-29
  * 
@@ -33,6 +33,7 @@
 
 
 #include"compile.h" 
+#include "HAL/assert.h"
 
 
 // avoid system header #define min/max
@@ -1081,6 +1082,247 @@ struct TCharBuffer : public TLocalBuffer<T, Size+1>
 
 template<i32 Size> using ACharBuffer = TCharBuffer<char, Size>;
 template<i32 Size> using CharBuffer = TCharBuffer<wchar, Size>;
+
+
+class FRefCountedObject
+{
+public:
+    FRefCountedObject(): numRefs(0) {}
+    virtual ~FRefCountedObject() { ARAssert(numRefs == 0); }
+    FRefCountedObject(const FRefCountedObject& Rhs) = delete;
+    FRefCountedObject& operator=(const FRefCountedObject& Rhs) = delete;
+    i32 addRef() const
+    {
+        return ++numRefs;
+    }
+    i32 release() const
+    {
+        i32 newNumRefs = --numRefs;
+        if(newNumRefs == 0)
+        {
+            delete this;
+        }
+        return newNumRefs;
+    }
+    i32 getRefCount() const
+    {
+        return numRefs;
+    }
+private:
+    mutable i32 numRefs;
+};
+
+class FAtomicRefCountedObject
+{
+private:
+    mutable std::atomic<i32> numRefs;
+public:
+    FAtomicRefCountedObject(): numRefs(0) {}
+    virtual ~FAtomicRefCountedObject() { ARAssert(numRefs == 0); }
+    FAtomicRefCountedObject(const FAtomicRefCountedObject& Rhs) = delete;
+    FAtomicRefCountedObject& operator=(const FAtomicRefCountedObject& Rhs) = delete;
+    i32 AddRef() const
+    {
+        return numRefs.fetch_add(1);
+    }
+    u32 Release() const
+    {
+        u32 newNumRefs = numRefs.fetch_sub(1);
+        if(newNumRefs == 0)
+        {
+            delete this;
+        }
+        return newNumRefs;
+    }
+    i32 GetRefCount() const
+    {
+        return numRefs.load();
+    }
+};
+
+
+template<typename T>
+class TRefCountPtr
+{
+private:
+	T* _ptr;
+public:
+	using ReferenceType = T*;
+
+	template <typename OtherType>
+	friend class TRefCountPtr;
+
+	AR_FORCEINLINE TRefCountPtr() :
+		_ptr(nullptr)
+	{ }
+
+	TRefCountPtr(T* inPtr, bool bAddRef = true)
+	{
+		_ptr = inPtr;
+		if (_ptr && bAddRef) {
+			_ptr->AddRef();
+		}
+	}
+
+	TRefCountPtr(const TRefCountPtr& other)
+	{
+		_ptr = other._ptr;
+		if (_ptr){
+			_ptr->AddRef();
+		}
+	}
+
+	template<typename T2>
+	explicit TRefCountPtr(const TRefCountPtr<T2>& other)
+	{
+		_ptr = static_cast<T*>(other.getReference());
+		if (_ptr){
+			_ptr->AddRef();
+		}
+	}
+
+	AR_FORCEINLINE TRefCountPtr(TRefCountPtr&& other)
+		: _ptr{ other._ptr }
+	{
+		other._ptr = nullptr;
+	}
+
+	template<typename T2>
+	explicit TRefCountPtr(TRefCountPtr<T2>&& other)
+		: _ptr{ static_cast<T*>(other.getReference()) }
+	{
+		other._ptr = nullptr;
+	}
+
+	~TRefCountPtr()
+	{
+		if (_ptr) {
+			_ptr->Release();
+		}
+	}
+
+	TRefCountPtr& operator=(T* raw)
+	{
+		if (_ptr != raw)
+		{
+			// Call AddRef before Release, in case the new reference is the same as the old reference.
+			T* oldRef = _ptr;
+			_ptr = raw;
+			if (_ptr) {
+				_ptr->AddRef();
+			}
+			if (oldRef) {
+				oldRef->Release();
+			}
+		}
+		return *this;
+	}
+
+	AR_FORCEINLINE TRefCountPtr& operator=(const TRefCountPtr& InPtr)
+	{
+		return *this = InPtr._ptr;
+	}
+
+	template<typename T2>
+	AR_FORCEINLINE TRefCountPtr& operator=(const TRefCountPtr<T2>& other)
+	{
+		return *this = other.getReference();
+	}
+
+	TRefCountPtr& operator=(TRefCountPtr&& other)
+	{
+		if (this != std::addressof(other)) {
+			T* old = _ptr;
+			_ptr = other._ptr;
+			other._ptr = nullptr;
+			if (old) {
+				old->Release();
+			}
+		}
+		return *this;
+	}
+
+	template<typename T2>
+	TRefCountPtr& operator=(TRefCountPtr<T2>&& other)
+	{
+		T* oldPtr = _ptr;
+		_ptr = other._ptr;
+		other._ptr = nullptr;
+		if (oldPtr) {
+			oldPtr->Release();
+		}
+		return *this;
+	}
+
+	AR_FORCEINLINE T* operator->() const
+	{
+		return _ptr;
+	}
+
+	AR_FORCEINLINE operator T() const
+	{
+		return _ptr;
+	}
+
+	AR_FORCEINLINE T** getInitAddress()
+	{
+		*this = nullptr;
+		return &_ptr;
+	}
+
+	AR_FORCEINLINE T* getReference() const
+	{
+		return _ptr;
+	}
+
+
+	AR_FORCEINLINE bool isValid() const
+	{
+		return _ptr != nullptr;
+	}
+
+	AR_FORCEINLINE void safeRelease()
+	{
+		*this = nullptr;
+	}
+
+	u32 getRefCount()
+	{
+		u32 count = 0;
+		if (_ptr) {
+			count = _ptr->GetRefCount();
+			// you should never have a zero ref count if there is a live ref counted pointer (*this is live)
+			ARAssert(count > 0);
+		}
+		return count;
+	}
+
+	// this does not change the reference count, and so is faster
+	AR_FORCEINLINE void swap(TRefCountPtr& other) 
+	{
+		if (_ptr != other._ptr) {
+			T* old = _ptr;
+			_ptr = other._ptr;
+			other._ptr = old;
+		}
+	}
+
+	AR_FORCEINLINE bool operator==(const TRefCountPtr& B) const
+	{
+		return _ptr == B.getReference();
+	}
+
+	AR_FORCEINLINE bool operator==(T* B) const
+	{
+		return _ptr == B;
+	}
+
+	AR_FORCEINLINE friend bool IsValidRef(const TRefCountPtr& refCount)
+	{
+		return refCount._ptr != nullptr;
+	}
+};
+
 
 
 PROJECT_NAMESPACE_END
