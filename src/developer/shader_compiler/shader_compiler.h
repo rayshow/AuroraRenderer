@@ -2,17 +2,25 @@
 
 #include"core/type.h"
 #include"core/util/enum_as_flag.h"
-#include "HAL/logger.h"
-#include "render_core/shader.h"
+#include"HAL/logger.h"
+#include"render_core/shader.h"
 
 PROJECT_NAMESPACE_BEGIN
-
 
 enum class EShaderCompileFlag {
     None = 0,
     Debug = 1,
 };
 ENUM_CLASS_FLAGS(EShaderCompileFlag);
+
+enum class EShaderPlatform{
+    DX12 = 0,
+	VulkanDesktop,
+	VulkanMobile,
+	MetalDesktop,
+    MetalMobile,
+    NumFeatureLevel
+};
 
 struct ShaderMetaData
 {
@@ -70,7 +78,7 @@ struct  ShaderTypeInitializer
 {
     ShaderTypeInitializer(String&& name, String&& classpath, String&& sourcePath, String&& entryPoint, String&& target, EShaderStage stage,  EShaderCompileFlag flag)
     {
-        ShaderTypeMap::Instance().add(  std::move(name), ShaderMetaData{ std::move(classpath), std::move(sourcePath), std::move(entryPoint), std::move(target), stage, flag  });
+        ShaderTypeMap::Instance().add( std::move(name), ShaderMetaData{ std::move(classpath), std::move(sourcePath), std::move(entryPoint), std::move(target), stage, flag  });
     }
 };
 
