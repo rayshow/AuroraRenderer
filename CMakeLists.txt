@@ -3,7 +3,9 @@ project (AuroraRenderer VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/scripts/cmake/")
 include(platform)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+
+add_subdirectory(third-party)
 add_subdirectory(src)
 add_subdirectory(app)
-add_subdirectory(third-party)
 add_subdirectory(test)

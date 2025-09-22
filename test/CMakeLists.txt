@@ -1,1 +1,2 @@
 add_subdirectory(VulkanRawTriangle)
+add_subdirectory(TestDXC)

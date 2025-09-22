@@ -12,6 +12,7 @@
 */CmakeFiles/**
 build/*
 Build/*
+out/*
 vs2017
 vs2019
 vs2022

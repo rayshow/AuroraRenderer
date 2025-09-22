@@ -44,10 +44,10 @@ inline bool CheckConditionWithLoc(char const* expr, char const* file, int line, 
 
 #endif
 #else 
-#define ARCheck(condi) 
-#define AREnsure(condi)
-#define ARCheckWithMsg(expr, Fmt,  ...)
-#define AREnsureWithMsg(expr, Fmt,  ...)
+#define ARCheck(condi)  condi
+#define AREnsure(condi) condi
+#define ARCheckWithMsg(expr, Fmt,  ...)   expr
+#define AREnsureWithMsg(expr, Fmt,  ...)  expr
 #endif
 
 
