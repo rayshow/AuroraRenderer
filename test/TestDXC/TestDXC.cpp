@@ -3,7 +3,6 @@
 #include"dxcapi.h"
 #include"HAL/assert.h"
 #include"core/type.h"
-#include"core/util/refcount.h"
 #include"HAL/filesystem.h"
 #include"CLI11.hpp"
 using namespace std;
@@ -158,9 +157,48 @@ public:
     }
 };
 
+#define CheckRetSucc(Expr) ARCheck( (Expr) >=0 )
+
+
 using namespace ar3d;
+String ExtractBlobMessage(IDxcBlob* pBlob ) {
+    if (pBlob == nullptr) {
+        return String{ L"Empty Blob" };
+    }
+
+    // Try to get as UTF-16 or UTF-8
+    BOOL known;
+    UINT32 cp = 0;
+    TRefCountPtr<IDxcBlobEncoding> pBlobEncoding;
+    CheckRetSucc(pBlob->QueryInterface(&pBlobEncoding));
+    CheckRetSucc(pBlobEncoding->GetEncoding(&known, &cp));
+
+    if (cp == DXC_CP_WIDE) {
+        TRefCountPtr<IDxcBlobWide> pWide;
+        if (pBlobEncoding->QueryInterface(&pWide) >= 0)
+        {
+            String message{ pWide->GetStringPointer(), pWide->GetBufferSize() };
+            return message;
+        }
+    }
+    else if (cp == CP_UTF8) {
+        TRefCountPtr<IDxcBlobUtf8> pUtf8;
+        if (pBlobEncoding->QueryInterface(&pUtf8) >=0)
+        {
+            AString Utf8Message{ pUtf8->GetStringPointer(), pUtf8->GetBufferSize() };
+            return String{ Utf8Message };
+        }
+        
+    }
+    return String{ L"Unkown" };
+}
+
+
+
 int main(int argc, char* argv[])
 {
+    ARCheck(Logger::initialize(L".\\1.txt"));
+
     CLI::App app{ "App description" };
     argv = app.ensure_utf8(argv);
 
@@ -177,8 +215,6 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-
-#define CheckRetSucc(Expr) ARCheck( (Expr) >=0 )
 
     DxcDllSupport DxcSupport{};
     CheckRetSucc(DxcSupport.Initialize());
@@ -199,12 +235,78 @@ int main(int argc, char* argv[])
 
     CheckRetSucc(pLibrary->CreateBlobFromFile(wideInputfileName.c_str(), nullptr, pSource.getInitAddress()));
 
+    DxcDefine testDefine{};
+    testDefine.Name = L"TEST_MACRO";
+    testDefine.Value = L"2.0f";
 
-    File file{};
-    if (file.open(outputFileName, EFileOption::Write))
+    TArray<const wchar*> Args{};
+    Args.emplace_back(L"-T vs_6_6");
+    Args.emplace_back(L"-E VSMain");
+
+    CheckRetSucc(pCompiler->Preprocess(pSource.getReference(), wideInputfileName.c_str(),
+        Args.data(), Args.size(), &testDefine, 1, pIncludeHandler,
+        pPreprocessResult.getInitAddress()));
+
+    HRESULT status{};
+    pPreprocessResult->GetStatus(&status);
+
+    if (status < 0)
     {
-        file.rawWrite(pSource->GetBufferPointer(), pSource->GetBufferSize());
+        TRefCountPtr< IDxcBlobEncoding> ErrorBlob{};
+        if (pPreprocessResult->GetErrorBuffer(&ErrorBlob) >= 0)
+        {
+            String ErrorMsg = ExtractBlobMessage(ErrorBlob);
+            AR_LOG(Info, "open output file failed bacause:%s", ErrorMsg.c_str());
+        }
+        return -1;
     }
+    
+    File file{};
+    if (file.open(outputFileName, EFileOption::Write | EFileOption::CreateIfNoExists))
+    {
+        TRefCountPtr< IDxcBlob> Blob{};
+        pPreprocessResult->GetResult(&Blob);
+        file.rawWrite(Blob->GetBufferPointer(), Blob->GetBufferSize());
+    }
+    else {
+        TLocalBuffer<char, 256> errorBuffer{};
+        AR_LOG(Info, "open output file failed bacause:%s", file.getError(errorBuffer.getBuffer(), errorBuffer.Length()));
+    }
+
+    TRefCountPtr<IDxcOperationResult> compileResult;
+    CheckRetSucc(pCompiler->Compile(pSource.getReference(), wideInputfileName.c_str(), L"VSMain", L"vs_6_6", Args.data(), Args.size(), &testDefine, 1, pIncludeHandler, &compileResult));
+
+    compileResult->GetStatus(&status);
+
+    if (status < 0)
+    {
+        TRefCountPtr< IDxcBlobEncoding> ErrorBlob{};
+        if (compileResult->GetErrorBuffer(&ErrorBlob) >= 0)
+        {
+            String ErrorMsg = ExtractBlobMessage(ErrorBlob);
+            AR_LOG(Info, "compile failed bacause:%ls", ErrorMsg.c_str());
+        }
+        return -1;
+    }
+    //IDxcCompiler3
+        
+    File compileFile{};
+    wideOutputfileName.Append(L".dxil");
+    if (compileFile.open(wideOutputfileName, EFileOption::Write | EFileOption::CreateIfNoExists))
+    {
+        TRefCountPtr< IDxcResult> result;
+        CheckRetSucc(compileResult->QueryInterface(&result));
+
+
+        TRefCountPtr< IDxcBlob> Blob{};
+        compileResult->GetResult(&Blob);
+        compileFile.rawWrite(Blob->GetBufferPointer(), Blob->GetBufferSize());
+    }
+    else {
+        TLocalBuffer<char, 256> errorBuffer{};
+        AR_LOG(Info, "open output file failed bacause:%s", file.getError(errorBuffer));
+    }
+
 
 	return 0;
 }

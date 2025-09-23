@@ -277,18 +277,19 @@ public:
     FileSize deriveRawWrite(const void* buf, FileSize bytesCount) {
         FileSize remainBytes = bytesCount;
         FileSize wroteBytes = 0;
+        const u8* bytes = static_cast<const u8*>(buf);
         for (; remainBytes > kOnceReadWriteBytes; remainBytes -= kOnceReadWriteBytes)
         {
-            i32 onceWroteBytes = 0;
-            if (!WriteFile(_handle, buf + wroteBytes, kOnceReadWriteBytes, &onceWroteBytes, nullptr)) {
+            DWORD onceWroteBytes = 0;
+            if (!WriteFile(_handle, bytes + wroteBytes, kOnceReadWriteBytes, &onceWroteBytes, nullptr)) {
                 return -1;
             }
             ARAssert(onceWroteBytes == kOnceReadWriteBytes);
             wroteBytes += kOnceReadWriteBytes;
         }
         if (remainBytes) {
-            i32 onceWroteBytes = 0;
-            if (!WriteFile(_handle, buf + wroteBytes, remainBytes, &onceWroteBytes, nullptr)) {
+            DWORD onceWroteBytes = 0;
+            if (!WriteFile(_handle, bytes + wroteBytes, remainBytes, &onceWroteBytes, nullptr)) {
                 return -1;
             }
             ARAssert(remainBytes == onceWroteBytes);

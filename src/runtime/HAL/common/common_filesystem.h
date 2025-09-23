@@ -185,7 +185,12 @@ public:
     }
        
     template<u32 N>
-    const char* getError(char buf[N]) {
+    const char* getError(char (&buf)[N]) {
+        return getError(buf, N);
+    }
+
+    template<u32 N>
+    const char* getError(TLocalBuffer<char, N>& buf) {
         return getError(buf, N);
     }
 

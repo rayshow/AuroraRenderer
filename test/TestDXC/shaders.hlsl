@@ -9,6 +9,10 @@
 //
 //*********************************************************
 
+#ifndef TEST_MACRO
+#define TEST_MACRO 1.0
+#endif
+
 struct PSInput
 {
     float4 position : SV_POSITION;
@@ -20,9 +24,9 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
     PSInput result;
 
     result.position = position;
-    result.color = color;
+    result.color = color* TEST_MACRO;
 
-    return result;
+    return result ;
 }//你好
 
 float4 PSMain(PSInput input) : SV_TARGET

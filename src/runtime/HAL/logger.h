@@ -45,6 +45,7 @@ public:
     static void output(FILE* const  file, const Char* fmt, va_list& vargs) {
         if (GLogFile) {
             RawStrOps<Char>::vfprintf(GLogFile, fmt, vargs);
+
             fflush(GLogFile);
         }
     }
@@ -84,7 +85,7 @@ public:
 
     template< ELogLevel level, typename Char, typename... Args>
     static void logToFile(const Char* fmt, Args&&... args) {
-        if (GLogFile && (u32)GLogLevel > (u32)level) {
+        if (GLogFile && (u32)GLogLevel >= (u32)level) {
             vprintf_file(fmt, std::forward<Args>(args)...);
         }
         

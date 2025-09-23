@@ -33,7 +33,7 @@
 
 
 #include"compile.h" 
-#include "HAL/assert.h"
+#include"HAL/assert.h"
 
 
 // avoid system header #define min/max
@@ -435,6 +435,7 @@ public:
     using Super::substr;
     using Super::data;
     using Super::resize;
+    using Super::append;
 
     TString(): Super() {}
     TString(Char const* rawStr): Super(rawStr) {}
@@ -487,6 +488,13 @@ public:
     // delay implements
     operator ViewType();
     TString(TStringView<Char> const& View);
+
+    template<u32 N>
+    ThisType& Append(Char const( &str)[N])
+    {
+        append(str, N);
+        return *this;
+    }
 };
 
 // ansi string
@@ -728,6 +736,8 @@ public:
     using Super::push_back;
     using Super::pop_back;
     using Super::swap;
+    using Super::emplace_back;
+    using Super::emplace;
     
     usize length() const{ return Super::size(); }
     void pushBack(T const& elem){ Super::push_back(elem); }
@@ -824,6 +834,9 @@ private:
     T* _dataRef;
     usize _length;
 };
+
+
+using ByteBuffer = TArray<u8>;
 
 
 namespace AlgOps {
@@ -1044,12 +1057,12 @@ namespace MemoryOps
 };
 
 
-template<typename T, i32 Size>
+template<typename T, i32 Len>
 struct TLocalBuffer
 {
-    T data[Size];
+    T data[Len];
     TLocalBuffer() {
-        memset(&data, 0, sizeof(T) * Size);
+        memset(&data, 0, sizeof(T) * Len);
     }
 
     operator T* () {
@@ -1058,6 +1071,14 @@ struct TLocalBuffer
 
     T* getBuffer() {
         return data;
+    }
+
+    constexpr i32 Size() const {
+        return sizeof(T) * Len;
+    }
+
+    constexpr i32 Length() const {
+        return Len;
     }
 };
 
@@ -1259,10 +1280,15 @@ public:
 		return _ptr;
 	}
 
-	AR_FORCEINLINE operator T() const
+	AR_FORCEINLINE operator T*() const
 	{
 		return _ptr;
 	}
+
+    AR_FORCEINLINE T**  operator&()
+    {
+        return &_ptr;
+    }
 
 	AR_FORCEINLINE T** getInitAddress()
 	{
