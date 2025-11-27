@@ -1,3 +1,3 @@
-add_subdirectory(hlsl_compiler)
+add_subdirectory(dxc_wrapper)
 add_subdirectory(shader_compiler)
 add_subdirectory(digest)

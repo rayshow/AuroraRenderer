@@ -274,10 +274,11 @@ int main(int argc, char* argv[])
     }
 
     TRefCountPtr<IDxcOperationResult> compileResult;
-    CheckRetSucc(pCompiler->Compile(pSource.getReference(), wideInputfileName.c_str(), L"VSMain", L"vs_6_6", Args.data(), Args.size(), &testDefine, 1, pIncludeHandler, &compileResult));
+    CheckRetSucc(pCompiler->Compile(pSource.getReference(), wideInputfileName.c_str(), L"VSParticleDraw", L"vs_6_6", Args.data(), Args.size(), &testDefine, 1, pIncludeHandler, &compileResult));
 
     compileResult->GetStatus(&status);
 
+    // 
     if (status < 0)
     {
         TRefCountPtr< IDxcBlobEncoding> ErrorBlob{};
@@ -296,6 +297,15 @@ int main(int argc, char* argv[])
     {
         TRefCountPtr< IDxcResult> result;
         CheckRetSucc(compileResult->QueryInterface(&result));
+
+        
+        for(u32 i=0; i< result->GetNumOutputs(); ++i)
+        {
+            auto kind = result->GetOutputByIndex(i);
+            TRefCountPtr<IDxcBlobWide> Buffer{}; 
+            result->GetOutput(kind, IID_PPV_ARGS(Buffer.getInitAddress()));
+        }
+        
 
 
         TRefCountPtr< IDxcBlob> Blob{};

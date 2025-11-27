@@ -33,7 +33,6 @@
 
 
 #include"compile.h" 
-#include"HAL/assert.h"
 
 
 // avoid system header #define min/max
@@ -69,7 +68,6 @@ using AConstRawStr = char const*;
 using WRawStr = wchar*;
 using WConstRawStr = wchar const*;
 
-
 template<i32 size> struct size_traits { static_assert(size != 4 || size != 8, "unkown ptr size."); };
 template<>         struct size_traits<4> { using size_t = u32 ; using diff_t = i32; };
 template<>         struct size_traits<8> { using size_t = u64 ; using diff_t = i64; };
@@ -77,7 +75,7 @@ using usize = typename size_traits<sizeof(void*)>::size_t;
 using isize = typename size_traits<sizeof(void*)>::diff_t;
 using uintptr = usize;
 using intptr = isize;
-using nullptr_t = decltype(nullptr);
+using nullptr_t = std::nullptr_t;
 using nothrow_t = std::nothrow_t;
 constexpr nothrow_t nothrow;
 
